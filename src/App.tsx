@@ -5,6 +5,8 @@ import InboxView from './renderer/components/inbox/InboxView';
 import ChecklistView from './renderer/components/checklist/ChecklistView';
 import NotesView from './renderer/components/notes/NotesView';
 import DrawingView from './renderer/components/drawing/DrawingView';
+import CommandPalette from './renderer/components/command-palette/CommandPalette';
+import FloatingWindow from './renderer/components/floating-window/FloatingWindow';
 import { VaultIndex } from './shared/ipc-types';
 import { TimerProvider, useTimer } from './renderer/contexts/TimerContext';
 import TimerOverlay from './renderer/components/timer/TimerOverlay';
@@ -19,6 +21,7 @@ export default function App() {
 }
 
 function AppContent() {
+  const [appMode, setAppMode] = useState<'main' | 'palette' | 'floating'>('main');
   const [vaultPath, setVaultPath] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<string>('inbox');
@@ -31,25 +34,83 @@ function AppContent() {
 
   const { timeLeft, isActive, start, pause, reset, skip, mode } = useTimer();
 
+  // Parse query parameters to determine window mode (main app vs utility popovers)
   useEffect(() => {
-    // Check onboarding status on start
-    const checkStatus = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get('mode');
+    if (modeParam === 'palette') {
+      setAppMode('palette');
+      setLoading(false);
+    } else if (modeParam === 'floating') {
+      setAppMode('floating');
+      setLoading(false);
+    } else {
+      setAppMode('main');
+      
+      // Check onboarding status on start (only needed for main window)
+      const checkStatus = async () => {
+        try {
+          const status = await (window as any).wrriter.getVaultStatus();
+          if (status.isLoaded && status.path) {
+            setVaultPath(status.path);
+          }
+        } catch (err) {
+          console.error('Failed to query vault path status:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      checkStatus();
+    }
+  }, []);
+
+  // Load and apply saved theme on mount
+  useEffect(() => {
+    const loadTheme = async () => {
       try {
-        const status = await (window as any).wrriter.getVaultStatus();
-        if (status.isLoaded && status.path) {
-          setVaultPath(status.path);
+        const settings = await (window as any).wrriter.getSettings();
+        if (settings && settings.theme) {
+          document.documentElement.setAttribute('data-theme', settings.theme);
         }
       } catch (err) {
-        console.error('Failed to query vault path status:', err);
-      } finally {
-        setLoading(false);
+        console.error('Failed to load theme on mount:', err);
       }
     };
-    checkStatus();
+    loadTheme();
+  }, []);
+
+  // Handle global command palette actions
+  useEffect(() => {
+    const unsubscribe = (window as any).wrriter.onNavigateNote(async (_event: any, action: string) => {
+      if (action === 'new-note') {
+        try {
+          const res = await (window as any).wrriter.createNote('', 'Untitled');
+          if (res.success) {
+            setActiveSection('notes');
+          }
+        } catch (err) {
+          console.error('Failed to create new note from command palette:', err);
+        }
+      } else if (action === 'toggle-theme') {
+        try {
+          const settings = await (window as any).wrriter.getSettings();
+          const nextTheme = settings.theme === 'light' ? 'dark' : 'light';
+          await (window as any).wrriter.setSettings({ theme: nextTheme });
+          document.documentElement.setAttribute('data-theme', nextTheme);
+        } catch (err) {
+          console.error('Failed to toggle theme:', err);
+        }
+      } else if (action.startsWith('switch-')) {
+        const targetSection = action.replace('switch-', '');
+        setActiveSection(targetSection);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (vaultPath) {
+    if (vaultPath && appMode === 'main') {
       // Fetch initial index
       const fetchIndex = async () => {
         try {
@@ -68,7 +129,7 @@ function AppContent() {
 
       return () => unsubscribe();
     }
-  }, [vaultPath]);
+  }, [vaultPath, appMode]);
 
   const handleVaultSelected = (path: string) => {
     setVaultPath(path);
@@ -80,6 +141,15 @@ function AppContent() {
         Loading Wrriter...
       </div>
     );
+  }
+
+  // Render utility windows directly
+  if (appMode === 'palette') {
+    return <CommandPalette />;
+  }
+
+  if (appMode === 'floating') {
+    return <FloatingWindow />;
   }
 
   if (!vaultPath) {
@@ -203,4 +273,5 @@ function AppContent() {
     </div>
   );
 }
+
 

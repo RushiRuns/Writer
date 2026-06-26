@@ -136,9 +136,9 @@
 
 **Independent Test**: Close app window. Press global hotkeys. Check palette modal opens and launches window on selection. Check floating quick write saves note on Save click.
 
-- [ ] T040 [US8] Create frameless command palette window loader in `src/main/index.ts`
-- [ ] T041 [US8] Create fuzzy commands list and selection handler in `src/renderer/components/command-palette/CommandPalette.tsx`
-- [ ] T042 [P] [US8] Initialize floating window BrowserWindow container in `src/main/index.ts` and view interface in `src/renderer/components/floating-window/FloatingWindow.tsx`
+- [x] T040 [US8] Create frameless command palette window loader in `src/main/index.ts`
+- [x] T041 [US8] Create fuzzy commands list and selection handler in `src/renderer/components/command-palette/CommandPalette.tsx`
+- [x] T042 [P] [US8] Initialize floating window BrowserWindow container in `src/main/index.ts` and view interface in `src/renderer/components/floating-window/FloatingWindow.tsx`
 
 ---
 

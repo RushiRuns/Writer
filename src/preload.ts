@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('wrriter', {
   exportNote: (path: string) => ipcRenderer.invoke('export:note', path),
   exportVault: () => ipcRenderer.invoke('export:vault'),
   importFiles: () => ipcRenderer.invoke('import:files'),
+  closeWindow: () => ipcRenderer.invoke('window:close'),
+  triggerPaletteAction: (action: string) => ipcRenderer.invoke('palette:action', action),
   
   // Listeners (Main -> Renderer IPC callbacks)
   onVaultChange: (callback: (event: any, data: any) => void) => {

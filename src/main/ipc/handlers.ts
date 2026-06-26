@@ -303,4 +303,25 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle('import:files', () => {
     return { success: true };
   });
+
+  ipcMain.handle('window:close', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      win.close();
+    }
+    return { success: true };
+  });
+
+  ipcMain.handle('palette:action', (_event, action) => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+      mainWindow.webContents.send('navigate:note', action);
+    }
+    const paletteWin = BrowserWindow.fromWebContents(_event.sender);
+    if (paletteWin) {
+      paletteWin.close();
+    }
+    return { success: true };
+  });
 }

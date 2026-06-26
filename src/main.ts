@@ -1,19 +1,26 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Tray, Menu } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import { setupIpcHandlers } from './main/ipc/handlers';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
 
+let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
+let isQuitting = false;
+
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
 
@@ -25,16 +32,83 @@ const createWindow = () => {
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
   }
+
+  // Intercept close event to hide window instead of exiting process
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow?.hide();
+    }
+  });
+
+  // Setup main process IPC listener bindings
+  setupIpcHandlers(mainWindow);
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+const createTray = () => {
+  // Bundled tray icon path fallback config
+  const iconPath = path.join(__dirname, '../../resources/tray-icon.png');
+  
+  try {
+    tray = new Tray(iconPath);
+  } catch (err) {
+    // Graceful fallback for local development without icon file
+    console.warn("Tray icon not loaded, using placeholder logic");
+  }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+  if (tray) {
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Open Wrriter',
+        click: () => {
+          mainWindow?.show();
+        }
+      },
+      {
+        label: 'New Quick Note',
+        click: () => {
+          mainWindow?.show();
+          // Will toggle floating window in US8
+        }
+      },
+      {
+        label: 'Open Command Palette',
+        click: () => {
+          mainWindow?.show();
+          // Will toggle palette overlay in US8
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit Wrriter',
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        }
+      }
+    ]);
+
+    tray.setToolTip('Wrriter Desktop Notes');
+    tray.setContextMenu(contextMenu);
+
+    tray.on('double-click', () => {
+      mainWindow?.show();
+    });
+  }
+};
+
+// Start setup when ready
+app.on('ready', () => {
+  createWindow();
+  createTray();
+});
+
+// Capture quit flags
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
+// Quit when all windows are closed, except on macOS
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -42,12 +116,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  } else {
+    mainWindow?.show();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

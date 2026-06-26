@@ -55,6 +55,7 @@
     "chokidar": "^5.0.0",
     "codemirror": "^6.0.2",
     "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^11.0.2",
     "gray-matter": "^4.0.3",
     "howler": "^2.2.4",
     "lucide-react": "^1.21.0",

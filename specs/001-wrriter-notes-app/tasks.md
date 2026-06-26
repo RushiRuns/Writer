@@ -29,12 +29,12 @@
 
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
-- [ ] T005 Implement `electron-store` settings schemas and configuration load/save APIs in `src/main/vault/file-ops.ts`
-- [ ] T006 [P] Implement core IPC preload context bridge exposure methods in `src/preload/index.ts`
-- [ ] T007 [P] Create main process IPC listeners routing registry in `src/main/ipc/handlers.ts`
-- [ ] T008 [P] Initialize system tray context menu and application close-to-hide triggers in `src/main/index.ts`
-- [ ] T009 Implement atomic write helper (write to `.tmp` then rename) in `src/main/vault/file-ops.ts`
-- [ ] T010 Implement `gray-matter` YAML parse and stringify wrappers in `src/main/vault/frontmatter.ts`
+- [x] T005 Implement `electron-store` settings schemas and configuration load/save APIs in `src/main/vault/file-ops.ts`
+- [x] T006 [P] Implement core IPC preload context bridge exposure methods in `src/preload/index.ts`
+- [x] T007 [P] Create main process IPC listeners routing registry in `src/main/ipc/handlers.ts`
+- [x] T008 [P] Initialize system tray context menu and application close-to-hide triggers in `src/main/index.ts` (mapped to `src/main.ts`)
+- [x] T009 Implement atomic write helper (write to `.tmp` then rename) in `src/main/vault/file-ops.ts`
+- [x] T010 Implement `gray-matter` YAML parse and stringify wrappers in `src/main/vault/frontmatter.ts`
 
 ---
 

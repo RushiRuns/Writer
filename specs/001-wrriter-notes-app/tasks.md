@@ -44,10 +44,10 @@
 
 **Independent Test**: Clear electron-store config, launch app, confirm onboarding screen renders. Choose a folder, check that the 9 system subfolders are created recursively, and config is written.
 
-- [ ] T011 [US1] Implement onboarding storage verification checks in `src/main/vault/file-ops.ts`
-- [ ] T012 [US1] Create directory bootstrap utility recursively creating folders in `src/main/vault/file-ops.ts`
-- [ ] T013 [P] [US1] Create onboarding panel page component in `src/renderer/components/settings/Onboarding.tsx`
-- [ ] T014 [US1] Integrate onboarding page redirection checks in `src/renderer/App.tsx` and bootstrap main panels on completion
+- [x] T011 [US1] Implement onboarding storage verification checks in `src/main/vault/file-ops.ts`
+- [x] T012 [US1] Create directory bootstrap utility recursively creating folders in `src/main/vault/file-ops.ts`
+- [x] T013 [P] [US1] Create onboarding panel page component in `src/renderer/components/settings/Onboarding.tsx`
+- [x] T014 [US1] Integrate onboarding page redirection checks in `src/renderer/App.tsx` and bootstrap main panels on completion
 
 ---
 

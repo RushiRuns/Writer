@@ -1,13 +1,18 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron';
-import { configStore, settingsStore, hotkeysStore } from '../vault/file-ops';
+import { configStore, settingsStore, hotkeysStore, bootstrapVaultDirectories, verifyVaultPath } from '../vault/file-ops';
 
 export function setupIpcHandlers(mainWindow: BrowserWindow) {
   // Config & Status Handlers
-  ipcMain.handle('vault:get-status', () => {
-    return {
-      isLoaded: !!configStore.get('vaultPath'),
-      path: configStore.get('vaultPath')
-    };
+  ipcMain.handle('vault:get-status', async () => {
+    const vaultPath = configStore.get('vaultPath');
+    if (vaultPath) {
+      const isValid = await verifyVaultPath(vaultPath);
+      if (isValid) {
+        await bootstrapVaultDirectories(vaultPath);
+        return { isLoaded: true, path: vaultPath };
+      }
+    }
+    return { isLoaded: false, path: null };
   });
 
   ipcMain.handle('vault:open', async () => {
@@ -18,6 +23,13 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
       return { success: false };
     }
     const vaultPath = result.filePaths[0];
+    
+    const isValid = await verifyVaultPath(vaultPath);
+    if (!isValid) {
+      return { success: false, error: 'Selected path is not a valid directory.' };
+    }
+
+    await bootstrapVaultDirectories(vaultPath);
     configStore.set('vaultPath', vaultPath);
     return { success: true, path: vaultPath };
   });

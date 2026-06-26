@@ -86,3 +86,34 @@ export async function resolveConflictPath(destPath: string): Promise<string> {
     return destPath;
   }
 }
+
+// System folders list
+export const systemFolders = [
+  'Inbox',
+  'Later',
+  'Read',
+  'Shop',
+  'Watch',
+  'Tasks',
+  'Journal',
+  'Archive',
+  'Attachments'
+];
+
+// Bootstrap system folders recursively
+export async function bootstrapVaultDirectories(vaultPath: string): Promise<void> {
+  for (const folder of systemFolders) {
+    const fullPath = path.join(vaultPath, folder);
+    await fs.mkdir(fullPath, { recursive: true });
+  }
+}
+
+// Verify that a given vault path exists
+export async function verifyVaultPath(vaultPath: string): Promise<boolean> {
+  try {
+    const stats = await fs.stat(vaultPath);
+    return stats.isDirectory();
+  } catch {
+    return false;
+  }
+}

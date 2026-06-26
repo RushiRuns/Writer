@@ -62,13 +62,6 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
 
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.logoWrapper}>
-        <div className={styles.logoIcon}>
-          <PenTool size={16} />
-        </div>
-        <span className={styles.logoText}>Wrriter</span>
-      </div>
-
       <nav className={styles.navList}>
         <div className={styles.navHeader}>Note Sections</div>
         {navItems.map((item) => {

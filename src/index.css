@@ -139,6 +139,7 @@ body {
 .flex-grow { flex-grow: 1; }
 .h-full { height: 100%; }
 .w-full { width: 100%; }
+.relative { position: relative; }
 .overflow-hidden { overflow: hidden; }
 .overflow-y-auto { overflow-y: auto; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -125,7 +125,8 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
               '&': { height: '100%', fontSize: '15px', fontFamily: 'var(--font-ui)', lineHeight: '1.75' },
               '.cm-scroller': { overflow: 'auto' },
               '.cm-content': { padding: '30px 0 60px 0', maxWidth: '720px', margin: '0 auto', color: '#E0E0E0' },
-              '&.cm-focused': { outline: 'none' }
+              '&.cm-focused': { outline: 'none' },
+              '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--accent-primary) !important' }
             }),
             EditorView.updateListener.of((update) => {
               if (update.docChanged) {

@@ -63,7 +63,6 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.navList}>
-        <div className={styles.navHeader}>Note Sections</div>
         {navItems.map((item) => {
           const isActive = activeSection === item.id;
           const count = item.hasBadge ? getSectionCount(item.id) : 0;

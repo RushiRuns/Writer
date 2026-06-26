@@ -124,9 +124,9 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
             EditorView.theme({
               '&': { height: '100%', fontSize: '15px', fontFamily: 'var(--font-ui)', lineHeight: '1.75' },
               '.cm-scroller': { overflow: 'auto' },
-              '.cm-content': { padding: '30px 0 60px 0', maxWidth: '720px', margin: '0 auto', color: '#E0E0E0' },
+              '.cm-content': { padding: '30px 0 60px 0', maxWidth: '720px', margin: '0 auto', color: '#E0E0E0', caretColor: '#E8A44B' },
               '&.cm-focused': { outline: 'none' },
-              '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--accent-primary) !important' }
+              '.cm-cursor, .cm-dropCursor': { borderLeftWidth: '2px', borderLeftStyle: 'solid', borderLeftColor: '#E8A44B' }
             }),
             EditorView.updateListener.of((update) => {
               if (update.docChanged) {

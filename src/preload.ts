@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld('wrriter', {
   triggerSyncthingScan: () => ipcRenderer.invoke('syncthing:scan'),
   testSyncthingConnection: (url: string, apiKey: string) => 
     ipcRenderer.invoke('syncthing:test', { url, apiKey }),
+  getSyncthingConfig: () => ipcRenderer.invoke('config:get-syncthing'),
+  setSyncthingConfig: (config: any) => ipcRenderer.invoke('config:set-syncthing', config),
   getSettings: () => ipcRenderer.invoke('settings:get'),
   setSettings: (settings: any) => ipcRenderer.invoke('settings:set', settings),
   getHotkeys: () => ipcRenderer.invoke('hotkeys:get'),

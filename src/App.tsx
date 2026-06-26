@@ -11,6 +11,7 @@ import { VaultIndex } from './shared/ipc-types';
 import { TimerProvider, useTimer } from './renderer/contexts/TimerContext';
 import TimerOverlay from './renderer/components/timer/TimerOverlay';
 import AudioManager from './renderer/components/ambient-sounds/AudioManager';
+import SyncthingSettings from './renderer/components/settings/SyncthingSettings';
 
 export default function App() {
   return (
@@ -33,6 +34,35 @@ function AppContent() {
   });
 
   const { timeLeft, isActive, start, pause, reset, skip, mode } = useTimer();
+
+  const [syncthingStatus, setSyncthingStatus] = useState<{
+    status: 'synced' | 'syncing' | 'disconnected';
+    connectedDevices: number;
+    deviceName?: string;
+    version?: string;
+  }>({
+    status: 'disconnected',
+    connectedDevices: 0
+  });
+
+  // Poll Syncthing status every 10 seconds
+  useEffect(() => {
+    if (appMode !== 'main') return;
+
+    const fetchStatus = async () => {
+      try {
+        const status = await (window as any).wrriter.getSyncthingStatus();
+        setSyncthingStatus(status);
+      } catch (err) {
+        console.error('Error fetching Syncthing status:', err);
+        setSyncthingStatus({ status: 'disconnected', connectedDevices: 0 });
+      }
+    };
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000);
+    return () => clearInterval(interval);
+  }, [appMode]);
 
   // Parse query parameters to determine window mode (main app vs utility popovers)
   useEffect(() => {
@@ -179,11 +209,14 @@ function AppContent() {
         return <DrawingView index={index} _vaultPath={vaultPath} />;
       case 'settings':
         return (
-          <div className="flex-grow flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+          <div className="flex-grow flex flex-col items-center p-8 overflow-y-auto animate-fade-in">
             <h2 className="text-xl font-bold text-neutral-200 mb-2">Settings</h2>
-            <p className="text-sm text-neutral-500 max-w-sm mb-4">
+            <p className="text-sm text-neutral-500 max-w-sm mb-6 text-center">
               Configuration and preferences management panel.
             </p>
+            <div className="w-full max-w-lg">
+              <SyncthingSettings />
+            </div>
           </div>
         );
       default:
@@ -212,9 +245,64 @@ function AppContent() {
       <main className="flex-grow flex flex-col bg-black">
         {/* Top Bar */}
         <header className="h-[48px] border-b border-white/10 flex items-center justify-between px-6 bg-neutral-950 flex-shrink-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <span className="text-xs text-neutral-500 uppercase tracking-wider font-semibold">Location:</span>
-            <span className="text-xs text-brand-amber font-mono font-medium">{activeSection.toUpperCase()}</span>
+            <span className="text-xs text-brand-amber font-mono font-medium mr-2">{activeSection.toUpperCase()}</span>
+            
+            {/* Syncthing Status Indicator */}
+            <div className="relative group flex items-center">
+              <div 
+                className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  syncthingStatus.status === 'synced' 
+                    ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]' 
+                    : syncthingStatus.status === 'syncing'
+                      ? 'bg-yellow-500 shadow-[0_0_6px_rgba(234,179,8,0.5)] animate-pulse'
+                      : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+                }`}
+              />
+              
+              {/* Tooltip */}
+              <div className="absolute top-6 left-0 invisible group-hover:visible bg-[#121212] border border-white/5 text-neutral-300 rounded-md p-3 text-[11px] leading-relaxed shadow-2xl z-50 w-52 pointer-events-none select-none font-sans transition-all duration-200 opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0">
+                <div className="font-mono text-[9px] uppercase tracking-wider text-neutral-500 mb-1.5 pb-1 border-b border-white/5">
+                  Syncthing Link
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span>State:</span>
+                  <span className={`font-semibold capitalize ${
+                    syncthingStatus.status === 'synced' 
+                      ? 'text-green-400' 
+                      : syncthingStatus.status === 'syncing'
+                        ? 'text-yellow-400'
+                        : 'text-red-400'
+                  }`}>
+                    {syncthingStatus.status}
+                  </span>
+                </div>
+                {syncthingStatus.status !== 'disconnected' && (
+                  <>
+                    <div className="flex justify-between mb-1">
+                      <span>Device ID:</span>
+                      <span className="font-mono text-neutral-200">{syncthingStatus.deviceName || 'Unknown'}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span>Connected:</span>
+                      <span className="text-neutral-200">{syncthingStatus.connectedDevices} {syncthingStatus.connectedDevices === 1 ? 'device' : 'devices'}</span>
+                    </div>
+                    {syncthingStatus.version && (
+                      <div className="flex justify-between">
+                        <span>Version:</span>
+                        <span className="text-neutral-400 font-mono text-[10px]">{syncthingStatus.version}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {syncthingStatus.status === 'disconnected' && (
+                  <div className="text-[10px] text-neutral-500 mt-1 leading-normal italic">
+                    Daemon offline or configuration error
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

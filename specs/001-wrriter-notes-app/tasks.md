@@ -148,9 +148,9 @@
 
 **Independent Test**: Check top bar status indicator color. Hover to read tooltip. Open Settings and trigger connection tests and POST directory scans.
 
-- [ ] T043 [US9] Implement Syncthing API REST client in `src/main/syncthing/client.ts`
-- [ ] T044 [P] [US9] Create top-bar status dot UI element with hover tooltips in `src/renderer/components/layout/TopBar.tsx`
-- [ ] T045 [US9] Create Syncthing credentials setup panel in `src/renderer/components/settings/SyncthingSettings.tsx`
+- [x] T043 [US9] Implement Syncthing API REST client in `src/main/syncthing/client.ts`
+- [x] T044 [P] [US9] Create top-bar status dot UI element with hover tooltips in `src/renderer/components/layout/TopBar.tsx`
+- [x] T045 [US9] Create Syncthing credentials setup panel in `src/renderer/components/settings/SyncthingSettings.tsx`
 
 ---
 

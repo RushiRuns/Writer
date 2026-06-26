@@ -16,6 +16,11 @@ import {
 import { buildVaultIndex } from '../vault/index-builder';
 import { setupFileWatcher, getActiveIndex, setActiveIndex } from '../vault/file-watcher';
 import { parseFrontmatter, stringifyFrontmatter } from '../vault/frontmatter';
+import { 
+  getSyncthingStatus, 
+  triggerSyncthingScan, 
+  testSyncthingConnection 
+} from '../syncthing/client';
 
 export function setupIpcHandlers(mainWindow: BrowserWindow) {
   // Start file watcher if vault path is configured on startup
@@ -84,6 +89,15 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle('settings:set', (_event, newSettings) => {
     settingsStore.set(newSettings);
+    return { success: true };
+  });
+
+  ipcMain.handle('config:get-syncthing', () => {
+    return configStore.get('syncthing');
+  });
+
+  ipcMain.handle('config:set-syncthing', (_event, syncthingConfig) => {
+    configStore.set('syncthing', syncthingConfig);
     return { success: true };
   });
 
@@ -280,16 +294,16 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
     }
   });
 
-  ipcMain.handle('syncthing:getStatus', () => {
-    return { status: 'disconnected', connectedDevices: 0 };
+  ipcMain.handle('syncthing:getStatus', async () => {
+    return await getSyncthingStatus();
   });
 
-  ipcMain.handle('syncthing:scan', () => {
-    return { success: true };
+  ipcMain.handle('syncthing:scan', async () => {
+    return await triggerSyncthingScan();
   });
 
-  ipcMain.handle('syncthing:test', (_event, _payload) => {
-    return { success: true };
+  ipcMain.handle('syncthing:test', async (_event, { url, apiKey }) => {
+    return await testSyncthingConnection(url, apiKey);
   });
 
   ipcMain.handle('export:note', (_event, _path) => {

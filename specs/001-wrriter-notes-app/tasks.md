@@ -124,9 +124,9 @@
 
 **Independent Test**: Click headset, select sounds and mix volumes, verify loop. Start timer, check that focus end fires notification and opens full-screen cover locking edit.
 
-- [ ] T037 [US7] Implement multi-channel audio loop mixing using Howler.js in `src/renderer/components/ambient-sounds/AudioManager.tsx`
-- [ ] T038 [US7] Implement Pomodoro timer reduction context in `src/renderer/contexts/TimerContext.tsx`
-- [ ] T039 [P] [US7] Create React Portal full-screen break overlay lock in `src/renderer/components/timer/TimerOverlay.tsx`
+- [x] T037 [US7] Implement multi-channel audio loop mixing using Howler.js in `src/renderer/components/ambient-sounds/AudioManager.tsx`
+- [x] T038 [US7] Implement Pomodoro timer reduction context in `src/renderer/contexts/TimerContext.tsx`
+- [x] T039 [P] [US7] Create React Portal full-screen break overlay lock in `src/renderer/components/timer/TimerOverlay.tsx`
 
 ---
 

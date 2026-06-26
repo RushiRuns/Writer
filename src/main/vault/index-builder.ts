@@ -42,7 +42,7 @@ export function extractInlineTags(text: string): string[] {
 
 // Maps relative vault path to its logical section
 export function getSectionFromPath(vaultRelativePath: string): NoteEntry['section'] {
-  const parts = vaultRelativePath.split(path.sep);
+  const parts = vaultRelativePath.replace(/\\/g, '/').split('/');
   const rootFolder = parts[0]?.toLowerCase();
   
   switch (rootFolder) {

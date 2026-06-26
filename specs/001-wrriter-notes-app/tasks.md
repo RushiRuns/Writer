@@ -158,9 +158,9 @@
 
 **Purpose**: Testing, optimization, and validation
 
-- [ ] T046 Write Jest/Vitest unit test suites for `src/main/vault/frontmatter.ts` and index builders
-- [ ] T047 Refactor visual transitions to use easing-out CSS animations under 400ms
-- [ ] T048 Verify all manual walkthrough scenarios build, run, and package successfully
+- [x] T046 Write Jest/Vitest unit test suites for `src/main/vault/frontmatter.ts` and index builders
+- [x] T047 Refactor visual transitions to use easing-out CSS animations under 400ms
+- [x] T048 Verify all manual walkthrough scenarios build, run, and package successfully
 
 ---
 

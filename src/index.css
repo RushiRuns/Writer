@@ -41,7 +41,7 @@
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 15px rgba(232, 164, 75, 0.2);
   
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Light Mode Overrides */
@@ -114,7 +114,7 @@ body {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 
 .glass-card:hover {
@@ -136,7 +136,7 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.3s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
 /* App Layout */
@@ -275,7 +275,7 @@ body {
   color: var(--text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   user-select: none;
   border: 1px solid transparent;
 }
@@ -327,7 +327,7 @@ body {
   font-weight: 700;
   color: var(--text-primary);
   width: 80%;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .title-input::placeholder {
@@ -360,7 +360,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-size: 0.85rem;
   font-weight: 600;
   min-width: 28px;
@@ -414,7 +414,7 @@ body {
   height: 100%;
   z-index: 10;
   flex-shrink: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.215, 0.61, 0.355, 1);
   background: var(--bg-secondary);
 }
 
@@ -494,7 +494,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .btn-primary:hover {
@@ -521,7 +521,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .btn-secondary:hover {
@@ -578,7 +578,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s;
+  transition: color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   padding: 0.25rem;
   border-radius: 4px;
 }
@@ -616,7 +616,7 @@ body {
   height: 100%;
   background: var(--gradient-brand);
   border-radius: var(--radius-full);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
   box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
 }
 

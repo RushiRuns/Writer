@@ -57,11 +57,11 @@
 
 **Independent Test**: Create text file in `/Inbox` manually, confirm it shows in Inbox queue. Type inside bottom input and verify it writes to `/Inbox/`. Click note and route to Later, verify it moves folder.
 
-- [ ] T015 [US2] Implement vault in-memory index builder recursively scanning files in `src/main/vault/index-builder.ts`
-- [ ] T016 [US2] Setup `chokidar` file watcher pushing live index updates to renderer in `src/main/vault/file-watcher.ts`
-- [ ] T017 [P] [US2] Create Quick-Capture text box and notes list views in `src/renderer/components/inbox/InboxView.tsx`
-- [ ] T018 [US2] Create floating routing action toolbar overlay in `src/renderer/components/inbox/RoutingToolbar.tsx`
-- [ ] T019 [US2] Connect file move operations and Pane 1 sidebar count badges in `src/renderer/components/layout/Navigation.tsx`
+- [x] T015 [US2] Implement vault in-memory index builder recursively scanning files in `src/main/vault/index-builder.ts`
+- [x] T016 [US2] Setup `chokidar` file watcher pushing live index updates to renderer in `src/main/vault/file-watcher.ts`
+- [x] T017 [P] [US2] Create Quick-Capture text box and notes list views in `src/renderer/components/inbox/InboxView.tsx`
+- [x] T018 [US2] Create floating routing action toolbar overlay in `src/renderer/components/inbox/RoutingToolbar.tsx`
+- [x] T019 [US2] Connect file move operations and Pane 1 sidebar count badges in `src/renderer/components/layout/Navigation.tsx`
 
 ---
 

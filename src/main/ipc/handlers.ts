@@ -1,7 +1,38 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron';
-import { configStore, settingsStore, hotkeysStore, bootstrapVaultDirectories, verifyVaultPath } from '../vault/file-ops';
+import { ipcMain, dialog, BrowserWindow, shell } from 'electron';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { 
+  configStore, 
+  settingsStore, 
+  hotkeysStore, 
+  bootstrapVaultDirectories, 
+  verifyVaultPath, 
+  writeAtomic, 
+  sanitizeFilename, 
+  resolveConflictPath 
+} from '../vault/file-ops';
+import { buildVaultIndex } from '../vault/index-builder';
+import { setupFileWatcher, getActiveIndex, setActiveIndex } from '../vault/file-watcher';
+import { parseFrontmatter, stringifyFrontmatter } from '../vault/frontmatter';
 
 export function setupIpcHandlers(mainWindow: BrowserWindow) {
+  // Start file watcher if vault path is configured on startup
+  const initialVaultPath = configStore.get('vaultPath');
+  if (initialVaultPath) {
+    verifyVaultPath(initialVaultPath).then(async (isValid) => {
+      if (isValid) {
+        await bootstrapVaultDirectories(initialVaultPath);
+        setupFileWatcher(initialVaultPath, mainWindow);
+        try {
+          const idx = await buildVaultIndex(initialVaultPath);
+          setActiveIndex(idx);
+        } catch (err) {
+          console.error('Failed to build initial vault index:', err);
+        }
+      }
+    });
+  }
+
   // Config & Status Handlers
   ipcMain.handle('vault:get-status', async () => {
     const vaultPath = configStore.get('vaultPath');
@@ -31,6 +62,16 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
 
     await bootstrapVaultDirectories(vaultPath);
     configStore.set('vaultPath', vaultPath);
+    
+    // Start watcher and build index
+    setupFileWatcher(vaultPath, mainWindow);
+    try {
+      const idx = await buildVaultIndex(vaultPath);
+      setActiveIndex(idx);
+    } catch (err) {
+      console.error('Failed to build vault index on open:', err);
+    }
+    
     return { success: true, path: vaultPath };
   });
 
@@ -54,41 +95,152 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
     return { success: true };
   });
 
-  // Placeholder hooks for note features (to be fleshed out in subsequent implementation phases)
-  ipcMain.handle('vault:getIndex', () => {
-    return { notes: [], tagMap: {}, drawings: [], reminders: [] };
+  // Note features implementation
+  ipcMain.handle('vault:getIndex', async () => {
+    const vaultPath = configStore.get('vaultPath');
+    if (!vaultPath) {
+      return { notes: [], tagMap: {}, drawings: [], reminders: [] };
+    }
+    let idx = getActiveIndex();
+    if (!idx) {
+      try {
+        idx = await buildVaultIndex(vaultPath);
+        setActiveIndex(idx);
+      } catch (err) {
+        console.error('Failed to retrieve vault index:', err);
+        return { notes: [], tagMap: {}, drawings: [], reminders: [] };
+      }
+    }
+    return idx;
   });
 
-  ipcMain.handle('note:read', async (_event, _path) => {
-    return { content: '', frontmatter: {} };
+  ipcMain.handle('note:read', async (_event, notePath) => {
+    try {
+      const fileContent = await fs.readFile(notePath, 'utf8');
+      const parsed = parseFrontmatter(fileContent);
+      return { content: parsed.content, frontmatter: parsed.data };
+    } catch (err) {
+      console.error(`Failed to read note at ${notePath}:`, err);
+      return { content: '', frontmatter: {} };
+    }
   });
 
-  ipcMain.handle('note:write', async (_event, _payload) => {
-    return { success: true };
+  ipcMain.handle('note:write', async (_event, { path: notePath, content, frontmatter, newTitle }) => {
+    try {
+      const fileContent = stringifyFrontmatter(content, frontmatter);
+      if (newTitle) {
+        const sanitizedTitle = sanitizeFilename(newTitle);
+        const newPath = path.join(path.dirname(notePath), sanitizedTitle + '.md');
+        if (newPath !== notePath) {
+          const finalPath = await resolveConflictPath(newPath);
+          await writeAtomic(finalPath, fileContent);
+          await fs.unlink(notePath);
+          return { success: true, path: finalPath };
+        }
+      }
+      await writeAtomic(notePath, fileContent);
+      return { success: true, path: notePath };
+    } catch (err) {
+      console.error('Failed to write note:', err);
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('note:delete', async (_event, _path) => {
-    return { success: true };
+  ipcMain.handle('note:delete', async (_event, notePath) => {
+    try {
+      await shell.trashItem(notePath);
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('note:move', async (_event, _payload) => {
-    return { success: true };
+  ipcMain.handle('note:move', async (_event, { path: notePath, destinationFolder }) => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) {
+        return { success: false, error: 'Vault path is not configured' };
+      }
+      const targetDir = path.isAbsolute(destinationFolder)
+        ? destinationFolder
+        : path.join(vaultPath, destinationFolder);
+      
+      await fs.mkdir(targetDir, { recursive: true });
+      const finalPath = await resolveConflictPath(path.join(targetDir, path.basename(notePath)));
+      await fs.rename(notePath, finalPath);
+      return { success: true, path: finalPath };
+    } catch (err) {
+      console.error('Failed to move note:', err);
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('note:create', async (_event, _payload) => {
-    return { success: true };
+  ipcMain.handle('note:create', async (_event, { folder, title }) => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) {
+        return { success: false, error: 'Vault path is not configured' };
+      }
+      const targetDir = path.isAbsolute(folder)
+        ? folder
+        : path.join(vaultPath, folder);
+      
+      await fs.mkdir(targetDir, { recursive: true });
+      const filename = sanitizeFilename(title || 'Untitled') + '.md';
+      const initialPath = path.join(targetDir, filename);
+      const finalPath = await resolveConflictPath(initialPath);
+      
+      const createdDate = new Date().toISOString();
+      const actualTitle = path.parse(finalPath).name;
+      const fileContent = stringifyFrontmatter('', {
+        title: actualTitle,
+        created: createdDate,
+        tags: [],
+        reminder: null,
+        completed: false,
+        completed_at: null
+      });
+      
+      await writeAtomic(finalPath, fileContent);
+      return { success: true, path: finalPath };
+    } catch (err) {
+      console.error('Failed to create note:', err);
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('folder:create', async (_event, _payload) => {
-    return { success: true };
+  ipcMain.handle('folder:create', async (_event, { parentPath, folderName }) => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) return { success: false, error: 'Vault path not configured' };
+      const baseDir = parentPath ? (path.isAbsolute(parentPath) ? parentPath : path.join(vaultPath, parentPath)) : vaultPath;
+      const newFolderPath = path.join(baseDir, sanitizeFilename(folderName));
+      await fs.mkdir(newFolderPath, { recursive: true });
+      return { success: true, path: newFolderPath };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('folder:rename', async (_event, _payload) => {
-    return { success: true };
+  ipcMain.handle('folder:rename', async (_event, { path: folderPath, newName }) => {
+    try {
+      const parentDir = path.dirname(folderPath);
+      const newFolderPath = path.join(parentDir, sanitizeFilename(newName));
+      await fs.rename(folderPath, newFolderPath);
+      return { success: true, path: newFolderPath };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('folder:delete', async (_event, _path) => {
-    return { success: true };
+  ipcMain.handle('folder:delete', async (_event, folderPath) => {
+    try {
+      await shell.trashItem(folderPath);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
   });
 
   ipcMain.handle('drawing:save', async (_event, _payload) => {

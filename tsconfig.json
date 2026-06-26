@@ -10,6 +10,9 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "paths": {
+      "conf": ["node_modules/conf/dist/source/index.d.ts"]
+    },
     "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,

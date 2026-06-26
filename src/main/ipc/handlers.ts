@@ -10,7 +10,8 @@ import {
   writeAtomic, 
   sanitizeFilename, 
   resolveConflictPath,
-  setNoteCompletedState 
+  setNoteCompletedState,
+  saveDrawingFiles
 } from '../vault/file-ops';
 import { buildVaultIndex } from '../vault/index-builder';
 import { setupFileWatcher, getActiveIndex, setActiveIndex } from '../vault/file-watcher';
@@ -254,12 +255,29 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
     }
   });
 
-  ipcMain.handle('drawing:save', async (_event, _payload) => {
-    return { success: true };
+  ipcMain.handle('drawing:save', async (_event, { name, strokes, pngBase64 }) => {
+    const vaultPath = configStore.get('vaultPath');
+    if (!vaultPath) {
+      return { success: false, error: 'Vault path not configured' };
+    }
+    return await saveDrawingFiles(vaultPath, name, strokes, pngBase64);
   });
 
-  ipcMain.handle('drawing:load', async (_event, _name) => {
-    return { strokes: [] };
+  ipcMain.handle('drawing:load', async (_event, name) => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) {
+        return { strokes: [] };
+      }
+      const sanitized = sanitizeFilename(name);
+      const jsonPath = path.join(vaultPath, 'Attachments', `${sanitized}.json`);
+      const content = await fs.readFile(jsonPath, 'utf8');
+      const strokes = JSON.parse(content);
+      return { strokes };
+    } catch (err) {
+      console.error(`Failed to load drawing ${name}:`, err);
+      return { strokes: [] };
+    }
   });
 
   ipcMain.handle('syncthing:getStatus', () => {

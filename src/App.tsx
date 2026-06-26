@@ -4,6 +4,7 @@ import Navigation from './renderer/components/layout/Navigation';
 import InboxView from './renderer/components/inbox/InboxView';
 import ChecklistView from './renderer/components/checklist/ChecklistView';
 import NotesView from './renderer/components/notes/NotesView';
+import DrawingView from './renderer/components/drawing/DrawingView';
 import { VaultIndex } from './shared/ipc-types';
 
 export default function App() {
@@ -91,6 +92,8 @@ export default function App() {
         );
       case 'notes':
         return <NotesView index={index} _vaultPath={vaultPath} />;
+      case 'drawing':
+        return <DrawingView index={index} vaultPath={vaultPath} />;
       case 'settings':
         return (
           <div className="flex-grow flex flex-col items-center justify-center p-8 text-center animate-fade-in">

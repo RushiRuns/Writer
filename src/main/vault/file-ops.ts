@@ -128,3 +128,38 @@ export async function setNoteCompletedState(filePath: string, completed: boolean
   const newContent = stringifyFrontmatter(parsed.content, parsed.data);
   await writeAtomic(filePath, newContent);
 }
+
+// Save drawing PNG + JSON to Attachments directory inside the vault
+export async function saveDrawingFiles(
+  vaultPath: string,
+  name: string,
+  strokes: any[],
+  pngBase64: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const sanitized = sanitizeFilename(name);
+    if (!sanitized) {
+      return { success: false, error: 'Invalid file name' };
+    }
+    const attachmentsDir = path.join(vaultPath, 'Attachments');
+    await fs.mkdir(attachmentsDir, { recursive: true });
+
+    const pngPath = path.join(attachmentsDir, `${sanitized}.png`);
+    const jsonPath = path.join(attachmentsDir, `${sanitized}.json`);
+
+    // Write PNG atomically
+    const base64Data = pngBase64.replace(/^data:image\/png;base64,/, '');
+    const tmpPngPath = `${pngPath}.tmp`;
+    await fs.writeFile(tmpPngPath, Buffer.from(base64Data, 'base64'));
+    await fs.rename(tmpPngPath, pngPath);
+
+    // Write JSON atomically
+    const jsonContent = JSON.stringify(strokes, null, 2);
+    await writeAtomic(jsonPath, jsonContent);
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
+}
+

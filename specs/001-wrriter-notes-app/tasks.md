@@ -111,10 +111,10 @@
 
 **Independent Test**: Open canvas, draw lines. Save note. Check attachments directory for PNG/JSON pairs. Open canvas again, select drawing, verify strokes replay and undo operates.
 
-- [ ] T033 [US6] Create drawing pad HTML5 canvas layout in `src/renderer/components/drawing/DrawingView.tsx`
-- [ ] T034 [US6] Implement stroke coordinate collection logic in hook `src/renderer/hooks/useCanvas.ts`
-- [ ] T035 [P] [US6] Create drawings save IPC endpoint (writing PNG + JSON) in `src/main/vault/file-ops.ts`
-- [ ] T036 [US6] Implement requestAnimationFrame drawing history replayer in `src/renderer/components/drawing/CanvasReplayer.tsx`
+- [x] T033 [US6] Create drawing pad HTML5 canvas layout in `src/renderer/components/drawing/DrawingView.tsx`
+- [x] T034 [US6] Implement stroke coordinate collection logic in hook `src/renderer/hooks/useCanvas.ts`
+- [x] T035 [P] [US6] Create drawings save IPC endpoint (writing PNG + JSON) in `src/main/vault/file-ops.ts`
+- [x] T036 [US6] Implement requestAnimationFrame drawing history replayer in `src/renderer/components/drawing/CanvasReplayer.tsx`
 
 ---
 

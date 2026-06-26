@@ -96,12 +96,12 @@
 
 **Independent Test**: Write styled text, verify symbols hide when cursor exits line. Type `[[` and verify dropdown fuzzy searches note index. Add tags via metadata bar, check stats pill.
 
-- [ ] T027 [US5] Initialize CodeMirror 6 markdown editor core in `src/renderer/components/editor/Editor.tsx`
-- [ ] T028 [US5] Implement ViewPlugin to hide markdown syntax characters on idle lines in `src/renderer/components/editor/hideMarkdown.ts`
-- [ ] T029 [P] [US5] Implement custom autocomplete dropdown menu for `[[` WikiLinks in `src/renderer/components/editor/wikiLinkAutocomplete.ts`
-- [ ] T030 [P] [US5] Create frontmatter metadata editor bar component in `src/renderer/components/editor/MetadataBar.tsx`
-- [ ] T031 [US5] Implement debounced auto-save hook writing to main in `src/renderer/components/editor/useAutoSave.ts`
-- [ ] T032 [P] [US5] Implement statistics calculations pill overlay in `src/renderer/components/statistics/StatsPill.tsx`
+- [x] T027 [US5] Initialize CodeMirror 6 markdown editor core in `src/renderer/components/editor/Editor.tsx`
+- [x] T028 [US5] Implement ViewPlugin to hide markdown syntax characters on idle lines in `src/renderer/components/editor/hideMarkdown.ts`
+- [x] T029 [P] [US5] Implement custom autocomplete dropdown menu for `[[` WikiLinks in `src/renderer/components/editor/wikiLinkAutocomplete.ts`
+- [x] T030 [P] [US5] Create frontmatter metadata editor bar component in `src/renderer/components/editor/MetadataBar.tsx`
+- [x] T031 [US5] Implement debounced auto-save hook writing to main in `src/renderer/components/editor/useAutoSave.ts`
+- [x] T032 [P] [US5] Implement statistics calculations pill overlay in `src/renderer/components/statistics/StatsPill.tsx`
 
 ---
 

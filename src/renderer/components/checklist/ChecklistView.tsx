@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import ChecklistContextMenu from './ChecklistContextMenu';
+import Editor from '../editor/Editor';
 
 interface ChecklistViewProps {
   sectionId: 'later' | 'read' | 'shop' | 'watch' | 'tasks';
@@ -10,7 +11,6 @@ interface ChecklistViewProps {
 
 export default function ChecklistView({ sectionId, index, _vaultPath }: ChecklistViewProps) {
   const [selectedNoteForEdit, setSelectedNoteForEdit] = useState<NoteEntry | null>(null);
-  const [editorContent, setEditorContent] = useState('');
   const [newItemText, setNewItemText] = useState('');
   const [renamingNotePath, setRenamingNotePath] = useState<string | null>(null);
   const [renameText, setRenameText] = useState('');
@@ -26,20 +26,7 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
     note: NoteEntry;
   } | null>(null);
 
-  // Read currently active note content if editor opens
-  useEffect(() => {
-    if (selectedNoteForEdit) {
-      const readContent = async () => {
-        try {
-          const res = await (window as any).wrriter.readNote(selectedNoteForEdit.path);
-          setEditorContent(res.content);
-        } catch (err) {
-          console.error('Failed to read note:', err);
-        }
-      };
-      readContent();
-    }
-  }, [selectedNoteForEdit?.path]);
+
 
   // Clean up timeouts on unmount
   useEffect(() => {
@@ -127,20 +114,7 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
     setRenamingNotePath(null);
   };
 
-  const handleSaveEditorContent = async () => {
-    if (!selectedNoteForEdit) return;
-    try {
-      const data = await (window as any).wrriter.readNote(selectedNoteForEdit.path);
-      await (window as any).wrriter.writeNote(selectedNoteForEdit.path, editorContent, data.frontmatter);
-    } catch (err) {
-      console.error('Failed to auto-save note content:', err);
-    }
-  };
 
-  // Auto-save on editor blur
-  const handleEditorBlur = () => {
-    handleSaveEditorContent();
-  };
 
   // Section icons helper
   const renderSectionIcon = () => {
@@ -313,32 +287,12 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
       {/* Editor Column Area */}
       {selectedNoteForEdit && (
         <div className="flex-grow flex flex-col h-full bg-[#161616] animate-fade-in relative">
-          {/* Header */}
-          <div className="h-[48px] border-b border-white/5 px-6 flex items-center justify-between bg-neutral-900/30">
-            <span className="text-xs text-neutral-400 font-mono truncate">
-              Editing: {selectedNoteForEdit.title}
-            </span>
-            <button
-              onClick={() => {
-                handleSaveEditorContent();
-                setSelectedNoteForEdit(null);
-              }}
-              className="text-xs text-neutral-500 hover:text-white px-2 py-1 rounded bg-neutral-800 border border-white/5 hover:border-white/20 transition-all"
-            >
-              Close Editor
-            </button>
-          </div>
-
-          {/* Simple editor body (autoresizing container, rich styled textarea for now) */}
-          <div className="flex-grow p-6 flex flex-col overflow-y-auto">
-            <textarea
-              value={editorContent}
-              onChange={(e) => setEditorContent(e.target.value)}
-              onBlur={handleEditorBlur}
-              placeholder="Add details, markdown, links, lists..."
-              className="flex-grow w-full max-w-2xl mx-auto bg-transparent border-none outline-none resize-none text-neutral-200 text-sm font-mono leading-relaxed placeholder-neutral-600"
-            />
-          </div>
+          <Editor
+            note={selectedNoteForEdit}
+            index={index}
+            onNoteSelect={setSelectedNoteForEdit}
+            onClose={() => setSelectedNoteForEdit(null)}
+          />
         </div>
       )}
 

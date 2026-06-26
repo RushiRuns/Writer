@@ -71,9 +71,9 @@
 
 **Independent Test**: Select Later in sidebar, confirm checklist renders. Toggle item, check strikethrough, check disk note for completed frontmatter. Right click for context menu actions.
 
-- [ ] T020 [US3] Create checklist rendering page template in `src/renderer/components/checklist/ChecklistView.tsx`
-- [ ] T021 [US3] Implement YAML completed state write operations in `src/main/vault/file-ops.ts`
-- [ ] T022 [P] [US3] Create checklist item context menu (Rename, Move to Inbox, Delete, Copy) in `src/renderer/components/checklist/ChecklistContextMenu.tsx`
+- [x] T020 [US3] Create checklist rendering page template in `src/renderer/components/checklist/ChecklistView.tsx`
+- [x] T021 [US3] Implement YAML completed state write operations in `src/main/vault/file-ops.ts`
+- [x] T022 [P] [US3] Create checklist item context menu (Rename, Move to Inbox, Delete, Copy) in `src/renderer/components/checklist/ChecklistContextMenu.tsx`
 
 ---
 

@@ -9,7 +9,8 @@ import {
   verifyVaultPath, 
   writeAtomic, 
   sanitizeFilename, 
-  resolveConflictPath 
+  resolveConflictPath,
+  setNoteCompletedState 
 } from '../vault/file-ops';
 import { buildVaultIndex } from '../vault/index-builder';
 import { setupFileWatcher, getActiveIndex, setActiveIndex } from '../vault/file-watcher';
@@ -152,6 +153,16 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
       return { success: true };
     } catch (err) {
       console.error('Failed to delete note:', err);
+      return { success: false, error: String(err) };
+    }
+  });
+
+  ipcMain.handle('note:toggle-complete', async (_event, { path: notePath, completed }) => {
+    try {
+      await setNoteCompletedState(notePath, completed);
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to toggle note complete state:', err);
       return { success: false, error: String(err) };
     }
   });

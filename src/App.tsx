@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Onboarding from './renderer/components/settings/Onboarding';
 import Navigation from './renderer/components/layout/Navigation';
 import InboxView from './renderer/components/inbox/InboxView';
+import ChecklistView from './renderer/components/checklist/ChecklistView';
 import { VaultIndex } from './shared/ipc-types';
 
 export default function App() {
@@ -75,6 +76,18 @@ export default function App() {
     switch (activeSection) {
       case 'inbox':
         return <InboxView index={index} vaultPath={vaultPath} />;
+      case 'later':
+      case 'read':
+      case 'shop':
+      case 'watch':
+      case 'tasks':
+        return (
+          <ChecklistView
+            sectionId={activeSection as any}
+            index={index}
+            _vaultPath={vaultPath}
+          />
+        );
       case 'settings':
         return (
           <div className="flex-grow flex flex-col items-center justify-center p-8 text-center animate-fade-in">

@@ -2,6 +2,7 @@ import Store from 'electron-store';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { AppConfig, AppSettings, HotkeyBindings } from '../../shared/ipc-types';
+import { parseFrontmatter, stringifyFrontmatter } from './frontmatter';
 
 // Setup store configurations
 export const configStore = new Store<AppConfig>({
@@ -116,4 +117,14 @@ export async function verifyVaultPath(vaultPath: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// Write the completed state of a note directly in its YAML frontmatter
+export async function setNoteCompletedState(filePath: string, completed: boolean): Promise<void> {
+  const fileContent = await fs.readFile(filePath, 'utf8');
+  const parsed = parseFrontmatter(fileContent);
+  parsed.data.completed = completed;
+  parsed.data.completed_at = completed ? new Date().toISOString() : null;
+  const newContent = stringifyFrontmatter(parsed.content, parsed.data);
+  await writeAtomic(filePath, newContent);
 }

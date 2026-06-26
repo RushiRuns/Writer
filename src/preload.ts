@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('wrriter', {
   writeNote: (path: string, content: string, frontmatter: any, newTitle?: string) => 
     ipcRenderer.invoke('note:write', { path, content, frontmatter, newTitle }),
   deleteNote: (path: string) => ipcRenderer.invoke('note:delete', path),
+  toggleNoteComplete: (path: string, completed: boolean) => 
+    ipcRenderer.invoke('note:toggle-complete', { path, completed }),
   moveNote: (path: string, destinationFolder: string) => 
     ipcRenderer.invoke('note:move', { path, destinationFolder }),
   createNote: (folder: string, title: string) => 

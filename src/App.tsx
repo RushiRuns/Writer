@@ -12,6 +12,7 @@ import { TimerProvider, useTimer } from './renderer/contexts/TimerContext';
 import TimerOverlay from './renderer/components/timer/TimerOverlay';
 import AudioManager from './renderer/components/ambient-sounds/AudioManager';
 import SyncthingSettings from './renderer/components/settings/SyncthingSettings';
+import styles from './App.module.css';
 
 export default function App() {
   return (
@@ -167,7 +168,7 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-black text-brand-amber font-mono">
+      <div className={styles.loadingScreen}>
         Loading Wrriter...
       </div>
     );
@@ -209,21 +210,21 @@ function AppContent() {
         return <DrawingView index={index} _vaultPath={vaultPath} />;
       case 'settings':
         return (
-          <div className="flex-grow flex flex-col items-center p-8 overflow-y-auto animate-fade-in">
-            <h2 className="text-xl font-bold text-neutral-200 mb-2">Settings</h2>
-            <p className="text-sm text-neutral-500 max-w-sm mb-6 text-center">
+          <div className={styles.settingsWrapper}>
+            <h2 className={styles.settingsTitle}>Settings</h2>
+            <p className={styles.settingsSubtitle}>
               Configuration and preferences management panel.
             </p>
-            <div className="w-full max-w-lg">
+            <div className={styles.settingsInner}>
               <SyncthingSettings />
             </div>
           </div>
         );
       default:
         return (
-          <div className="flex-grow flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-            <h2 className="text-xl font-bold text-neutral-200 mb-2">{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} View</h2>
-            <p className="text-sm text-neutral-500 max-w-sm">
+          <div className={styles.fallbackView}>
+            <h2 className={styles.fallbackTitle}>{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} View</h2>
+            <p className={styles.fallbackText}>
               This section is scheduled for implementation in a subsequent development phase.
             </p>
           </div>
@@ -232,7 +233,7 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-black text-white overflow-hidden font-ui">
+    <div className={styles.container}>
       {/* Sidebar Panel (Pane 1) */}
       <Navigation 
         activeSection={activeSection} 
@@ -242,62 +243,62 @@ function AppContent() {
       />
 
       {/* Main Workspace */}
-      <main className="flex-grow flex flex-col bg-black">
+      <main className={styles.main}>
         {/* Top Bar */}
-        <header className="h-[48px] border-b border-white/10 flex items-center justify-between px-6 bg-neutral-950 flex-shrink-0">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs text-neutral-500 uppercase tracking-wider font-semibold">Location:</span>
-            <span className="text-xs text-brand-amber font-mono font-medium mr-2">{activeSection.toUpperCase()}</span>
+        <header className={styles.header}>
+          <div className={styles.locationWrapper}>
+            <span className={styles.locationLabel}>Location:</span>
+            <span className={styles.locationValue}>{activeSection.toUpperCase()}</span>
             
             {/* Syncthing Status Indicator */}
-            <div className="relative group flex items-center">
+            <div className={styles.statusGroup}>
               <div 
-                className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                className={`${styles.statusDot} ${
                   syncthingStatus.status === 'synced' 
-                    ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]' 
+                    ? styles.statusSynced 
                     : syncthingStatus.status === 'syncing'
-                      ? 'bg-yellow-500 shadow-[0_0_6px_rgba(234,179,8,0.5)] animate-pulse'
-                      : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+                      ? styles.statusSyncing
+                      : styles.statusDisconnected
                 }`}
               />
               
               {/* Tooltip */}
-              <div className="absolute top-6 left-0 invisible group-hover:visible bg-[#121212] border border-white/5 text-neutral-300 rounded-md p-3 text-[11px] leading-relaxed shadow-2xl z-50 w-52 pointer-events-none select-none font-sans transition-all duration-200 opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0">
-                <div className="font-mono text-[9px] uppercase tracking-wider text-neutral-500 mb-1.5 pb-1 border-b border-white/5">
+              <div className={styles.tooltip}>
+                <div className={styles.tooltipHeader}>
                   Syncthing Link
                 </div>
-                <div className="flex justify-between mb-1">
+                <div className={styles.tooltipRow}>
                   <span>State:</span>
-                  <span className={`font-semibold capitalize ${
+                  <span className={
                     syncthingStatus.status === 'synced' 
-                      ? 'text-green-400' 
+                      ? styles.tooltipStateSynced 
                       : syncthingStatus.status === 'syncing'
-                        ? 'text-yellow-400'
-                        : 'text-red-400'
-                  }`}>
+                        ? styles.tooltipStateSyncing
+                        : styles.tooltipStateDisconnected
+                  }>
                     {syncthingStatus.status}
                   </span>
                 </div>
                 {syncthingStatus.status !== 'disconnected' && (
                   <>
-                    <div className="flex justify-between mb-1">
+                    <div className={styles.tooltipRow}>
                       <span>Device ID:</span>
-                      <span className="font-mono text-neutral-200">{syncthingStatus.deviceName || 'Unknown'}</span>
+                      <span className={styles.tooltipValue}>{syncthingStatus.deviceName || 'Unknown'}</span>
                     </div>
-                    <div className="flex justify-between mb-1">
+                    <div className={styles.tooltipRow}>
                       <span>Connected:</span>
-                      <span className="text-neutral-200">{syncthingStatus.connectedDevices} {syncthingStatus.connectedDevices === 1 ? 'device' : 'devices'}</span>
+                      <span className={styles.tooltipValue}>{syncthingStatus.connectedDevices} {syncthingStatus.connectedDevices === 1 ? 'device' : 'devices'}</span>
                     </div>
                     {syncthingStatus.version && (
-                      <div className="flex justify-between">
+                      <div className={styles.tooltipRow}>
                         <span>Version:</span>
-                        <span className="text-neutral-400 font-mono text-[10px]">{syncthingStatus.version}</span>
+                        <span className={styles.tooltipValue}>{syncthingStatus.version}</span>
                       </div>
                     )}
                   </>
                 )}
                 {syncthingStatus.status === 'disconnected' && (
-                  <div className="text-[10px] text-neutral-500 mt-1 leading-normal italic">
+                  <div className={styles.tooltipTextMuted}>
                     Daemon offline or configuration error
                   </div>
                 )}
@@ -305,16 +306,16 @@ function AppContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className={styles.headerActions}>
             {/* Focus Timer Pill */}
-            <div className="flex items-center gap-2 bg-neutral-900 border border-white/5 px-2.5 py-1 rounded-md h-[32px]">
-              <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${isActive ? 'text-brand-amber animate-pulse' : 'text-neutral-400'}`}>
+            <div className={styles.timerPill}>
+              <span className={`${styles.timerText} ${isActive ? styles.timerTextActive : ''}`}>
                 {mode === 'focus' ? 'Focus' : 'Break'}: {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
               </span>
-              <div className="w-[1px] h-3.5 bg-white/10 mx-1" />
+              <div className={styles.timerDivider} />
               <button
                 onClick={isActive ? pause : start}
-                className="text-neutral-400 hover:text-brand-amber transition-colors p-0.5"
+                className={styles.timerBtn}
                 title={isActive ? 'Pause' : 'Start'}
               >
                 {isActive ? (
@@ -325,7 +326,7 @@ function AppContent() {
               </button>
               <button
                 onClick={reset}
-                className="text-neutral-400 hover:text-brand-amber transition-colors p-0.5"
+                className={styles.timerBtn}
                 title="Reset Session"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12"/></svg>
@@ -333,7 +334,7 @@ function AppContent() {
               {mode === 'focus' && (
                 <button
                   onClick={skip}
-                  className="text-neutral-400 hover:text-brand-amber transition-colors p-0.5"
+                  className={styles.timerBtn}
                   title="Skip Session"
                 >
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
@@ -344,14 +345,14 @@ function AppContent() {
             {/* Ambient Sounds Mixer Popover Button */}
             <AudioManager />
 
-            <div className="text-xs text-neutral-500 font-mono truncate max-w-xs md:max-w-md hidden sm:block">
+            <div className={styles.vaultPathLabel}>
               Vault: {vaultPath}
             </div>
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-grow flex flex-col overflow-hidden">
+        <div className={styles.contentWrapper}>
           {renderContent()}
         </div>
       </main>

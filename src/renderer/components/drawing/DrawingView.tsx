@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VaultIndex, DrawingEntry, Stroke } from '../../../shared/ipc-types';
 import { useCanvas } from '../../hooks/useCanvas';
 import CanvasReplayer from './CanvasReplayer';
+import styles from './DrawingView.module.css';
 import { 
   PenTool, 
   Paintbrush, 
@@ -164,15 +165,15 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   };
 
   return (
-    <div className="flex h-full w-full bg-black text-neutral-300 overflow-hidden font-ui">
+    <div className={styles.container}>
       {/* Drawings List Sidebar (Pane 3 layout equivalent) */}
-      <div className="w-[240px] flex-shrink-0 bg-[#161616] border-r border-white/5 flex flex-col h-full overflow-hidden">
+      <div className={styles.sidebar}>
         {/* Header */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between flex-shrink-0">
-          <span className="font-semibold text-sm text-neutral-200 select-none">Drawings</span>
+        <div className={styles.sidebarHeader}>
+          <span className={styles.sidebarTitle}>Drawings</span>
           <button
             onClick={handleNewDrawing}
-            className="p-1 hover:bg-neutral-800 rounded border border-white/10 hover:border-brand-amber/40 text-neutral-400 hover:text-brand-amber transition-all"
+            className={styles.newSketchBtn}
             title="New Sketch"
           >
             <Plus size={16} />
@@ -180,23 +181,23 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
         </div>
 
         {/* Search */}
-        <div className="p-2 border-b border-white/5 flex-shrink-0">
-          <div className="relative flex items-center bg-neutral-950 rounded px-2.5 py-1 border border-white/5 focus-within:border-brand-amber/50">
-            <Search size={14} className="text-neutral-500 mr-2" />
+        <div className={styles.searchContainer}>
+          <div className={styles.searchInputWrapper}>
+            <Search size={14} className={styles.searchIcon} />
             <input
               type="text"
               placeholder="Search drawings..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none text-xs text-neutral-200 outline-none w-full font-sans"
+              className={styles.searchInput}
             />
           </div>
         </div>
 
         {/* Drawings List Scroll Area */}
-        <div className="flex-grow overflow-y-auto p-2 flex flex-col gap-1">
+        <div className={styles.drawingsList}>
           {filteredDrawings.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-center text-xs text-neutral-600 italic">
+            <div className={styles.emptyState}>
               No sketches found
             </div>
           ) : (
@@ -206,18 +207,12 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 <div
                   key={drawing.name}
                   onClick={() => setSelectedDrawing(drawing)}
-                  className={`group flex items-center gap-3 p-3 rounded cursor-pointer border transition-all duration-150 ${
-                    isSelected
-                      ? 'border-brand-amber/40 bg-neutral-900/40 shadow-md shadow-brand-amber/5'
-                      : 'border-transparent bg-neutral-950/40 hover:bg-neutral-900/30'
-                  }`}
+                  className={`${styles.drawingItem} ${isSelected ? styles.drawingItemActive : ''}`}
                 >
-                  <div className="p-1.5 rounded bg-neutral-900 border border-white/5 text-neutral-400 group-hover:text-brand-amber group-hover:border-brand-amber/30 transition-colors">
+                  <div className={styles.drawingIcon}>
                     <ImageIcon size={14} />
                   </div>
-                  <span className={`text-xs font-medium truncate flex-grow ${
-                    isSelected ? 'text-brand-amber' : 'text-neutral-200'
-                  }`}>
+                  <span className={`${styles.drawingName} ${isSelected ? styles.drawingNameActive : ''}`}>
                     {drawing.name}
                   </span>
                 </div>
@@ -228,7 +223,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
       </div>
 
       {/* Main Workspace (Pane 4 layout equivalent) */}
-      <div className="flex-grow flex flex-col bg-[#1c1c1c] h-full overflow-hidden">
+      <div className={styles.mainWorkspace}>
         {replayingStrokes ? (
           // Replayer view
           <CanvasReplayer
@@ -239,32 +234,32 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
           />
         ) : (
           // Interactive Canvas editor
-          <div className="flex-grow flex flex-col overflow-hidden h-full">
+          <div className={styles.canvasEditor}>
             {/* Header controls bar */}
-            <div className="px-6 py-3 border-b border-white/5 bg-[#141414] flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-4 flex-grow max-w-md">
+            <div className={styles.editorHeader}>
+              <div className={styles.titleInputWrapper}>
                 <input
                   type="text"
                   placeholder="Sketch Name"
                   value={drawingName}
                   onChange={handleNameChange}
-                  className="bg-transparent border-b border-transparent hover:border-white/10 focus:border-brand-amber/50 text-sm font-semibold text-neutral-200 py-1 outline-none w-full font-sans transition-all"
+                  className={styles.titleInput}
                 />
               </div>
 
               {/* Status Indicator */}
-              <div className="flex items-center gap-2">
+              <div className={styles.statusContainer}>
                 {saveStatus.type === 'saving' && (
-                  <span className="text-xs text-neutral-500 font-mono animate-pulse">Saving...</span>
+                  <span className={styles.savingText}>Saving...</span>
                 )}
                 {saveStatus.type === 'success' && (
-                  <div className="flex items-center gap-1 text-xs text-green-500 font-mono">
+                  <div className={styles.successText}>
                     <CheckCircle2 size={12} />
                     <span>Saved</span>
                   </div>
                 )}
                 {saveStatus.type === 'error' && (
-                  <div className="flex items-center gap-1 text-xs text-red-500 font-mono" title={saveStatus.message}>
+                  <div className={styles.errorText} title={saveStatus.message}>
                     <AlertCircle size={12} />
                     <span>Error</span>
                   </div>
@@ -273,7 +268,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 <button
                   onClick={handleSaveDrawing}
                   disabled={!drawingName.trim()}
-                  className="flex items-center gap-1.5 bg-brand-amber hover:bg-amber-600 disabled:bg-neutral-800 disabled:text-neutral-600 disabled:border-transparent text-black px-3.5 py-1.5 rounded text-xs font-semibold font-ui shadow transition-all border border-brand-amber/20 hover:border-amber-500/20"
+                  className={styles.saveButton}
                 >
                   <Save size={13} />
                   <span>Save Sketch</span>
@@ -282,8 +277,8 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
             </div>
 
             {/* Canvas Area Container */}
-            <div className="flex-grow flex items-center justify-center overflow-auto p-6 bg-[#161616]">
-              <div className="relative border border-white/10 rounded-lg bg-[#050505] shadow-2xl overflow-hidden">
+            <div className={styles.canvasWrapper}>
+              <div className={styles.canvasBorder}>
                 <canvas
                   ref={canvasRef}
                   width={width}
@@ -291,17 +286,17 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   onPointerDown={startDrawing}
                   onPointerMove={draw}
                   onPointerUp={endDrawing}
-                  className="bg-[#050505] block cursor-crosshair touch-none shadow-inner"
+                  className={styles.canvas}
                   style={{ width: `${width}px`, height: `${height}px` }}
                 />
 
                 {/* 5-second Undo Clear Notification */}
                 {showClearUndoBanner && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-3 bg-neutral-900 border border-brand-amber/40 text-neutral-200 px-4 py-2 rounded-lg text-xs font-medium font-ui shadow-2xl z-20 animate-fade-in">
+                  <div className={styles.undoBanner}>
                     <span>Canvas cleared.</span>
                     <button
                       onClick={undoClear}
-                      className="text-brand-amber hover:text-amber-400 font-bold uppercase tracking-wider text-[11px] px-1 py-0.5"
+                      className={styles.undoButton}
                     >
                       Undo
                     </button>
@@ -311,16 +306,12 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
             </div>
 
             {/* Bottom Tools Toolbar */}
-            <div className="px-6 py-4 border-t border-white/5 bg-[#141414] flex items-center justify-between flex-shrink-0">
+            <div className={styles.toolbar}>
               {/* Tool Selection */}
-              <div className="flex items-center gap-1 bg-neutral-950 p-1 rounded-lg border border-white/5">
+              <div className={styles.toolsContainer}>
                 <button
                   onClick={() => setTool('pen')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium font-ui transition-all ${
-                    tool === 'pen'
-                      ? 'bg-neutral-900 text-brand-amber border border-white/10 shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/55'
-                  }`}
+                  className={`${styles.toolButton} ${tool === 'pen' ? styles.toolButtonActive : ''}`}
                   title="Fine Pen"
                 >
                   <PenTool size={13} />
@@ -328,11 +319,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 </button>
                 <button
                   onClick={() => setTool('marker')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium font-ui transition-all ${
-                    tool === 'marker'
-                      ? 'bg-neutral-900 text-brand-amber border border-white/10 shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/55'
-                  }`}
+                  className={`${styles.toolButton} ${tool === 'marker' ? styles.toolButtonActive : ''}`}
                   title="Medium Marker"
                 >
                   <Paintbrush size={13} />
@@ -340,11 +327,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 </button>
                 <button
                   onClick={() => setTool('highlighter')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium font-ui transition-all ${
-                    tool === 'highlighter'
-                      ? 'bg-neutral-900 text-brand-amber border border-white/10 shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/55'
-                  }`}
+                  className={`${styles.toolButton} ${tool === 'highlighter' ? styles.toolButtonActive : ''}`}
                   title="Translucent Highlighter"
                 >
                   <Highlighter size={13} />
@@ -352,11 +335,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 </button>
                 <button
                   onClick={() => setTool('eraser')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium font-ui transition-all ${
-                    tool === 'eraser'
-                      ? 'bg-neutral-900 text-brand-amber border border-white/10 shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/55'
-                  }`}
+                  className={`${styles.toolButton} ${tool === 'eraser' ? styles.toolButtonActive : ''}`}
                   title="Eraser"
                 >
                   <Eraser size={13} />
@@ -365,23 +344,19 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
               </div>
 
               {/* Color Selection (hidden if tool is eraser) */}
-              <div className={`flex items-center gap-1.5 transition-opacity duration-200 ${tool === 'eraser' ? 'opacity-20 pointer-events-none' : ''}`}>
-                <span className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold mr-2 font-mono">Colors</span>
-                <div className="flex items-center gap-2 bg-neutral-950 px-2 py-1 rounded-lg border border-white/5 h-[36px]">
+              <div className={`${styles.colorsWrapper} ${tool === 'eraser' ? styles.colorsDisabled : ''}`}>
+                <span className={styles.colorsLabel}>Colors</span>
+                <div className={styles.colorsContainer}>
                   {colors.map((c) => (
                     <button
                       key={c.value}
                       onClick={() => setColor(c.value)}
-                      className={`w-[20px] h-[20px] rounded-full border transition-all duration-150 relative ${
-                        color === c.value
-                          ? 'border-white scale-110 shadow shadow-white/30'
-                          : 'border-white/20 hover:scale-105'
-                      }`}
+                      className={`${styles.colorBtn} ${color === c.value ? styles.colorBtnActive : ''}`}
                       style={{ backgroundColor: c.value }}
                       title={c.name}
                     >
                       {color === c.value && (
-                        <span className="absolute inset-0.5 rounded-full border border-black/50" />
+                        <span className={styles.colorBtnInner} />
                       )}
                     </button>
                   ))}
@@ -389,27 +364,27 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
               </div>
 
               {/* Size slider info */}
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold font-mono">Brush Size</span>
-                <div className="flex items-center gap-2 bg-neutral-950 px-3 py-1.5 rounded-lg border border-white/5 h-[36px]">
+              <div className={styles.sizeWrapper}>
+                <span className={styles.sizeLabel}>Brush Size</span>
+                <div className={styles.sizeContainer}>
                   <input
                     type="range"
                     min="1"
                     max="50"
                     value={brushWidth}
                     onChange={(e) => setBrushWidth(Number(e.target.value))}
-                    className="w-20 accent-brand-amber bg-neutral-900 h-1 rounded-lg cursor-pointer"
+                    className={styles.sizeSlider}
                   />
-                  <span className="text-xs text-neutral-400 font-mono w-4 text-right">{brushWidth}px</span>
+                  <span className={styles.sizeText}>{brushWidth}px</span>
                 </div>
               </div>
 
               {/* Action Operations (Undo / Redo / Clear / Replay) */}
-              <div className="flex items-center gap-1 bg-neutral-950 p-1 rounded-lg border border-white/5">
+              <div className={styles.actionsContainer}>
                 <button
                   onClick={undo}
                   disabled={!canUndo}
-                  className="p-1.5 text-neutral-400 hover:text-brand-amber disabled:text-neutral-700 disabled:hover:bg-transparent hover:bg-neutral-900 rounded transition-colors"
+                  className={styles.actionBtn}
                   title="Undo last stroke"
                 >
                   <Undo2 size={15} />
@@ -417,7 +392,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 <button
                   onClick={redo}
                   disabled={!canRedo}
-                  className="p-1.5 text-neutral-400 hover:text-brand-amber disabled:text-neutral-700 disabled:hover:bg-transparent hover:bg-neutral-900 rounded transition-colors"
+                  className={styles.actionBtn}
                   title="Redo stroke"
                 >
                   <Redo2 size={15} />
@@ -425,16 +400,16 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 <button
                   onClick={clearCanvas}
                   disabled={strokes.length === 0}
-                  className="p-1.5 text-neutral-400 hover:text-red-500 disabled:text-neutral-700 disabled:hover:bg-transparent hover:bg-neutral-900 rounded transition-colors"
+                  className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
                   title="Clear canvas (undone within 5s)"
                 >
                   <RotateCcw size={15} />
                 </button>
-                <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                <div className={styles.divider} />
                 <button
                   onClick={() => setReplayingStrokes(strokes)}
                   disabled={strokes.length === 0}
-                  className="p-1.5 text-neutral-400 hover:text-brand-amber disabled:text-neutral-700 disabled:hover:bg-transparent hover:bg-neutral-900 rounded transition-colors"
+                  className={styles.actionBtn}
                   title="Replay drawing animation"
                 >
                   <Play size={15} />
@@ -446,4 +421,5 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
       </div>
     </div>
   );
+
 }

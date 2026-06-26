@@ -1,0 +1,72 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1c1c1c;
+  position: relative;
+  overflow: hidden;
+}
+
+.header {
+  height: 44px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(23, 23, 23, 0.3);
+  flex-shrink: 0;
+}
+
+.pathText {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.savedBadge {
+  font-size: 10px;
+  color: var(--color-neutral-500);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  background-color: var(--color-neutral-900);
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  user-select: none;
+}
+
+.closeBtn {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-neutral-800);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease-out;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  outline: none;
+}
+
+.closeBtn:hover {
+  color: var(--color-white);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.editorArea {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: var(--space-6) 2.5rem;
+}

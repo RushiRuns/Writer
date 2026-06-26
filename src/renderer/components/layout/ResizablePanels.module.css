@@ -1,0 +1,30 @@
+.container {
+  background-color: var(--color-black);
+}
+
+.pane {
+  flex-shrink: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.divider {
+  width: 1px;
+  height: 100%;
+  cursor: col-resize;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.1s ease-out;
+  flex-shrink: 0;
+  z-index: var(--z-10);
+}
+
+.divider:hover {
+  width: 3px;
+  background-color: var(--accent-primary);
+}
+
+.editorPane {
+  flex-grow: 1;
+  height: 100%;
+  overflow: hidden;
+}

@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import styles from './ResizablePanels.module.css';
 
 interface ResizablePanelsProps {
   pane2: React.ReactNode;
@@ -64,33 +65,34 @@ export default function ResizablePanels({
   };
 
   return (
-    <div ref={containerRef} className="flex h-full w-full bg-black overflow-hidden">
+    <div ref={containerRef} className={`flex h-full w-full overflow-hidden ${styles.container}`}>
       {/* Folder Tree Pane (Pane 2) */}
-      <div style={{ width: `${pane2Width}px` }} className="flex-shrink-0 h-full overflow-hidden">
+      <div style={{ width: `${pane2Width}px` }} className={styles.pane}>
         {pane2}
       </div>
 
       {/* Draggable Divider 1 */}
       <div
         onMouseDown={startDragPane2}
-        className="w-[1px] hover:w-[3px] h-full cursor-col-resize bg-white/10 hover:bg-brand-amber transition-all duration-100 flex-shrink-0 z-10"
+        className={styles.divider}
       />
 
       {/* Note List Pane (Pane 3) */}
-      <div style={{ width: `${pane3Width}px` }} className="flex-shrink-0 h-full overflow-hidden">
+      <div style={{ width: `${pane3Width}px` }} className={styles.pane}>
         {pane3}
       </div>
 
       {/* Draggable Divider 2 */}
       <div
         onMouseDown={startDragPane3}
-        className="w-[1px] hover:w-[3px] h-full cursor-col-resize bg-white/10 hover:bg-brand-amber transition-all duration-100 flex-shrink-0 z-10"
+        className={styles.divider}
       />
 
       {/* Editor Pane (Pane 4) */}
-      <div className="flex-grow h-full overflow-hidden">
+      <div className={styles.editorPane}>
         {pane4}
       </div>
     </div>
   );
 }
+

@@ -1,0 +1,19 @@
+.container {
+  flex-grow: 1;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-black);
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-neutral-600);
+  font-style: italic;
+  background-color: #1c1c1c;
+}

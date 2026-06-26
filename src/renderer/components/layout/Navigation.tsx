@@ -1,5 +1,6 @@
 import React from 'react';
 import { VaultIndex } from '../../../shared/ipc-types';
+import styles from './Navigation.module.css';
 
 interface NavigationProps {
   activeSection: string;
@@ -33,16 +34,16 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
   ];
 
   return (
-    <aside className="w-[220px] flex-shrink-0 border-r border-white/10 bg-neutral-950 flex flex-col p-4">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="flex items-center justify-center w-8 h-8 rounded bg-neutral-900 border border-brand-amber text-brand-amber font-mono font-bold text-sm">
+    <aside className={styles.sidebar}>
+      <div className={styles.logoWrapper}>
+        <div className={styles.logoIcon}>
           W
         </div>
-        <span className="font-bold text-lg tracking-tight">Wrriter</span>
+        <span className={styles.logoText}>Wrriter</span>
       </div>
 
-      <nav className="flex-grow flex flex-col gap-1 overflow-y-auto">
-        <div className="px-3 py-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Note Sections</div>
+      <nav className={styles.navList}>
+        <div className={styles.navHeader}>Note Sections</div>
         {navItems.map((item) => {
           const isActive = activeSection === item.id;
           const count = item.hasBadge ? getSectionCount(item.id) : 0;
@@ -50,17 +51,11 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
             <button
               key={item.id}
               onClick={() => onSectionSelect(item.id)}
-              className={`flex items-center gap-3 px-3 py-2 rounded text-sm transition-all duration-200 text-left w-full ${
-                isActive
-                  ? 'bg-neutral-900 text-brand-amber border-l-2 border-brand-amber font-medium'
-                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
-              }`}
+              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
             >
               <span>{item.label}</span>
               {item.hasBadge && count > 0 && (
-                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
-                  isActive ? 'bg-brand-amber/20 text-brand-amber' : 'bg-neutral-800 text-neutral-400'
-                }`}>
+                <span className={`${styles.navBadge} ${isActive ? styles.active : ''}`}>
                   {count}
                 </span>
               )}
@@ -69,20 +64,16 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
         })}
       </nav>
 
-      <div className="flex flex-col gap-1 border-t border-white/5 pt-4 mt-auto">
+      <div className={styles.footer}>
         <button
           onClick={() => onSectionSelect('search')}
-          className={`flex items-center gap-3 px-3 py-2 rounded text-sm transition-all duration-200 text-left w-full ${
-            activeSection === 'search' ? 'bg-neutral-900 text-brand-amber font-medium' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
-          }`}
+          className={`${styles.navItem} ${activeSection === 'search' ? styles.active : ''}`}
         >
           <span>Search</span>
         </button>
         <button
           onClick={() => onSectionSelect('settings')}
-          className={`flex items-center gap-3 px-3 py-2 rounded text-sm transition-all duration-200 text-left w-full ${
-            activeSection === 'settings' ? 'bg-neutral-900 text-brand-amber font-medium' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
-          }`}
+          className={`${styles.navItem} ${activeSection === 'settings' ? styles.active : ''}`}
         >
           <span>Settings</span>
         </button>
@@ -90,3 +81,4 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
     </aside>
   );
 }
+

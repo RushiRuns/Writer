@@ -1,0 +1,195 @@
+.container {
+  width: 100%;
+  max-width: 32rem;
+  background-color: #121212;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow-lg);
+  user-select: none;
+  color: var(--text-muted);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-2-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.wifiIcon {
+  color: var(--color-brand-amber);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+}
+
+.description {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-6);
+  line-height: 1.625;
+}
+
+.fieldsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.fieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1-5);
+}
+
+.label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.input {
+  background-color: var(--bg-pure-black);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: 0.75rem;
+  color: var(--text-bright);
+  outline: none;
+  width: 100%;
+  font-family: var(--font-sans);
+  transition: all 0.15s var(--transition-ease);
+}
+
+.input:focus {
+  border-color: rgba(232, 164, 75, 0.5);
+}
+
+.inputMono {
+  font-family: var(--font-mono);
+}
+
+.feedbackBanner {
+  margin-top: var(--spacing-5);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2-5);
+  transition: all 0.15s ease;
+}
+
+.feedbackSuccess {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.feedbackError {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.feedbackTesting {
+  background-color: var(--bg-input-dark);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.testBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+  border: 1px solid var(--border-medium);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  transition: all 0.15s var(--transition-ease);
+}
+
+.testBtn:hover:not(:disabled) {
+  border-color: rgba(232, 164, 75, 0.4);
+  color: var(--color-brand-amber);
+}
+
+.testBtn:disabled {
+  border-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+.saveActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.saveStatusText {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+  background-color: var(--color-brand-amber);
+  color: var(--bg-pure-black);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  border: 1px solid rgba(232, 164, 75, 0.2);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all 0.15s var(--transition-ease);
+}
+
+.saveBtn:hover {
+  background-color: #d99136;
+  border-color: rgba(217, 145, 54, 0.2);
+}

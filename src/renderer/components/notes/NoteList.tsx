@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import ChecklistContextMenu from '../checklist/ChecklistContextMenu';
+import styles from './NoteList.module.css';
 
 interface NoteListProps {
   index: VaultIndex;
@@ -69,21 +70,21 @@ export default function NoteList({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#161616] overflow-hidden text-neutral-300 border-r border-white/5">
+    <div className={styles.container}>
       {/* Pane 3 Header */}
-      <div className="p-4 border-b border-white/5 flex items-center justify-between flex-shrink-0">
-        <span className="font-semibold text-sm text-neutral-200 truncate select-none pr-2">
+      <div className={styles.header}>
+        <span className={styles.folderTitle}>
           {getFolderName()}
         </span>
-        <span className="text-xs text-neutral-500 font-mono flex-shrink-0">
+        <span className={styles.countText}>
           {folderNotes.length} {folderNotes.length === 1 ? 'note' : 'notes'}
         </span>
       </div>
 
       {/* Note List Scroll Area */}
-      <div className="flex-grow overflow-y-auto p-2 flex flex-col gap-1">
+      <div className={styles.scrollArea}>
         {folderNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center text-xs text-neutral-600 italic">
+          <div className={styles.emptyState}>
             No notes here. Click [+] to create one.
           </div>
         ) : (
@@ -105,13 +106,9 @@ export default function NoteList({
                 onClick={() => {
                   if (!isRenaming) onNoteSelect(note);
                 }}
-                className={`group relative p-3 rounded cursor-pointer border transition-all duration-150 ${
-                  isSelected
-                    ? 'border-brand-amber/40 bg-neutral-900/40 shadow-md shadow-brand-amber/5'
-                    : 'border-transparent bg-neutral-950/40 hover:bg-neutral-900/30'
-                }`}
+                className={`group ${styles.noteCard} ${isSelected ? styles.selected : ''}`}
               >
-                <div className="flex flex-col gap-1">
+                <div className={styles.infoWrapper}>
                   {/* Title or Input */}
                   {isRenaming ? (
                     <input
@@ -125,16 +122,14 @@ export default function NoteList({
                       onBlur={() => handleRenameSubmit(note)}
                       autoFocus
                       onClick={(e) => e.stopPropagation()}
-                      className="bg-neutral-900 border border-brand-amber/50 rounded text-xs text-neutral-100 px-2 py-0.5 outline-none font-sans"
+                      className={styles.renameInput}
                     />
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-medium truncate flex-grow pr-2 ${
-                        isSelected ? 'text-brand-amber' : 'text-neutral-200'
-                      }`}>
+                    <div className={styles.cardHeader}>
+                      <span className={`${styles.noteTitle} ${isSelected ? styles.selected : ''}`}>
                         {note.title}
                       </span>
-                      <span className="text-xs text-neutral-500 flex-shrink-0 font-mono">
+                      <span className={styles.noteDate}>
                         {formatModifyDate(note.modified)}
                       </span>
                     </div>
@@ -142,24 +137,24 @@ export default function NoteList({
 
                   {/* Body Preview */}
                   {!isRenaming && note.preview && (
-                    <span className="text-xs text-neutral-400 truncate max-w-[220px]">
+                    <span className={styles.notePreview}>
                       {note.preview}
                     </span>
                   )}
 
                   {/* Inline Tags */}
                   {!isRenaming && note.tags && note.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
+                    <div className={styles.tagsList}>
                       {note.tags.slice(0, 3).map(tag => (
                         <span
                           key={tag}
-                          className="text-[9px] px-1.5 py-0.5 rounded border border-brand-amber/20 bg-brand-amber/5 text-brand-amber/70 font-mono"
+                          className={styles.tagPill}
                         >
                           #{tag}
                         </span>
                       ))}
                       {note.tags.length > 3 && (
-                        <span className="text-[9px] text-neutral-500 font-mono pl-0.5">
+                        <span className={styles.tagExtra}>
                           +{note.tags.length - 3}
                         </span>
                       )}
@@ -177,7 +172,7 @@ export default function NoteList({
                       note
                     });
                   }}
-                  className="absolute bottom-2.5 right-2 opacity-0 group-hover:opacity-100 p-0.5 hover:bg-neutral-800 rounded transition-all text-neutral-500 hover:text-neutral-200"
+                  className={styles.actionsBtn}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -231,3 +226,4 @@ export default function NoteList({
     </div>
   );
 }
+

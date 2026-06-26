@@ -1,10 +1,55 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* CSS Design System for Wrriter */
-
 :root {
+  /* Colors currently used as raw Tailwind values */
+  --color-black: #000000;
+  --color-white: #ffffff;
+
+  /* Neutral scale (maps to Tailwind neutral-*) */
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+
+  /* Status colors */
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-yellow-400: #facc15;
+  --color-yellow-500: #eab308;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-950: #450a0a;
+
+  /* Opacity token shorthand */
+  --opacity-5: 0.05;
+  --opacity-10: 0.10;
+  --opacity-20: 0.20;
+  --opacity-30: 0.30;
+  --opacity-40: 0.40;
+  --opacity-50: 0.50;
+
+  /* Spacing tokens */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Z-index scale */
+  --z-10: 10;
+  --z-20: 20;
+  --z-50: 50;
+  --z-9999: 9999;
+
   /* Color Palette - Dark Mode (OLED Default) */
   --bg-primary: #000000;
   --bg-secondary: #121212;
@@ -24,10 +69,10 @@
   --gradient-brand: linear-gradient(135deg, #E8A44B 0%, #D48C2B 100%);
   --gradient-glow: linear-gradient(135deg, rgba(232, 164, 75, 0.15) 0%, rgba(212, 140, 43, 0.15) 100%);
   
-  /* Font Families */
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: Georgia, serif;
+  /* Font Families — via CSS vars for components using var(--font-*) */
+  --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --font-serif: 'Playfair Display', Georgia, serif;
   
   /* Border Radius */
   --radius-sm: 4px;
@@ -80,6 +125,19 @@ body {
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Global Utility Classes */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.h-full { height: 100%; }
+.w-full { width: 100%; }
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-none { user-select: none; }
+.pointer-events-none { pointer-events: none; }
+
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {

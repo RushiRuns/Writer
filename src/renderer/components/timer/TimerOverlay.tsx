@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useTimer } from '../../contexts/TimerContext';
 import { Coffee, SkipForward } from 'lucide-react';
+import styles from './TimerOverlay.module.css';
 
 export default function TimerOverlay() {
   const { timeLeft, mode, skip } = useTimer();
@@ -39,33 +40,33 @@ export default function TimerOverlay() {
 
   // Portal to render at the end of document.body
   return createPortal(
-    <div className="fixed inset-0 w-screen h-screen z-[9999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-md select-none animate-fade-in">
+    <div className={`${styles.overlay} animate-fade-in`}>
       {/* Glow aura in background */}
-      <div className="absolute w-[350px] h-[350px] rounded-full bg-brand-amber/5 blur-[80px] pointer-events-none" />
+      <div className={styles.glowAura} />
 
-      <div className="relative flex flex-col items-center max-w-md text-center px-8 z-10">
+      <div className={styles.content}>
         {/* Animated breathing icon */}
-        <div className="w-16 h-16 rounded-full bg-neutral-900 border border-brand-amber/30 flex items-center justify-center mb-6 shadow-lg shadow-brand-amber/5 animate-pulse">
+        <div className={`${styles.iconContainer} ${styles.pulse}`}>
           {config.icon}
         </div>
 
-        <h2 className="text-xs uppercase tracking-widest font-mono text-brand-amber/80 font-bold mb-1">
+        <h2 className={styles.title}>
           {config.title}
         </h2>
         
         {/* Giant Timer countdown */}
-        <div className="text-6xl font-bold font-mono text-neutral-100 tracking-tight mb-4 select-all drop-shadow-[0_0_15px_rgba(232,164,75,0.15)]">
+        <div className={styles.timerText}>
           {formatTime(timeLeft)}
         </div>
 
-        <p className="text-sm text-neutral-400 font-sans leading-relaxed mb-8 max-w-xs">
+        <p className={styles.message}>
           {config.message}
         </p>
 
         {/* Skip button */}
         <button
           onClick={skip}
-          className="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white px-5 py-2.5 rounded-lg border border-white/10 hover:border-brand-amber/40 transition-all text-xs font-semibold font-ui shadow"
+          className={styles.skipBtn}
         >
           <SkipForward size={14} />
           <span>Skip Break</span>
@@ -75,3 +76,4 @@ export default function TimerOverlay() {
     document.body
   );
 }
+

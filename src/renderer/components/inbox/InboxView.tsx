@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { VaultIndex } from '../../../shared/ipc-types';
 import RoutingToolbar from './RoutingToolbar';
+import styles from './InboxView.module.css';
 
 interface InboxViewProps {
   index: VaultIndex;
@@ -58,23 +59,23 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
   };
 
   return (
-    <div className="flex-grow flex flex-col h-full bg-black relative">
+    <div className={`flex-grow flex flex-col h-full relative ${styles.container}`}>
       {/* Scrollable list of Inbox notes */}
-      <div className="flex-grow overflow-y-auto px-6 py-4 pb-24">
+      <div className={styles.listArea}>
         {inboxNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12 animate-fade-in">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-neutral-900 border border-brand-amber/20 text-brand-amber mb-4">
+          <div className={`${styles.emptyState} animate-fade-in`}>
+            <div className={styles.emptyIcon}>
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-neutral-200">All clear ✓</h3>
-            <p className="text-sm text-neutral-500 max-w-xs mt-1">
+            <h3 className={styles.emptyTitle}>All clear ✓</h3>
+            <p className={styles.emptyDesc}>
               Your inbox is empty. Capture any fleeting thoughts below to process them later.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col max-w-2xl mx-auto gap-2">
+          <div className={styles.notesList}>
             {inboxNotes.map((note) => {
               const isSelected = selectedNotePath === note.path;
               const isAnimatingOut = animatingOutPath === note.path;
@@ -83,15 +84,9 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
                 <div
                   key={note.path}
                   style={{ transitionProperty: 'max-height, opacity, padding, margin, border' }}
-                  className={`transition-all duration-300 ease-out overflow-hidden border border-white/5 rounded-md ${
-                    isAnimatingOut 
-                      ? 'max-h-0 opacity-0 py-0 my-0 border-none pointer-events-none' 
-                      : 'max-h-48 opacity-100 p-4'
-                  } ${
-                    isSelected 
-                      ? 'border-brand-amber/40 bg-neutral-900/40 shadow-md shadow-brand-amber/5' 
-                      : 'bg-neutral-950 hover:bg-neutral-900/60'
-                  }`}
+                  className={`${styles.noteCard} ${
+                    isAnimatingOut ? styles.animatingOut : styles.normal
+                  } ${isSelected ? styles.selected : ''}`}
                 >
                   <div 
                     onClick={() => {
@@ -99,15 +94,15 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
                         setSelectedNotePath(isSelected ? null : note.path);
                       }
                     }}
-                    className="cursor-pointer flex flex-col justify-between"
+                    className="cursor-pointer flex flex-col"
                   >
-                    <div className="flex items-start justify-between">
-                      <span className="font-semibold text-neutral-200 text-base">{note.title}</span>
-                      <span className="text-xs text-neutral-500 font-mono">{formatTimestamp(note.created)}</span>
+                    <div className={styles.noteHeader}>
+                      <span className={styles.noteTitle}>{note.title}</span>
+                      <span className={styles.noteDate}>{formatTimestamp(note.created)}</span>
                     </div>
                     {/* Small preview block if exists */}
                     {note.preview && (
-                      <p className="text-xs text-neutral-400 mt-1 truncate max-w-xl italic">
+                      <p className={styles.notePreview}>
                         "{note.preview}"
                       </p>
                     )}
@@ -131,20 +126,20 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
       </div>
 
       {/* Quick Capture bottom box */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black to-transparent pt-6 pb-6 px-6">
-        <form onSubmit={handleQuickCaptureSubmit} className="max-w-2xl mx-auto">
-          <div className="relative flex items-center bg-neutral-900 border border-white/10 focus-within:border-brand-amber/50 rounded-full px-4 py-2.5 transition-all duration-200">
+      <div className={styles.quickCaptureContainer}>
+        <form onSubmit={handleQuickCaptureSubmit} className={styles.quickCaptureForm}>
+          <div className={styles.inputWrapper}>
             <input
               type="text"
               value={quickCaptureText}
               onChange={(e) => setQuickCaptureText(e.target.value)}
               placeholder="Dump your thoughts..."
-              className="flex-grow bg-transparent text-sm text-neutral-100 outline-none border-none placeholder-neutral-500 mr-2"
+              className={styles.quickCaptureInput}
             />
             <button
               type="submit"
               disabled={!quickCaptureText.trim()}
-              className="flex-shrink-0 text-brand-amber disabled:text-neutral-600 transition-colors p-1"
+              className={styles.submitBtn}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
@@ -156,3 +151,4 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
     </div>
   );
 }
+

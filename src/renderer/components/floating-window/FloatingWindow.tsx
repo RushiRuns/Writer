@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Save, X, Edit3 } from 'lucide-react';
+import styles from './FloatingWindow.module.css';
 
 export default function FloatingWindow() {
   const [title, setTitle] = useState('');
@@ -65,18 +66,18 @@ export default function FloatingWindow() {
   }, [title, content]);
 
   return (
-    <div className="w-full h-full bg-[#0a0a0a]/95 border border-brand-amber/35 rounded-xl p-4 flex flex-col font-ui shadow-2xl backdrop-blur-xl animate-fade-in select-none">
+    <div className={`${styles.container} animate-fade-in`}>
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-white/5 mb-3">
-        <div className="flex items-center gap-2 text-brand-amber">
+      <div className={styles.header}>
+        <div className={styles.headerTitle}>
           <Edit3 size={15} />
-          <span className="text-xs font-semibold uppercase tracking-wider font-mono">
+          <span className={styles.headerText}>
             Quick Capture Note
           </span>
         </div>
         <button
           onClick={handleCancel}
-          className="text-neutral-500 hover:text-neutral-300 p-0.5 rounded transition-colors"
+          className={styles.closeBtn}
           title="Close (ESC)"
         >
           <X size={14} />
@@ -84,7 +85,7 @@ export default function FloatingWindow() {
       </div>
 
       {/* Fields */}
-      <div className="flex-grow flex flex-col gap-3">
+      <div className={styles.fields}>
         <input
           ref={titleRef}
           type="text"
@@ -92,7 +93,7 @@ export default function FloatingWindow() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={isSaving}
-          className="bg-[#121212] border border-white/5 focus:border-brand-amber/50 rounded-lg px-3 py-2 text-xs text-neutral-200 outline-none w-full font-sans transition-all"
+          className={styles.input}
         />
 
         <textarea
@@ -100,23 +101,23 @@ export default function FloatingWindow() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           disabled={isSaving}
-          className="flex-grow bg-[#121212] border border-white/5 focus:border-brand-amber/50 rounded-lg px-3 py-2 text-xs text-neutral-200 outline-none w-full font-sans resize-none min-h-[120px] transition-all"
+          className={styles.textarea}
         />
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-end gap-2.5 mt-4 pt-2.5 border-t border-white/5">
+      <div className={styles.actions}>
         <button
           onClick={handleCancel}
           disabled={isSaving}
-          className="text-neutral-400 hover:text-neutral-200 px-3.5 py-1.5 rounded-lg text-xs font-medium font-ui transition-colors"
+          className={styles.cancelBtn}
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-1.5 bg-brand-amber hover:bg-amber-600 disabled:bg-neutral-800 disabled:text-neutral-600 text-black px-4 py-1.5 rounded-lg text-xs font-semibold font-ui shadow transition-all border border-brand-amber/20"
+          className={styles.saveBtn}
         >
           <Save size={13} />
           <span>{isSaving ? 'Saving...' : 'Save Note'}</span>

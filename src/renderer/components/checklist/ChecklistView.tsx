@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import ChecklistContextMenu from './ChecklistContextMenu';
 import Editor from '../editor/Editor';
+import styles from './ChecklistView.module.css';
 
 interface ChecklistViewProps {
   sectionId: 'later' | 'read' | 'shop' | 'watch' | 'tasks';
@@ -25,8 +26,6 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
     y: number;
     note: NoteEntry;
   } | null>(null);
-
-
 
   // Clean up timeouts on unmount
   useEffect(() => {
@@ -114,11 +113,9 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
     setRenamingNotePath(null);
   };
 
-
-
   // Section icons helper
   const renderSectionIcon = () => {
-    const iconClass = "w-16 h-16 text-neutral-700 mb-4";
+    const iconClass = styles.sectionIcon;
     switch (sectionId) {
       case 'later':
         return (
@@ -159,28 +156,28 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
   };
 
   return (
-    <div className="flex-grow flex h-full bg-black overflow-hidden font-ui">
+    <div className={`flex-grow flex h-full overflow-hidden ${styles.container}`}>
       
       {/* Checklist list pane */}
-      <div className={`flex flex-col h-full bg-neutral-950 border-r border-white/5 transition-all duration-300 ${selectedNoteForEdit ? 'w-[320px] flex-shrink-0' : 'flex-grow'}`}>
+      <div className={`${styles.listPane} ${selectedNoteForEdit ? styles.selected : styles.idle}`}>
         
         {/* Header Title */}
-        <div className="p-6 pb-4">
-          <h1 className="text-3xl font-semibold text-neutral-100">{getSectionTitle()}</h1>
-          <p className="text-xs text-neutral-500 font-mono mt-1">
+        <div className={styles.header}>
+          <h1 className={styles.title}>{getSectionTitle()}</h1>
+          <p className={styles.subtitle}>
             {checklistNotes.length} {checklistNotes.length === 1 ? 'item' : 'items'}
           </p>
         </div>
 
         {/* Notes Items List */}
-        <div className="flex-grow overflow-y-auto px-6 py-2">
+        <div className={styles.itemsScroll}>
           {sortedNotes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[60%] text-center py-12 animate-fade-in">
+            <div className={`${styles.emptyState} animate-fade-in`}>
               {renderSectionIcon()}
-              <p className="text-sm text-neutral-600 italic">Nothing here yet</p>
+              <p className={styles.emptyText}>Nothing here yet</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-1">
+            <div className={styles.itemsList}>
               {sortedNotes.map((note) => {
                 const isCompleted = getIsCompleted(note);
                 const isRenaming = renamingNotePath === note.path;
@@ -189,19 +186,13 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
                 return (
                   <div
                     key={note.path}
-                    className={`group relative flex items-center justify-between py-2 border-b border-white/5 ${
-                      isEditing ? 'bg-neutral-900/40 border-l-2 border-brand-amber pl-2' : ''
-                    }`}
+                    className={`group ${styles.row} ${isEditing ? styles.editing : ''}`}
                   >
-                    <div className="flex items-center gap-3 flex-grow mr-2 overflow-hidden">
+                    <div className={styles.rowLeft}>
                       {/* Checkbox item */}
                       <button
                         onClick={() => handleToggleComplete(note)}
-                        className={`w-4 h-4 flex-shrink-0 rounded border transition-all duration-200 flex items-center justify-center ${
-                          isCompleted
-                            ? 'bg-brand-amber border-brand-amber text-black'
-                            : 'border-neutral-600 hover:border-brand-amber'
-                        }`}
+                        className={`${styles.checkbox} ${isCompleted ? styles.completed : ''}`}
                       >
                         {isCompleted && (
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
@@ -222,14 +213,12 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
                           }}
                           onBlur={() => handleRenameSubmit(note)}
                           autoFocus
-                          className="flex-grow bg-neutral-900 text-sm text-neutral-100 border border-brand-amber/50 rounded px-2 py-0.5 outline-none font-sans"
+                          className={styles.renameInput}
                         />
                       ) : (
                         <span
                           onClick={() => setSelectedNoteForEdit(isEditing ? null : note)}
-                          className={`text-sm cursor-pointer select-none truncate flex-grow ${
-                            isCompleted ? 'line-through text-neutral-600 transition-all duration-300' : 'text-neutral-200'
-                          }`}
+                          className={`${styles.itemTitle} ${isCompleted ? styles.completed : ''}`}
                         >
                           {note.title}
                         </span>
@@ -237,7 +226,7 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
                     </div>
 
                     {/* Three dots actions menu */}
-                    <div className="flex items-center">
+                    <div className={styles.rowRight}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -247,7 +236,7 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
                             note
                           });
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-neutral-800 rounded transition-all text-neutral-500 hover:text-neutral-200"
+                        className={styles.actionsBtn}
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -262,19 +251,19 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
         </div>
 
         {/* Input box to add new item directly */}
-        <form onSubmit={handleAddItem} className="p-4 bg-neutral-950 border-t border-white/5">
-          <div className="relative flex items-center bg-neutral-900 border border-white/10 focus-within:border-brand-amber/50 rounded px-3 py-1.5 transition-all">
+        <form onSubmit={handleAddItem} className={styles.bottomForm}>
+          <div className={styles.bottomInputWrapper}>
             <input
               type="text"
               value={newItemText}
               onChange={(e) => setNewItemText(e.target.value)}
               placeholder={`Add item to ${getSectionTitle()}...`}
-              className="flex-grow bg-transparent text-xs text-neutral-100 outline-none placeholder-neutral-500 mr-2"
+              className={styles.bottomInput}
             />
             <button
               type="submit"
               disabled={!newItemText.trim()}
-              className="text-brand-amber disabled:text-neutral-600 transition-colors"
+              className={styles.addBtn}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -286,7 +275,7 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
 
       {/* Editor Column Area */}
       {selectedNoteForEdit && (
-        <div className="flex-grow flex flex-col h-full bg-[#161616] animate-fade-in relative">
+        <div className={`${styles.editorCol} animate-fade-in`}>
           <Editor
             note={selectedNoteForEdit}
             index={index}
@@ -339,3 +328,4 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
     </div>
   );
 }
+

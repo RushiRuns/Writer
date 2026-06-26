@@ -1,0 +1,214 @@
+.triggerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease-out;
+  border: 1px solid transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.triggerBtn.open {
+  background-color: rgba(232, 164, 75, 0.1);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.triggerBtn.playing {
+  background-color: var(--color-neutral-900);
+  border-color: rgba(232, 164, 75, 0.4);
+  color: var(--accent-primary);
+}
+
+.triggerBtn.playing:hover {
+  color: #d48c2b;
+  background-color: var(--color-neutral-800);
+}
+
+.triggerBtn.idle {
+  background-color: var(--color-neutral-900);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-neutral-400);
+}
+
+.triggerBtn.idle:hover {
+  color: var(--color-neutral-200);
+  background-color: var(--color-neutral-800);
+}
+
+.mixerPanel {
+  position: absolute;
+  right: 0;
+  margin-top: 0.625rem;
+  width: 310px;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+  z-index: var(--z-50);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 0.875rem;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerIcon {
+  color: var(--accent-primary);
+}
+
+.headerText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-neutral-200);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+.closeBtn {
+  color: var(--color-neutral-500);
+  padding: 0.125rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease-out;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+}
+
+.closeBtn:hover {
+  color: var(--color-neutral-300);
+}
+
+.soundsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.soundRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: all 0.2s ease-out;
+}
+
+.soundRow.active {
+  background-color: rgba(23, 23, 23, 0.6);
+  border-color: rgba(232, 164, 75, 0.2);
+}
+
+.soundRow:not(.active) {
+  background-color: rgba(10, 10, 10, 0.2);
+}
+
+.powerBtn {
+  padding: 0.375rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease-out;
+  margin-right: 0.625rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.powerBtn.active {
+  background-color: rgba(232, 164, 75, 0.2);
+  border-color: rgba(232, 164, 75, 0.35);
+  color: var(--accent-primary);
+}
+
+.powerBtn:not(.active) {
+  background-color: var(--color-neutral-900);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-neutral-600);
+}
+
+.powerBtn:not(.active):hover {
+  color: var(--color-neutral-400);
+  background-color: var(--color-neutral-800);
+}
+
+.details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-right: var(--space-2);
+  overflow: hidden;
+}
+
+.soundName {
+  font-size: 11px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soundName.active {
+  color: var(--color-neutral-200);
+}
+
+.soundName:not(.active) {
+  color: var(--color-neutral-500);
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--accent-primary);
+  background-color: #262626;
+  height: 4px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+}
+
+.slider.active {
+  opacity: 1;
+}
+
+.slider:not(.active) {
+  opacity: 0.25;
+}
+
+.volumeText {
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--color-neutral-500);
+  width: 1.75rem;
+  justify-content: flex-end;
+}
+
+.volumeActive {
+  color: var(--accent-primary);
+  font-weight: 600;
+}

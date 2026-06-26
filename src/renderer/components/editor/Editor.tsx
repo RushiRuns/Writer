@@ -9,6 +9,7 @@ import StatsPill from '../statistics/StatsPill';
 import { hideMarkdownPlugin, hideMarkdownStyles } from './hideMarkdown';
 import { createWikiLinkAutocomplete } from './wikiLinkAutocomplete';
 import { useAutoSave } from './useAutoSave';
+import styles from './Editor.module.css';
 
 interface EditorProps {
   note: NoteEntry;
@@ -192,20 +193,20 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1c1c1c] animate-fade-in relative overflow-hidden">
+    <div className={`${styles.container} animate-fade-in`}>
       {/* Editor Header Breadcrumbs */}
-      <div className="h-[44px] border-b border-white/5 px-6 flex items-center justify-between bg-neutral-900/30 flex-shrink-0">
-        <span className="text-xs text-neutral-400 font-mono truncate select-none">
+      <div className={styles.header}>
+        <span className={styles.pathText}>
           {getBreadcrumbPath()}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-neutral-500 font-mono uppercase bg-neutral-900 px-2 py-0.5 rounded border border-white/5 select-none">
+        <div className={styles.actions}>
+          <span className={styles.savedBadge}>
             Saved
           </span>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-xs text-neutral-400 hover:text-white px-2 py-0.5 rounded bg-neutral-800 border border-white/5 hover:border-white/20 transition-all font-mono"
+              className={styles.closeBtn}
             >
               Close
             </button>
@@ -225,7 +226,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
       <div 
         ref={editorRef} 
         onBlur={handleEditorBlur}
-        className="flex-grow overflow-y-auto px-10 py-6"
+        className={styles.editorArea}
       />
 
       {/* Live Statistics Pill Overlay */}
@@ -233,3 +234,4 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     </div>
   );
 }
+

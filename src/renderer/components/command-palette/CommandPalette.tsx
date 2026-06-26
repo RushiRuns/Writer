@@ -14,6 +14,7 @@ import {
   Archive,
   Image as ImageIcon
 } from 'lucide-react';
+import styles from './CommandPalette.module.css';
 
 interface CommandItem {
   id: string;
@@ -110,20 +111,20 @@ export default function CommandPalette() {
   };
 
   return (
-    <div className="w-full h-full bg-[#0a0a0a]/95 border border-brand-amber/30 rounded-xl overflow-hidden flex flex-col font-ui shadow-2xl backdrop-blur-xl animate-fade-in select-none">
+    <div className={`${styles.container} animate-fade-in`}>
       {/* Search Input bar */}
-      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/5 bg-[#0f0f0f]/80">
-        <Search size={16} className="text-neutral-500 flex-shrink-0" />
+      <div className={styles.searchWrapper}>
+        <Search size={16} className={styles.searchIcon} />
         <input
           ref={inputRef}
           type="text"
           placeholder="Search commands..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-transparent border-none text-sm text-neutral-200 outline-none w-full font-sans"
+          className={styles.searchInput}
         />
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-[10px] px-1.5 py-0.5 rounded border border-white/10 bg-neutral-900 text-neutral-500 font-mono">
+        <div className={styles.escWrapper}>
+          <span className={styles.escBadge}>
             ESC
           </span>
         </div>
@@ -132,10 +133,10 @@ export default function CommandPalette() {
       {/* Commands List Scroll Area */}
       <div 
         ref={listRef}
-        className="flex-grow overflow-y-auto p-2 flex flex-col gap-0.5 max-h-[290px]"
+        className={styles.listArea}
       >
         {filteredCommands.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center text-xs text-neutral-600 italic">
+          <div className={styles.emptyState}>
             No commands matched your query
           </div>
         ) : (
@@ -146,36 +147,24 @@ export default function CommandPalette() {
                 key={cmd.id}
                 onClick={() => executeCommand(cmd.id)}
                 onMouseEnter={() => setSelectedIndex(idx)}
-                className={`flex items-center gap-3.5 px-4 py-3 rounded cursor-pointer transition-all duration-100 ${
-                  isSelected
-                    ? 'bg-brand-amber/10 border-l-[3px] border-brand-amber text-neutral-100'
-                    : 'bg-transparent border-l-[3px] border-transparent text-neutral-400 hover:text-neutral-200'
-                }`}
+                className={`${styles.row} ${isSelected ? styles.selected : ''}`}
               >
                 {/* Icon wrapper */}
-                <div className={`p-1.5 rounded-md border transition-colors ${
-                  isSelected 
-                    ? 'bg-brand-amber/20 border-brand-amber/35 text-brand-amber' 
-                    : 'bg-neutral-900 border-white/5 text-neutral-500'
-                }`}>
+                <div className={`${styles.iconWrapper} ${isSelected ? styles.selected : ''}`}>
                   {cmd.icon}
                 </div>
 
                 {/* Info */}
-                <div className="flex-grow flex flex-col min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-[12px] font-semibold truncate ${
-                      isSelected ? 'text-neutral-100' : 'text-neutral-300'
-                    }`}>
+                <div className={styles.info}>
+                  <div className={styles.titleRow}>
+                    <span className={`${styles.name} ${isSelected ? styles.selected : ''}`}>
                       {cmd.name}
                     </span>
-                    <span className="text-[9px] uppercase tracking-wider text-neutral-600 font-bold font-mono">
+                    <span className={styles.category}>
                       {cmd.category}
                     </span>
                   </div>
-                  <span className={`text-[10px] truncate mt-0.5 ${
-                    isSelected ? 'text-neutral-400' : 'text-neutral-500'
-                  }`}>
+                  <span className={`${styles.description} ${isSelected ? styles.selected : ''}`}>
                     {cmd.description}
                   </span>
                 </div>
@@ -187,3 +176,4 @@ export default function CommandPalette() {
     </div>
   );
 }
+

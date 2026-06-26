@@ -5,6 +5,7 @@ import {
   Power,
   X
 } from 'lucide-react';
+import styles from './AudioManager.module.css';
 
 interface SoundItem {
   id: string;
@@ -162,12 +163,12 @@ export default function AudioManager() {
       {/* Headset Trigger Button in Top Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 border ${
+        className={`${styles.triggerBtn} ${
           isOpen 
-            ? 'bg-brand-amber/10 border-brand-amber text-brand-amber shadow'
+            ? styles.open
             : isPlayingAny
-              ? 'bg-neutral-900 border-brand-amber/40 text-brand-amber hover:text-brand-amber/80 hover:bg-neutral-800'
-              : 'bg-neutral-900 border-white/5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800'
+              ? styles.playing
+              : styles.idle
         }`}
         title="Ambient Sounds Mixer"
       >
@@ -176,54 +177,44 @@ export default function AudioManager() {
 
       {/* Floating Sound Mixer Panel Popover */}
       {isOpen && (
-        <div className="absolute right-0 mt-2.5 w-[310px] bg-[#141414] border border-white/10 rounded-lg shadow-2xl p-4 z-[50] animate-fade-in">
+        <div className={`${styles.mixerPanel} animate-fade-in`}>
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3.5">
-            <div className="flex items-center gap-2">
-              <Headphones size={16} className="text-brand-amber" />
-              <span className="text-xs font-semibold text-neutral-200 uppercase tracking-wider font-mono">
+          <div className={styles.header}>
+            <div className={styles.headerTitle}>
+              <Headphones size={16} className={styles.headerIcon} />
+              <span className={styles.headerText}>
                 Ambient Sound Mixer
               </span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-neutral-500 hover:text-neutral-300 p-0.5 rounded transition-colors"
+              className={styles.closeBtn}
             >
               <X size={14} />
             </button>
           </div>
 
           {/* Grid layout for 12 Sound controls */}
-          <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
+          <div className={styles.soundsList}>
             {SOUND_LIST.map(sound => {
               const state = soundStates[sound.id] || { active: false, volume: 0.5 };
               return (
                 <div 
                   key={sound.id} 
-                  className={`flex items-center justify-between p-2 rounded border transition-all ${
-                    state.active 
-                      ? 'bg-neutral-900/60 border-brand-amber/20' 
-                      : 'bg-neutral-950/20 border-transparent'
-                  }`}
+                  className={`${styles.soundRow} ${state.active ? styles.active : ''}`}
                 >
                   {/* Active Toggle Power Button */}
                   <button
                     onClick={() => toggleSound(sound)}
-                    className={`p-1.5 rounded transition-all mr-2.5 border ${
-                      state.active
-                        ? 'bg-brand-amber/20 border-brand-amber/35 text-brand-amber'
-                        : 'bg-neutral-900 border-white/5 text-neutral-600 hover:text-neutral-400 hover:bg-neutral-800'
-                    }`}
+                    className={`${styles.powerBtn} ${state.active ? styles.active : ''}`}
                     title={state.active ? 'Mute' : 'Play'}
                   >
                     <Power size={11} />
                   </button>
 
                   {/* Info & volume slider details */}
-                  <div className="flex-grow flex flex-col gap-1 pr-2 overflow-hidden">
-                    <span className={`text-[11px] font-semibold truncate ${
-                      state.active ? 'text-neutral-200' : 'text-neutral-500'
-                    }`}>
+                  <div className={styles.details}>
+                    <span className={`${styles.soundName} ${state.active ? styles.active : ''}`}>
                       {sound.name}
                     </span>
                     <input
@@ -234,16 +225,14 @@ export default function AudioManager() {
                       disabled={!state.active}
                       value={state.volume}
                       onChange={(e) => handleVolumeChange(sound, parseFloat(e.target.value))}
-                      className={`w-full accent-brand-amber bg-neutral-850 h-1 rounded-lg cursor-pointer transition-all ${
-                        state.active ? 'opacity-100' : 'opacity-25'
-                      }`}
+                      className={`${styles.slider} ${state.active ? styles.active : ''}`}
                     />
                   </div>
 
                   {/* Volume level number indicator */}
-                  <div className="flex items-center text-[10px] font-mono text-neutral-500 w-7 justify-end">
+                  <div className={styles.volumeText}>
                     {state.active ? (
-                      <span className="text-brand-amber font-semibold">{Math.round(state.volume * 100)}%</span>
+                      <span className={styles.volumeActive}>{Math.round(state.volume * 100)}%</span>
                     ) : (
                       <span>OFF</span>
                     )}
@@ -257,3 +246,4 @@ export default function AudioManager() {
     </div>
   );
 }
+

@@ -1,0 +1,309 @@
+.loadingScreen {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-pure-black);
+  color: var(--color-brand-amber);
+  font-family: var(--font-mono);
+}
+
+.settingsWrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-8);
+  overflow-y: auto;
+  animation: fadeInApp 0.3s var(--transition-ease) forwards;
+}
+
+@keyframes fadeInApp {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.settingsTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: var(--spacing-2);
+}
+
+.settingsSubtitle {
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  max-width: 24rem;
+  margin-bottom: var(--spacing-6);
+  text-align: center;
+}
+
+.settingsInner {
+  width: 100%;
+  max-width: 32rem;
+}
+
+.fallbackView {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8);
+  text-align: center;
+  animation: fadeInApp 0.3s var(--transition-ease) forwards;
+}
+
+.fallbackTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: var(--spacing-2);
+}
+
+.fallbackText {
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  max-width: 24rem;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-pure-black);
+  color: var(--text-bright);
+  overflow: hidden;
+  font-family: var(--font-ui);
+}
+
+.main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-pure-black);
+}
+
+.header {
+  height: 48px;
+  border-bottom: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-6);
+  background-color: var(--bg-input-dark);
+  flex-shrink: 0;
+}
+
+.locationWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2-5);
+}
+
+.locationLabel {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.locationValue {
+  font-size: 0.75rem;
+  color: var(--color-brand-amber);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  margin-right: var(--spacing-2);
+}
+
+.statusGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s var(--transition-ease);
+}
+
+.statusSynced {
+  background-color: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+}
+
+.statusSyncing {
+  background-color: #eab308;
+  box-shadow: 0 0 6px rgba(234, 179, 8, 0.5);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.statusDisconnected {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.tooltip {
+  position: absolute;
+  top: 1.5rem;
+  left: 0;
+  visibility: hidden;
+  opacity: 0;
+  background-color: #121212;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-3);
+  font-size: 11px;
+  line-height: 1.625;
+  box-shadow: var(--shadow-2xl);
+  z-index: 50;
+  width: 13rem;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-sans);
+  transform: translateY(4px);
+  transition: all 0.2s var(--transition-ease);
+}
+
+.statusGroup:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tooltipHeader {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: var(--spacing-1-5);
+  padding-bottom: var(--spacing-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-1);
+}
+
+.tooltipStateSynced {
+  color: #34d399;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.tooltipStateSyncing {
+  color: #fbbf24;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.tooltipStateDisconnected {
+  color: #f87171;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.tooltipValue {
+  font-family: var(--font-mono);
+  color: var(--text-bright);
+}
+
+.tooltipTextMuted {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: var(--spacing-1);
+  line-height: normal;
+  font-style: italic;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.timerPill {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background-color: var(--bg-panel-dark);
+  border: 1px solid var(--border-subtle);
+  padding: var(--spacing-1) var(--spacing-2-5);
+  border-radius: var(--radius-md);
+  height: 32px;
+}
+
+.timerText {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.timerTextActive {
+  color: var(--color-brand-amber);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.timerDivider {
+  width: 1px;
+  height: 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 0 var(--spacing-1);
+}
+
+.timerBtn {
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-0-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.timerBtn:hover {
+  color: var(--color-brand-amber);
+}
+
+.vaultPathLabel {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 12rem;
+}
+
+@media (min-width: 768px) {
+  .vaultPathLabel {
+    max-width: 28rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .vaultPathLabel {
+    display: none;
+  }
+}
+
+.contentWrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}

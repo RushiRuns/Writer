@@ -4,6 +4,7 @@ import ResizablePanels from '../layout/ResizablePanels';
 import FolderTree from './FolderTree';
 import NoteList from './NoteList';
 import Editor from '../editor/Editor';
+import styles from './NotesView.module.css';
 
 interface NotesViewProps {
   index: VaultIndex;
@@ -82,7 +83,7 @@ export default function NotesView({ index, _vaultPath }: NotesViewProps) {
   const renderPane4 = () => {
     if (!selectedNote) {
       return (
-        <div className="flex flex-col items-center justify-center h-full text-center text-xs text-neutral-600 italic bg-[#1c1c1c]">
+        <div className={styles.placeholder}>
           Select or create a note in the list to start writing
         </div>
       );
@@ -98,7 +99,7 @@ export default function NotesView({ index, _vaultPath }: NotesViewProps) {
   };
 
   return (
-    <div className="flex-grow h-full overflow-hidden bg-black">
+    <div className={styles.container}>
       <ResizablePanels
         pane2={renderPane2()}
         pane3={renderPane3()}
@@ -111,3 +112,4 @@ export default function NotesView({ index, _vaultPath }: NotesViewProps) {
     </div>
   );
 }
+

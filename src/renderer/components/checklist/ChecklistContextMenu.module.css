@@ -1,0 +1,63 @@
+.menu {
+  position: fixed;
+  z-index: var(--z-50);
+  width: 11rem;
+  background-color: var(--color-neutral-950);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  color: var(--color-neutral-300);
+}
+
+.btn {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease-out;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: inherit;
+  font-size: inherit;
+}
+
+.btn:hover {
+  background-color: var(--accent-primary);
+  color: var(--color-black);
+}
+
+.divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin-top: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.deleteBtn {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease-out;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-red-400);
+  font-size: inherit;
+}
+
+.deleteBtn:hover {
+  background-color: var(--color-red-500);
+  color: var(--color-white);
+}

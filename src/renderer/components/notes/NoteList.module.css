@@ -1,0 +1,190 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #161616;
+  overflow: hidden;
+  color: var(--color-neutral-300);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.header {
+  padding: var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.folderTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-neutral-200);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+  padding-right: var(--space-2);
+}
+
+.countText {
+  font-size: 0.75rem;
+  color: var(--color-neutral-500);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.scrollArea {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 12rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-neutral-600);
+  font-style: italic;
+}
+
+.noteCard {
+  position: relative;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease-out;
+}
+
+.noteCard.selected {
+  border-color: rgba(232, 164, 75, 0.4);
+  background-color: rgba(23, 23, 23, 0.4);
+  box-shadow: var(--shadow-md), 0 0 15px rgba(232, 164, 75, 0.05);
+}
+
+.noteCard:not(.selected) {
+  background-color: rgba(10, 10, 10, 0.4);
+}
+
+.noteCard:not(.selected):hover {
+  background-color: rgba(23, 23, 23, 0.3);
+}
+
+.infoWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.renameInput {
+  background-color: var(--color-neutral-900);
+  border: 1px solid rgba(232, 164, 75, 0.5);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--color-neutral-100);
+  padding: 0.125rem var(--space-2);
+  outline: none;
+  font-family: var(--font-ui);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.noteTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-grow: 1;
+  padding-right: var(--space-2);
+}
+
+.noteTitle.selected {
+  color: var(--accent-primary);
+}
+
+.noteTitle:not(.selected) {
+  color: var(--color-neutral-200);
+}
+
+.noteDate {
+  font-size: 0.75rem;
+  color: var(--color-neutral-500);
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+}
+
+.notePreview {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.tagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: 0.375rem;
+}
+
+.tagPill {
+  font-size: 9px;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(232, 164, 75, 0.2);
+  background-color: rgba(232, 164, 75, 0.05);
+  color: rgba(232, 164, 75, 0.7);
+  font-family: var(--font-mono);
+}
+
+.tagExtra {
+  font-size: 9px;
+  color: var(--color-neutral-500);
+  font-family: var(--font-mono);
+  padding-left: 0.125rem;
+}
+
+.actionsBtn {
+  position: absolute;
+  bottom: 0.625rem;
+  right: 0.5rem;
+  opacity: 0;
+  padding: 0.125rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease-out;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+}
+
+:global(.group):hover .actionsBtn,
+.noteCard:hover .actionsBtn {
+  opacity: 1;
+}
+
+.actionsBtn:hover {
+  background-color: var(--color-neutral-800);
+  color: var(--color-neutral-200);
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Stroke } from '../../../shared/ipc-types';
 import { Play, SkipForward } from 'lucide-react';
+import styles from './CanvasReplayer.module.css';
 
 interface CanvasReplayerProps {
   strokes: Stroke[];
@@ -120,27 +121,27 @@ export default function CanvasReplayer({ strokes, width, height, onComplete }: C
   }, [strokes, width, height, onComplete]);
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-center items-center bg-black/60 p-6">
-      <div className="absolute top-8 left-8 flex items-center gap-2 text-brand-amber text-xs font-mono bg-neutral-950 px-3 py-1.5 rounded border border-brand-amber/35 shadow-lg shadow-brand-amber/5 z-10 animate-pulse">
+    <div className={styles.container}>
+      <div className={styles.indicator}>
         <Play size={14} fill="currentColor" />
         <span>Replaying drawing history...</span>
       </div>
 
       <button
         onClick={onComplete}
-        className="absolute top-8 right-8 flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white px-3 py-1.5 rounded border border-white/10 hover:border-brand-amber/40 transition-all text-xs font-medium font-ui shadow-lg z-10"
+        className={styles.skipBtn}
       >
         <SkipForward size={14} />
         <span>Skip Replay</span>
       </button>
 
-      <div className="border border-white/10 rounded-lg bg-[#0d0d0d] overflow-hidden shadow-2xl relative">
+      <div className={styles.canvasBorder}>
         {/* Canvas background noise/grid style matching settings default */}
         <canvas
           ref={canvasRef}
           width={width}
           height={height}
-          className="bg-[#050505] block shadow-inner"
+          className={styles.canvas}
         />
       </div>
     </div>

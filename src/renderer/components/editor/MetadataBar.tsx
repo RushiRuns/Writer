@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import styles from './MetadataBar.module.css';
 
 interface MetadataBarProps {
   tags: string[];
@@ -52,18 +53,18 @@ export default function MetadataBar({
   };
 
   return (
-    <div className="w-full bg-[#111111] border-b border-white/5 flex flex-col flex-shrink-0 relative transition-all duration-200">
-      <div className="flex items-center justify-between px-6 py-2 h-[40px]">
+    <div className={styles.container}>
+      <div className={styles.header}>
         {/* Title/Label or Brief Metadata Preview when collapsed */}
-        <div className="flex items-center gap-2 overflow-hidden flex-grow pr-4">
-          <span className="text-[10px] text-neutral-500 font-mono uppercase tracking-wider select-none">Metadata</span>
+        <div className={styles.previewWrapper}>
+          <span className={styles.label}>Metadata</span>
           {!isOpen && (
-            <div className="flex items-center gap-1.5 overflow-hidden truncate">
+            <div className={styles.previewList}>
               {tags.map(tag => (
-                <span key={tag} className="text-[9px] text-brand-amber font-mono">#{tag}</span>
+                <span key={tag} className={styles.tagPreview}>#{tag}</span>
               ))}
               {reminder && (
-                <span className="text-[9px] text-brand-amber font-mono">⏰ {formatReminderDate(reminder)}</span>
+                <span className={styles.reminderPreview}>⏰ {formatReminderDate(reminder)}</span>
               )}
             </div>
           )}
@@ -73,27 +74,27 @@ export default function MetadataBar({
         <button
           onClick={() => setIsOpen(!isOpen)}
           title={isOpen ? "Collapse Metadata" : "Expand Metadata"}
-          className="text-xs text-neutral-500 hover:text-white px-2 py-0.5 rounded hover:bg-neutral-800 transition-colors flex-shrink-0"
+          className={styles.toggleBtn}
         >
           ···
         </button>
       </div>
 
       {isOpen && (
-        <div className="px-6 pb-3 pt-1 flex flex-wrap items-center gap-4 border-t border-white/5 animate-fade-in">
+        <div className={`${styles.detailsPanel} animate-fade-in`}>
           {/* TAGS SECTION */}
-          <div className="flex items-center flex-wrap gap-1.5">
-            <span className="text-xs text-neutral-500 select-none">Tags:</span>
+          <div className={styles.tagsSection}>
+            <span className={styles.sectionTitle}>Tags:</span>
             {tags.map(tag => (
               <span
                 key={tag}
-                className="text-xs px-2.5 py-0.5 rounded border border-brand-amber/30 bg-brand-amber/5 text-brand-amber flex items-center gap-1 font-mono transition-all hover:bg-brand-amber/10"
+                className={styles.tagPill}
               >
                 #{tag}
                 <button
                   onClick={() => handleRemoveTag(tag)}
                   title="Remove tag"
-                  className="text-neutral-500 hover:text-brand-amber font-sans font-bold pl-0.5 text-xs"
+                  className={styles.removeBtn}
                 >
                   ×
                 </button>
@@ -101,21 +102,21 @@ export default function MetadataBar({
             ))}
 
             {showAddTag ? (
-              <form onSubmit={handleAddTag} className="flex items-center">
+              <form onSubmit={handleAddTag} className={styles.addTagForm}>
                 <input
                   type="text"
                   value={newTagText}
                   onChange={(e) => setNewTagText(e.target.value)}
                   placeholder="tag..."
                   autoFocus
-                  className="bg-neutral-900 border border-brand-amber/50 rounded text-xs text-neutral-100 px-2 py-0.5 outline-none w-20 font-sans"
+                  className={styles.newTagInput}
                 />
                 <button type="submit" className="hidden" />
               </form>
             ) : (
               <button
                 onClick={() => setShowAddTag(true)}
-                className="text-[10px] text-neutral-500 hover:text-white border border-dashed border-neutral-600 rounded px-2 py-0.5 transition-colors"
+                className={styles.addTagTrigger}
               >
                 + Tag
               </button>
@@ -123,32 +124,32 @@ export default function MetadataBar({
           </div>
 
           {/* REMINDER SECTION */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-500 select-none">Reminder:</span>
+          <div className={styles.reminderSection}>
+            <span className={styles.sectionTitle}>Reminder:</span>
             {reminder ? (
-              <div className="flex items-center gap-2 text-xs border border-brand-amber/30 bg-brand-amber/5 text-brand-amber rounded px-2.5 py-0.5 font-mono">
-                <svg className="w-3.5 h-3.5 text-brand-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className={styles.reminderPill}>
+                <svg style={{ color: 'var(--accent-primary)', width: '14px', height: '14px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>{formatReminderDate(reminder)}</span>
                 <button
                   onClick={() => onReminderChange(null)}
                   title="Clear Reminder"
-                  className="text-neutral-500 hover:text-brand-amber font-sans font-bold pl-1 text-xs"
+                  className={styles.removeBtn}
                 >
                   ×
                 </button>
               </div>
             ) : (
-              <div className="relative flex items-center">
+              <div className={styles.reminderPickerWrapper}>
                 <input
                   type="datetime-local"
                   onChange={handleReminderChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className={styles.reminderInput}
                   title="Set Reminder Date"
                 />
-                <button className="text-[10px] text-neutral-500 hover:text-white border border-dashed border-neutral-600 rounded px-2 py-0.5 transition-colors flex items-center gap-1 pointer-events-none">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <button className={styles.reminderBtn}>
+                  <svg style={{ width: '12px', height: '12px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   + Add Reminder

@@ -3,6 +3,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { autocompletion } from '@codemirror/autocomplete';
+import { MoreHorizontal } from 'lucide-react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import MetadataBar from './MetadataBar';
 import StatsPill from '../statistics/StatsPill';
@@ -121,9 +122,9 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
             hideMarkdownPlugin,
             hideMarkdownStyles,
             EditorView.theme({
-              '&': { height: '100%', fontSize: '14px', fontFamily: 'var(--font-mono)' },
+              '&': { height: '100%', fontSize: '15px', fontFamily: 'var(--font-ui)', lineHeight: '1.75' },
               '.cm-scroller': { overflow: 'auto' },
-              '.cm-content': { padding: '20px 0', maxWidth: '720px', margin: '0 auto', color: '#F0F0F0' },
+              '.cm-content': { padding: '30px 0 60px 0', maxWidth: '720px', margin: '0 auto', color: '#E0E0E0' },
               '&.cm-focused': { outline: 'none' }
             }),
             EditorView.updateListener.of((update) => {
@@ -183,34 +184,37 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     forceSave();
   };
 
-  const getBreadcrumbPath = () => {
+  const renderBreadcrumb = () => {
     const parts = ['Notes'];
     if (note.folder && note.folder !== '.') {
       parts.push(...note.folder.split(/[/\\]/));
     }
     parts.push(note.title);
-    return parts.join(' / ');
+
+    return (
+      <div className={styles.breadcrumb}>
+        {parts.map((part, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && <span className={styles.breadcrumbSeparator}>&gt;</span>}
+            <span className={index === parts.length - 1 ? styles.breadcrumbActive : styles.breadcrumbInactive}>
+              {part}
+            </span>
+          </React.Fragment>
+        ))}
+      </div>
+    );
   };
 
   return (
     <div className={`${styles.container} animate-fade-in`}>
       {/* Editor Header Breadcrumbs */}
       <div className={styles.header}>
-        <span className={styles.pathText}>
-          {getBreadcrumbPath()}
-        </span>
+        {renderBreadcrumb()}
         <div className={styles.actions}>
-          <span className={styles.savedBadge}>
-            Saved
-          </span>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className={styles.closeBtn}
-            >
-              Close
-            </button>
-          )}
+          <div className={styles.saveDot} title="All changes auto-saved" />
+          <button className={styles.ellipsisBtn} title="More actions">
+            <MoreHorizontal size={16} />
+          </button>
         </div>
       </div>
 

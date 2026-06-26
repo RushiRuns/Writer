@@ -9,9 +9,10 @@ import styles from './NotesView.module.css';
 interface NotesViewProps {
   index: VaultIndex;
   _vaultPath: string;
+  onBreadcrumbChange?: (path: string) => void;
 }
 
-export default function NotesView({ index, _vaultPath }: NotesViewProps) {
+export default function NotesView({ index, _vaultPath, onBreadcrumbChange }: NotesViewProps) {
   const [activeFolder, setActiveFolder] = useState<string>('.');
   const [selectedNote, setSelectedNote] = useState<NoteEntry | null>(null);
   const [createdFolders, setCreatedFolders] = useState<string[]>([]);
@@ -45,6 +46,21 @@ export default function NotesView({ index, _vaultPath }: NotesViewProps) {
       }
     }
   }, [index.notes, targetSelectedPath]);
+
+  useEffect(() => {
+    if (onBreadcrumbChange) {
+      if (selectedNote) {
+        const parts = ['Notes'];
+        if (selectedNote.folder && selectedNote.folder !== '.') {
+          parts.push(...selectedNote.folder.split(/[/\\]/));
+        }
+        parts.push(selectedNote.title);
+        onBreadcrumbChange(parts.join(' > '));
+      } else {
+        onBreadcrumbChange(activeFolder === '.' ? 'Notes' : `Notes > ${activeFolder.replace(/[/\\]/g, ' > ')}`);
+      }
+    }
+  }, [selectedNote, activeFolder, onBreadcrumbChange]);
 
   // Handle New Note creation
   const handleNewNote = async (folderPath: string) => {

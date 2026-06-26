@@ -1,26 +1,29 @@
 .pill {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: var(--z-20);
-  background-color: #242424;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--color-neutral-300);
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-4);
-  font-size: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--color-neutral-400);
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  justify-content: center;
+  gap: var(--space-4);
   cursor: pointer;
   transition: all 0.2s ease-out;
-  box-shadow: var(--shadow-md);
   user-select: none;
+  font-size: 11px;
+  font-family: var(--font-ui);
 }
 
 .pill:hover {
-  background-color: #2E2E2E;
-  border-color: rgba(232, 164, 75, 0.3);
+  background-color: rgba(232, 164, 75, 0.04);
+  color: var(--color-white);
 }
 
 .dot {
@@ -29,7 +32,7 @@
 
 .streakText {
   color: var(--accent-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .backdrop {

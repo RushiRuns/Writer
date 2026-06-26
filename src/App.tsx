@@ -27,12 +27,33 @@ function AppContent() {
   const [vaultPath, setVaultPath] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<string>('inbox');
+  const [breadcrumb, setBreadcrumb] = useState<string>('Inbox');
   const [index, setIndex] = useState<VaultIndex>({
     notes: [],
     tagMap: {},
     drawings: [],
     reminders: []
   });
+
+  // Automatically update general breadcrumb label for non-notes sections
+  useEffect(() => {
+    if (activeSection !== 'notes') {
+      const sectionLabels: Record<string, string> = {
+        inbox: 'Inbox',
+        later: 'Later',
+        read: 'Read',
+        shop: 'Shop',
+        watch: 'Watch',
+        tasks: 'Tasks',
+        journal: 'Journal',
+        tags: 'Tags',
+        drawing: 'Drawing Pad',
+        archive: 'Archive',
+        settings: 'Settings'
+      };
+      setBreadcrumb(sectionLabels[activeSection] || activeSection.toUpperCase());
+    }
+  }, [activeSection]);
 
   const { timeLeft, isActive, start, pause, reset, skip, mode } = useTimer();
 
@@ -205,7 +226,7 @@ function AppContent() {
           />
         );
       case 'notes':
-        return <NotesView index={index} _vaultPath={vaultPath} />;
+        return <NotesView index={index} _vaultPath={vaultPath} onBreadcrumbChange={setBreadcrumb} />;
       case 'drawing':
         return <DrawingView index={index} _vaultPath={vaultPath} />;
       case 'settings':
@@ -246,11 +267,8 @@ function AppContent() {
       <main className={styles.main}>
         {/* Top Bar */}
         <header className={styles.header}>
-          <div className={styles.locationWrapper}>
-            <span className={styles.locationLabel}>Location:</span>
-            <span className={styles.locationValue}>{activeSection.toUpperCase()}</span>
-            
-            {/* Syncthing Status Indicator */}
+          {/* Syncthing Link on Left */}
+          <div className={styles.leftHeader}>
             <div className={styles.statusGroup}>
               <div 
                 className={`${styles.statusDot} ${
@@ -306,7 +324,13 @@ function AppContent() {
             </div>
           </div>
 
-          <div className={styles.headerActions}>
+          {/* Centered Breadcrumb */}
+          <div className={styles.centerHeader}>
+            <span className={styles.appBreadcrumb}>{breadcrumb}</span>
+          </div>
+
+          {/* Right Header Actions */}
+          <div className={styles.rightHeader}>
             {/* Focus Timer Pill */}
             <div className={styles.timerPill}>
               <span className={`${styles.timerText} ${isActive ? styles.timerTextActive : ''}`}>
@@ -344,10 +368,6 @@ function AppContent() {
 
             {/* Ambient Sounds Mixer Popover Button */}
             <AudioManager />
-
-            <div className={styles.vaultPathLabel}>
-              Vault: {vaultPath}
-            </div>
           </div>
         </header>
 

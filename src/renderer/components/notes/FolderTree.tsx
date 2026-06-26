@@ -152,7 +152,7 @@ export default function FolderTree({
           {/* Note count badge */}
           {node.noteCount > 0 && (
             <span className={styles.badgeCount}>
-              [{node.noteCount}]
+              {node.noteCount}
             </span>
           )}
 
@@ -196,11 +196,16 @@ export default function FolderTree({
     );
   };
 
+  const getHeaderTitle = () => {
+    if (activeFolder === '.') return 'Notes';
+    return activeFolder.split(/[/\\]/).pop() || activeFolder;
+  };
+
   return (
     <div className={styles.container}>
       {/* Pane 2 Header */}
       <div className={styles.header}>
-        <span className={`${styles.headerTitle} select-none`}>Folders</span>
+        <span className={`${styles.headerTitle} select-none`}>{getHeaderTitle()}</span>
         <div className={styles.headerButtons}>
           {/* New Folder in Root */}
           <button
@@ -233,9 +238,6 @@ export default function FolderTree({
           onClick={() => onFolderSelect('.')}
           className={`${styles.row} ${activeFolder === '.' ? styles.active : ''}`}
         >
-          <svg className={`${styles.folderIcon} mr-2`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
           <span className="truncate select-none">Notes Root</span>
         </div>
 

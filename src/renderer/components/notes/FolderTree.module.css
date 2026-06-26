@@ -2,14 +2,15 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #111111;
+  background-color: var(--bg-pane-tree);
   overflow: hidden;
   color: var(--color-neutral-300);
+  border-right: 1px solid var(--border-subtle);
 }
 
 .header {
   padding: var(--space-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -54,6 +55,9 @@
   flex-grow: 1;
   overflow-y: auto;
   padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .nodeWrapper {
@@ -64,20 +68,19 @@
 .row {
   display: flex;
   align-items: center;
-  height: 2rem;
+  height: 2.25rem;
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease-out;
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease-out;
   font-size: 0.875rem;
-  border-left: 2px solid transparent;
   padding-right: var(--space-2);
+  margin: 0 4px;
 }
 
 .row.active {
-  background-color: var(--color-neutral-900);
+  background-color: rgba(232, 164, 75, 0.12);
   color: var(--accent-primary);
-  border-left-color: var(--accent-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .row:not(.active) {
@@ -86,7 +89,7 @@
 
 .row:not(.active):hover {
   color: var(--color-white);
-  background-color: rgba(23, 23, 23, 0.5);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .chevronBtn {
@@ -123,6 +126,7 @@
 }
 
 .badgeCount {
+  margin-left: auto;
   font-size: 0.75rem;
   color: var(--color-neutral-500);
   margin-right: var(--space-2);

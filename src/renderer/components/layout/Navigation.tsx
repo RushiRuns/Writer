@@ -1,5 +1,22 @@
 import React from 'react';
 import { VaultIndex } from '../../../shared/ipc-types';
+import { 
+  Inbox, 
+  Clock, 
+  BookOpen, 
+  ShoppingBag, 
+  Eye, 
+  CheckSquare, 
+  Calendar, 
+  FileText, 
+  Hash, 
+  Palette, 
+  Archive, 
+  Search, 
+  Settings, 
+  SunMoon,
+  PenTool
+} from 'lucide-react';
 import styles from './Navigation.module.css';
 
 interface NavigationProps {
@@ -11,7 +28,6 @@ interface NavigationProps {
 
 export default function Navigation({ activeSection, onSectionSelect, index, vaultPath }: NavigationProps) {
   const getSectionCount = (sectionId: string) => {
-    // map logical section names to VaultIndex note section
     const secName = sectionId === 'drawing' ? 'notes' : sectionId; 
     if (sectionId === 'drawing') {
       return index.drawings.length;
@@ -20,24 +36,35 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
   };
 
   const navItems = [
-    { id: 'inbox', label: 'Inbox', hasBadge: true },
-    { id: 'later', label: 'Later', hasBadge: true },
-    { id: 'read', label: 'Read', hasBadge: true },
-    { id: 'shop', label: 'Shop', hasBadge: true },
-    { id: 'watch', label: 'Watch', hasBadge: true },
-    { id: 'tasks', label: 'Tasks', hasBadge: true },
-    { id: 'journal', label: 'Journal', hasBadge: false },
-    { id: 'notes', label: 'Notes', hasBadge: false },
-    { id: 'tags', label: 'Tags', hasBadge: false },
-    { id: 'drawing', label: 'Drawing Pad', hasBadge: true },
-    { id: 'archive', label: 'Archive', hasBadge: false },
+    { id: 'inbox', label: 'Inbox', hasBadge: true, icon: Inbox },
+    { id: 'later', label: 'Later', hasBadge: true, icon: Clock },
+    { id: 'read', label: 'Read', hasBadge: true, icon: BookOpen },
+    { id: 'shop', label: 'Shop', hasBadge: true, icon: ShoppingBag },
+    { id: 'watch', label: 'Watch', hasBadge: true, icon: Eye },
+    { id: 'tasks', label: 'Tasks', hasBadge: true, icon: CheckSquare },
+    { id: 'journal', label: 'Journal', hasBadge: false, icon: Calendar },
+    { id: 'notes', label: 'Notes', hasBadge: false, icon: FileText },
+    { id: 'tags', label: 'Tags', hasBadge: false, icon: Hash },
+    { id: 'drawing', label: 'Drawing Pad', hasBadge: true, icon: Palette },
+    { id: 'archive', label: 'Archive', hasBadge: false, icon: Archive },
   ];
+
+  const handleToggleTheme = async () => {
+    try {
+      const settings = await (window as any).wrriter.getSettings();
+      const nextTheme = settings.theme === 'light' ? 'dark' : 'light';
+      await (window as any).wrriter.setSettings({ theme: nextTheme });
+      document.documentElement.setAttribute('data-theme', nextTheme);
+    } catch (err) {
+      console.error('Failed to toggle theme:', err);
+    }
+  };
 
   return (
     <aside className={styles.sidebar}>
       <div className={styles.logoWrapper}>
         <div className={styles.logoIcon}>
-          W
+          <PenTool size={16} />
         </div>
         <span className={styles.logoText}>Wrriter</span>
       </div>
@@ -47,13 +74,15 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
         {navItems.map((item) => {
           const isActive = activeSection === item.id;
           const count = item.hasBadge ? getSectionCount(item.id) : 0;
+          const IconComponent = item.icon;
           return (
             <button
               key={item.id}
               onClick={() => onSectionSelect(item.id)}
               className={`${styles.navItem} ${isActive ? styles.active : ''}`}
             >
-              <span>{item.label}</span>
+              <IconComponent size={16} className={styles.navIcon} />
+              <span className={styles.navLabel}>{item.label}</span>
               {item.hasBadge && count > 0 && (
                 <span className={`${styles.navBadge} ${isActive ? styles.active : ''}`}>
                   {count}
@@ -69,13 +98,22 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
           onClick={() => onSectionSelect('search')}
           className={`${styles.navItem} ${activeSection === 'search' ? styles.active : ''}`}
         >
-          <span>Search</span>
+          <Search size={16} className={styles.navIcon} />
+          <span className={styles.navLabel}>Search</span>
         </button>
         <button
           onClick={() => onSectionSelect('settings')}
           className={`${styles.navItem} ${activeSection === 'settings' ? styles.active : ''}`}
         >
-          <span>Settings</span>
+          <Settings size={16} className={styles.navIcon} />
+          <span className={styles.navLabel}>Settings</span>
+        </button>
+        <button
+          onClick={handleToggleTheme}
+          className={styles.navItem}
+        >
+          <SunMoon size={16} className={styles.navIcon} />
+          <span className={styles.navLabel}>Theme</span>
         </button>
       </div>
     </aside>

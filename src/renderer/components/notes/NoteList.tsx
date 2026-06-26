@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import ChecklistContextMenu from '../checklist/ChecklistContextMenu';
+import { Bell } from 'lucide-react';
 import styles from './NoteList.module.css';
 
 interface NoteListProps {
@@ -19,6 +20,28 @@ export default function NoteList({
   const [renamingNotePath, setRenamingNotePath] = useState<string | null>(null);
   const [renameText, setRenameText] = useState('');
   
+  const formatReminder = (isoString: string | null) => {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+
+      const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      
+      if (date.toDateString() === today.toDateString()) {
+        return `Today, ${timeStr}`;
+      } else if (date.toDateString() === tomorrow.toDateString()) {
+        return `Tomorrow, ${timeStr}`;
+      } else {
+        return `${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}, ${timeStr}`;
+      }
+    } catch {
+      return '';
+    }
+  };
+
   // Context Menu State
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -106,7 +129,7 @@ export default function NoteList({
                 onClick={() => {
                   if (!isRenaming) onNoteSelect(note);
                 }}
-                className={`group ${styles.noteCard} ${isSelected ? styles.selected : ''}`}
+                className={`${styles.noteCard} ${isSelected ? styles.selected : ''}`}
               >
                 <div className={styles.infoWrapper}>
                   {/* Title or Input */}
@@ -135,49 +158,41 @@ export default function NoteList({
                     </div>
                   )}
 
+                  {/* Inline Tags & Reminder row */}
+                  {!isRenaming && ((note.tags && note.tags.length > 0) || note.reminder) && (
+                    <div className={styles.tagReminderRow}>
+                      {note.tags && note.tags.length > 0 && (
+                        <div className={styles.tagsList}>
+                          {note.tags.slice(0, 3).map(tag => (
+                            <span key={tag} className={styles.tagText}>
+                              #{tag}
+                            </span>
+                          ))}
+                          {note.tags.length > 3 && (
+                            <span className={styles.tagExtra}>
+                              +{note.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {note.reminder && (
+                        <div className={styles.reminderItem}>
+                          <Bell size={11} className={styles.reminderIcon} />
+                          <span className={styles.reminderText}>
+                            {formatReminder(note.reminder)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Body Preview */}
                   {!isRenaming && note.preview && (
                     <span className={styles.notePreview}>
                       {note.preview}
                     </span>
                   )}
-
-                  {/* Inline Tags */}
-                  {!isRenaming && note.tags && note.tags.length > 0 && (
-                    <div className={styles.tagsList}>
-                      {note.tags.slice(0, 3).map(tag => (
-                        <span
-                          key={tag}
-                          className={styles.tagPill}
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                      {note.tags.length > 3 && (
-                        <span className={styles.tagExtra}>
-                          +{note.tags.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
-
-                {/* Right click float menu button indicator for users */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setContextMenu({
-                      x: e.clientX,
-                      y: e.clientY,
-                      note
-                    });
-                  }}
-                  className={styles.actionsBtn}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                  </svg>
-                </button>
               </div>
             );
           })

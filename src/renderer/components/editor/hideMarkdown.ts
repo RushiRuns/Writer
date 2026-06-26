@@ -7,6 +7,7 @@ const hideMark = Decoration.mark({ class: 'cm-hidden-syntax' });
 
 // Decoration to style WikiLinks as pills
 const wikiLinkPillMark = Decoration.mark({ class: 'cm-wikilink-pill' });
+const linkTextMark = Decoration.mark({ class: 'cm-link-text-amber' });
 
 export const hideMarkdownPlugin = ViewPlugin.fromClass(
   class {
@@ -30,9 +31,11 @@ export const hideMarkdownPlugin = ViewPlugin.fromClass(
       const cursorHead = state.selection.main.head;
       const cursorLine = state.doc.lineAt(cursorHead).number;
 
+      const decos: Array<{ from: number; to: number; deco: Decoration }> = [];
+      const styledLines = new Set<number>();
+
       // Scan visible viewport ranges
       for (const { from, to } of view.visibleRanges) {
-        // Build styling range set in ascending order
         const text = state.sliceDoc(from, to);
         let match;
         
@@ -55,6 +58,40 @@ export const hideMarkdownPlugin = ViewPlugin.fromClass(
           from,
           to,
           enter(node) {
+            // Style Headings & Code Blocks Line Layout
+            if (node.name === 'ATXHeading1' || node.name === 'ATXHeading2') {
+              const lineStart = state.doc.lineAt(node.from).from;
+              if (!styledLines.has(lineStart)) {
+                styledLines.add(lineStart);
+                const className = node.name === 'ATXHeading1' ? 'cm-line-heading-1' : 'cm-line-heading-2';
+                decos.push({ from: lineStart, to: lineStart, deco: Decoration.line({ class: className }) });
+              }
+            }
+
+            if (node.name === 'FencedCode') {
+              const startLine = state.doc.lineAt(node.from).number;
+              const endLine = state.doc.lineAt(node.to).number;
+              for (let l = startLine; l <= endLine; l++) {
+                const line = state.doc.line(l);
+                if (!styledLines.has(line.from)) {
+                  styledLines.add(line.from);
+                  let borderClass = 'cm-line-code-block';
+                  if (l === startLine) {
+                    borderClass += ' cm-code-start';
+                  }
+                  if (l === endLine) {
+                    borderClass += ' cm-code-end';
+                  }
+                  decos.push({ from: line.from, to: line.from, deco: Decoration.line({ class: borderClass }) });
+                }
+              }
+            }
+
+            // Style LinkText
+            if (node.name === 'LinkText') {
+              decos.push({ from: node.from, to: node.to, deco: linkTextMark });
+            }
+
             const isSyntaxMark = [
               'HeaderMark',
               'EmphasisMark',
@@ -67,10 +104,9 @@ export const hideMarkdownPlugin = ViewPlugin.fromClass(
             if (isSyntaxMark) {
               const nodeLine = state.doc.lineAt(node.from).number;
               if (nodeLine !== cursorLine) {
-                // If it is inside a WikiLink match range, don't double decorate
                 const insideWiki = wikiMatches.some(w => node.from >= w.start && node.to <= w.end);
                 if (!insideWiki) {
-                  builder.add(node.from, node.to, hideMark);
+                  decos.push({ from: node.from, to: node.to, deco: hideMark });
                 }
               }
             }
@@ -81,12 +117,24 @@ export const hideMarkdownPlugin = ViewPlugin.fromClass(
         wikiMatches.forEach((w) => {
           const nodeLine = state.doc.lineAt(w.start).number;
           if (nodeLine !== cursorLine) {
-            builder.add(w.start, w.contentStart, hideMark);
-            builder.add(w.contentStart, w.contentEnd, wikiLinkPillMark);
-            builder.add(w.contentEnd, w.end, hideMark);
+            decos.push({ from: w.start, to: w.contentStart, deco: hideMark });
+            decos.push({ from: w.contentStart, to: w.contentEnd, deco: wikiLinkPillMark });
+            decos.push({ from: w.contentEnd, to: w.end, deco: hideMark });
           }
         });
       }
+
+      // Sort decorations safely
+      decos.sort((a, b) => {
+        if (a.from !== b.from) return a.from - b.from;
+        const aLen = a.to - a.from;
+        const bLen = b.to - b.from;
+        return aLen - bLen;
+      });
+
+      decos.forEach(({ from, to, deco }) => {
+        builder.add(from, to, deco);
+      });
 
       return builder.finish();
     }
@@ -106,5 +154,45 @@ export const hideMarkdownStyles = EditorView.theme({
     textDecoration: 'underline !important',
     fontWeight: '500 !important',
     cursor: 'pointer'
+  },
+  '.cm-link-text-amber': {
+    color: '#E8A44B !important',
+    textDecoration: 'underline !important',
+    cursor: 'pointer'
+  },
+  '.cm-line-heading-1': {
+    fontSize: '28px !important',
+    fontWeight: '700 !important',
+    color: '#FFFFFF !important',
+    lineHeight: '1.3 !important',
+    marginTop: '20px !important',
+    marginBottom: '10px !important',
+  },
+  '.cm-line-heading-2': {
+    fontSize: '20px !important',
+    fontWeight: '700 !important',
+    color: '#EFEFEF !important',
+    lineHeight: '1.4 !important',
+    marginTop: '16px !important',
+    marginBottom: '8px !important',
+  },
+  '.cm-line-code-block': {
+    fontFamily: 'var(--font-mono) !important',
+    fontSize: '13px !important',
+    backgroundColor: '#0D0D0D !important',
+    color: '#D4D4D4 !important',
+    paddingLeft: '16px !important',
+    paddingRight: '16px !important',
+    borderLeft: '2px solid var(--accent-primary) !important',
+  },
+  '.cm-code-start': {
+    borderTopLeftRadius: '6px !important',
+    borderTopRightRadius: '6px !important',
+    paddingTop: '8px !important',
+  },
+  '.cm-code-end': {
+    borderBottomLeftRadius: '6px !important',
+    borderBottomRightRadius: '6px !important',
+    paddingBottom: '8px !important',
   }
 });

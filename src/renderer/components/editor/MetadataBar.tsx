@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Bell, Plus, X, Clock } from 'lucide-react';
 import styles from './MetadataBar.module.css';
 
 interface MetadataBarProps {
@@ -14,7 +15,6 @@ export default function MetadataBar({
   onTagsChange,
   onReminderChange
 }: MetadataBarProps) {
-  const [isOpen, setIsOpen] = useState(true);
   const [newTagText, setNewTagText] = useState('');
   const [showAddTag, setShowAddTag] = useState(false);
 
@@ -41,12 +41,19 @@ export default function MetadataBar({
     if (!isoString) return '';
     try {
       const date = new Date(isoString);
-      return date.toLocaleString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+
+      const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      
+      if (date.toDateString() === today.toDateString()) {
+        return `Today, ${timeStr}`;
+      } else if (date.toDateString() === tomorrow.toDateString()) {
+        return `Tomorrow, ${timeStr}`;
+      } else {
+        return `${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${timeStr}`;
+      }
     } catch {
       return '';
     }
@@ -54,111 +61,73 @@ export default function MetadataBar({
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        {/* Title/Label or Brief Metadata Preview when collapsed */}
-        <div className={styles.previewWrapper}>
-          <span className={styles.label}>Metadata</span>
-          {!isOpen && (
-            <div className={styles.previewList}>
-              {tags.map(tag => (
-                <span key={tag} className={styles.tagPreview}>#{tag}</span>
-              ))}
-              {reminder && (
-                <span className={styles.reminderPreview}>⏰ {formatReminderDate(reminder)}</span>
-              )}
-            </div>
-          )}
-        </div>
+      {/* TAGS LIST */}
+      <div className={styles.tagsList}>
+        {tags.map(tag => (
+          <span key={tag} className={styles.tagPill}>
+            #{tag}
+            <button
+              onClick={() => handleRemoveTag(tag)}
+              title="Remove tag"
+              className={styles.removeBtn}
+            >
+              <X size={10} />
+            </button>
+          </span>
+        ))}
 
-        {/* Collapsible toggle */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          title={isOpen ? "Collapse Metadata" : "Expand Metadata"}
-          className={styles.toggleBtn}
-        >
-          ···
-        </button>
+        {showAddTag ? (
+          <form onSubmit={handleAddTag} className={styles.addTagForm}>
+            <input
+              type="text"
+              value={newTagText}
+              onChange={(e) => setNewTagText(e.target.value)}
+              placeholder="tag..."
+              autoFocus
+              onBlur={() => setShowAddTag(false)}
+              className={styles.newTagInput}
+            />
+          </form>
+        ) : (
+          <button
+            onClick={() => setShowAddTag(true)}
+            className={styles.addBtn}
+            title="Add Tag"
+          >
+            <Plus size={12} />
+          </button>
+        )}
       </div>
 
-      {isOpen && (
-        <div className={`${styles.detailsPanel} animate-fade-in`}>
-          {/* TAGS SECTION */}
-          <div className={styles.tagsSection}>
-            <span className={styles.sectionTitle}>Tags:</span>
-            {tags.map(tag => (
-              <span
-                key={tag}
-                className={styles.tagPill}
-              >
-                #{tag}
-                <button
-                  onClick={() => handleRemoveTag(tag)}
-                  title="Remove tag"
-                  className={styles.removeBtn}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-
-            {showAddTag ? (
-              <form onSubmit={handleAddTag} className={styles.addTagForm}>
-                <input
-                  type="text"
-                  value={newTagText}
-                  onChange={(e) => setNewTagText(e.target.value)}
-                  placeholder="tag..."
-                  autoFocus
-                  className={styles.newTagInput}
-                />
-                <button type="submit" className="hidden" />
-              </form>
-            ) : (
-              <button
-                onClick={() => setShowAddTag(true)}
-                className={styles.addTagTrigger}
-              >
-                + Tag
-              </button>
-            )}
+      {/* REMINDER SECTION */}
+      <div className={styles.reminderSection}>
+        {reminder ? (
+          <div className={styles.reminderPill}>
+            <Bell size={12} className={styles.reminderIcon} />
+            <span className={styles.reminderText}>{formatReminderDate(reminder)}</span>
+            <button
+              onClick={() => onReminderChange(null)}
+              title="Clear Reminder"
+              className={styles.removeBtn}
+            >
+              <X size={10} />
+            </button>
           </div>
-
-          {/* REMINDER SECTION */}
-          <div className={styles.reminderSection}>
-            <span className={styles.sectionTitle}>Reminder:</span>
-            {reminder ? (
-              <div className={styles.reminderPill}>
-                <svg style={{ color: 'var(--accent-primary)', width: '14px', height: '14px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{formatReminderDate(reminder)}</span>
-                <button
-                  onClick={() => onReminderChange(null)}
-                  title="Clear Reminder"
-                  className={styles.removeBtn}
-                >
-                  ×
-                </button>
-              </div>
-            ) : (
-              <div className={styles.reminderPickerWrapper}>
-                <input
-                  type="datetime-local"
-                  onChange={handleReminderChange}
-                  className={styles.reminderInput}
-                  title="Set Reminder Date"
-                />
-                <button className={styles.reminderBtn}>
-                  <svg style={{ width: '12px', height: '12px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  + Add Reminder
-                </button>
-              </div>
-            )}
+        ) : (
+          <div className={styles.reminderPickerWrapper}>
+            <input
+              type="datetime-local"
+              onChange={handleReminderChange}
+              className={styles.reminderInput}
+              title="Set Reminder Date"
+            />
+            <button className={styles.addReminderBtn}>
+              <Clock size={12} className={styles.reminderIcon} />
+              <span>Add reminder</span>
+            </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

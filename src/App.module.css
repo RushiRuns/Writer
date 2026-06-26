@@ -86,36 +86,40 @@
 }
 
 .header {
-  height: 48px;
-  border-bottom: 1px solid var(--border-medium);
+  height: 40px;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--spacing-6);
-  background-color: var(--bg-input-dark);
+  background-color: transparent;
   flex-shrink: 0;
 }
 
-.locationWrapper {
+.leftHeader {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2-5);
 }
 
-.locationLabel {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.centerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.appBreadcrumb {
+  font-size: 12px;
+  color: var(--text-secondary);
   font-weight: 600;
+  letter-spacing: 0.025em;
+  font-family: var(--font-ui);
 }
 
-.locationValue {
-  font-size: 0.75rem;
-  color: var(--color-brand-amber);
-  font-family: var(--font-mono);
-  font-weight: 500;
-  margin-right: var(--spacing-2);
+.rightHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
 }
 
 .statusGroup {

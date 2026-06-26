@@ -55,8 +55,15 @@
   --bg-secondary: #121212;
   --bg-card: #1e1e1e;
   --bg-glass: rgba(18, 18, 18, 0.8);
-  --border-glass: rgba(255, 255, 255, 0.12);
+  --border-glass: rgba(255, 255, 255, 0.05);
   --border-focus: rgba(232, 164, 75, 0.5); /* Amber-500 */
+  
+  --bg-pane-nav: #0A0A0A;
+  --bg-pane-tree: #0D0D0D;
+  --bg-pane-list: #111111;
+  --bg-pane-editor: #000000;
+  --bg-pure-black: #000000;
+  --border-subtle: rgba(255, 255, 255, 0.05);
   
   --text-primary: #FFFFFF;
   --text-secondary: rgba(255, 255, 255, 0.7);

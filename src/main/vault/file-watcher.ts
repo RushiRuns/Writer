@@ -1,19 +1,19 @@
-import chokidar from 'chokidar';
+import { watch, FSWatcher } from 'chokidar';
 import { BrowserWindow } from 'electron';
 import { buildVaultIndex } from './index-builder';
 import { VaultIndex } from '../../shared/ipc-types';
 
-let watcher: chokidar.FSWatcher | null = null;
+let watcher: FSWatcher | null = null;
 let activeIndex: VaultIndex | null = null;
 let debounceTimeout: NodeJS.Timeout | null = null;
 
-export function setupFileWatcher(vaultPath: string, mainWindow: BrowserWindow): chokidar.FSWatcher {
+export function setupFileWatcher(vaultPath: string, mainWindow: BrowserWindow): FSWatcher {
   if (watcher) {
     watcher.close();
   }
 
   // Ignore dotfiles, attachments JSON stroke logs, and tmp files
-  watcher = chokidar.watch(vaultPath, {
+  watcher = watch(vaultPath, {
     ignored: [
       /(^|[/\\])\../,                      // dotfiles
       /[/\\]Attachments[/\\].*\.json$/,    // drawing strokes JSON files

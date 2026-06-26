@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Onboarding from './components/settings/Onboarding';
+import Onboarding from './renderer/components/settings/Onboarding';
 
 export default function App() {
   const [vaultPath, setVaultPath] = useState<string | null>(null);

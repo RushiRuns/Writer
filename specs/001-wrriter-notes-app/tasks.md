@@ -18,10 +18,10 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create source directories (`src/main/vault/`, `src/main/ipc/`, `src/renderer/components/layout/`, `src/shared/`) per implementation plan
-- [ ] T002 Configure strict TypeScript settings in `tsconfig.json` and adjust project packaging options in `electron-builder.yml`
-- [ ] T003 [P] Configure Tailwind CSS utility variables and MD2 OLED colors in `src/renderer/index.css`
-- [ ] T004 Define end-to-end typed IPC channel contracts in `src/shared/ipc-types.ts`
+- [x] T001 Create source directories (`src/main/vault/`, `src/main/ipc/`, `src/renderer/components/layout/`, `src/shared/`) per implementation plan
+- [x] T002 Configure strict TypeScript settings in `tsconfig.json` and adjust project packaging options in `electron-builder.yml`
+- [x] T003 [P] Configure Tailwind CSS utility variables and MD2 OLED colors in `src/renderer/index.css`
+- [x] T004 Define end-to-end typed IPC channel contracts in `src/shared/ipc-types.ts`
 
 ---
 

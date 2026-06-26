@@ -1,0 +1,13 @@
+appId: com.rushiruns.wrriter
+productName: Wrriter
+directories:
+  output: out/make
+files:
+  - .vite/**/*
+  - package.json
+win:
+  target: nsis
+mac:
+  target: dmg
+linux:
+  target: AppImage

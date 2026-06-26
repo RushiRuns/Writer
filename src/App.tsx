@@ -15,6 +15,7 @@ import { TimerProvider, useTimer } from './renderer/contexts/TimerContext';
 import TimerOverlay from './renderer/components/timer/TimerOverlay';
 import AudioManager from './renderer/components/ambient-sounds/AudioManager';
 import SyncthingSettings from './renderer/components/settings/SyncthingSettings';
+import { Cloud, CloudOff, Hourglass, Dice5, AppWindow } from 'lucide-react';
 import styles from './App.module.css';
 
 export default function App() {
@@ -37,6 +38,31 @@ function AppContent() {
     drawings: [],
     reminders: []
   });
+  const [targetNotePath, setTargetNotePath] = useState<string | null>(null);
+
+  const handleRandomNote = () => {
+    if (index.notes.length === 0) return;
+    const randomIdx = Math.floor(Math.random() * index.notes.length);
+    const note = index.notes[randomIdx];
+    setActiveSection('notes');
+    setTargetNotePath(note.path);
+  };
+
+  const handleToggleFloating = async () => {
+    try {
+      await (window as any).wrriter.toggleFloatingWindow();
+    } catch (err) {
+      console.error('Failed to toggle floating window:', err);
+    }
+  };
+
+  const handleSyncScan = async () => {
+    try {
+      await (window as any).wrriter.triggerSyncthingScan();
+    } catch (err) {
+      console.error('Failed to trigger scan:', err);
+    }
+  };
 
   // Automatically update general breadcrumb label for non-notes sections
   useEffect(() => {
@@ -229,7 +255,15 @@ function AppContent() {
           />
         );
       case 'notes':
-        return <NotesView index={index} _vaultPath={vaultPath} onBreadcrumbChange={setBreadcrumb} />;
+        return (
+          <NotesView 
+            index={index} 
+            _vaultPath={vaultPath} 
+            onBreadcrumbChange={setBreadcrumb} 
+            targetNotePath={targetNotePath} 
+            onClearTargetNotePath={() => setTargetNotePath(null)} 
+          />
+        );
       case 'drawing':
         return <DrawingView index={index} _vaultPath={vaultPath} />;
       case 'journal':
@@ -264,127 +298,140 @@ function AppContent() {
 
   return (
     <div className={styles.container}>
-      {/* Sidebar Panel (Pane 1) */}
-      <Navigation 
-        activeSection={activeSection} 
-        onSectionSelect={setActiveSection} 
-        index={index} 
-        vaultPath={vaultPath} 
-      />
+      {/* Top Bar */}
+      <header className={styles.header}>
+        {/* Syncthing Link on Left */}
+        <div className={styles.leftHeader}>
+          <div className={styles.logo}>
+            <span className={styles.logoW}>W</span>
+            <span className={styles.logoGemini}>Gemini</span>
+          </div>
+        </div>
 
-      {/* Main Workspace */}
-      <main className={styles.main}>
-        {/* Top Bar */}
-        <header className={styles.header}>
-          {/* Syncthing Link on Left */}
-          <div className={styles.leftHeader}>
-            <div className={styles.statusGroup}>
-              <div 
-                className={`${styles.statusDot} ${
-                  syncthingStatus.status === 'synced' 
-                    ? styles.statusSynced 
-                    : syncthingStatus.status === 'syncing'
-                      ? styles.statusSyncing
-                      : styles.statusDisconnected
-                }`}
-              />
-              
-              {/* Tooltip */}
-              <div className={styles.tooltip}>
-                <div className={styles.tooltipHeader}>
-                  Syncthing Link
-                </div>
-                <div className={styles.tooltipRow}>
-                  <span>State:</span>
-                  <span className={
-                    syncthingStatus.status === 'synced' 
-                      ? styles.tooltipStateSynced 
-                      : syncthingStatus.status === 'syncing'
-                        ? styles.tooltipStateSyncing
-                        : styles.tooltipStateDisconnected
-                  }>
-                    {syncthingStatus.status}
-                  </span>
-                </div>
-                {syncthingStatus.status !== 'disconnected' && (
-                  <>
-                    <div className={styles.tooltipRow}>
-                      <span>Device ID:</span>
-                      <span className={styles.tooltipValue}>{syncthingStatus.deviceName || 'Unknown'}</span>
-                    </div>
-                    <div className={styles.tooltipRow}>
-                      <span>Connected:</span>
-                      <span className={styles.tooltipValue}>{syncthingStatus.connectedDevices} {syncthingStatus.connectedDevices === 1 ? 'device' : 'devices'}</span>
-                    </div>
-                    {syncthingStatus.version && (
-                      <div className={styles.tooltipRow}>
-                        <span>Version:</span>
-                        <span className={styles.tooltipValue}>{syncthingStatus.version}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-                {syncthingStatus.status === 'disconnected' && (
-                  <div className={styles.tooltipTextMuted}>
-                    Daemon offline or configuration error
-                  </div>
-                )}
+        {/* Centered Breadcrumb */}
+        <div className={styles.centerHeader}>
+          <span className={styles.appBreadcrumb}>{breadcrumb}</span>
+        </div>
+
+        {/* Right Header Actions */}
+        <div className={styles.rightHeader}>
+          {/* Syncthing Link Status */}
+          <div className={styles.statusGroup}>
+            <button
+              onClick={handleSyncScan}
+              className={`${styles.iconBtn} ${
+                syncthingStatus.status === 'synced' 
+                  ? styles.syncSynced 
+                  : syncthingStatus.status === 'syncing'
+                    ? styles.syncSyncing
+                    : styles.syncDisconnected
+              }`}
+              title="Click to trigger manual Syncthing scan"
+            >
+              {syncthingStatus.status === 'disconnected' ? (
+                <CloudOff size={16} />
+              ) : (
+                <Cloud size={16} />
+              )}
+            </button>
+            
+            {/* Tooltip */}
+            <div className={styles.tooltip}>
+              <div className={styles.tooltipHeader}>
+                Syncthing Link
               </div>
-            </div>
-          </div>
-
-          {/* Centered Breadcrumb */}
-          <div className={styles.centerHeader}>
-            <span className={styles.appBreadcrumb}>{breadcrumb}</span>
-          </div>
-
-          {/* Right Header Actions */}
-          <div className={styles.rightHeader}>
-            {/* Focus Timer Pill */}
-            <div className={styles.timerPill}>
-              <span className={`${styles.timerText} ${isActive ? styles.timerTextActive : ''}`}>
-                {mode === 'focus' ? 'Focus' : 'Break'}: {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
-              </span>
-              <div className={styles.timerDivider} />
-              <button
-                onClick={isActive ? pause : start}
-                className={styles.timerBtn}
-                title={isActive ? 'Pause' : 'Start'}
-              >
-                {isActive ? (
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                ) : (
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                )}
-              </button>
-              <button
-                onClick={reset}
-                className={styles.timerBtn}
-                title="Reset Session"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12"/></svg>
-              </button>
-              {mode === 'focus' && (
-                <button
-                  onClick={skip}
-                  className={styles.timerBtn}
-                  title="Skip Session"
-                >
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                </button>
+              <div className={styles.tooltipRow}>
+                <span>State:</span>
+                <span className={
+                  syncthingStatus.status === 'synced' 
+                    ? styles.tooltipStateSynced 
+                    : syncthingStatus.status === 'syncing'
+                      ? styles.tooltipStateSyncing
+                      : styles.tooltipStateDisconnected
+                }>
+                  {syncthingStatus.status}
+                </span>
+              </div>
+              {syncthingStatus.status !== 'disconnected' && (
+                <>
+                  <div className={styles.tooltipRow}>
+                    <span>Device ID:</span>
+                    <span className={styles.tooltipValue}>{syncthingStatus.deviceName || 'Unknown'}</span>
+                  </div>
+                  <div className={styles.tooltipRow}>
+                    <span>Connected:</span>
+                    <span className={styles.tooltipValue}>{syncthingStatus.connectedDevices} {syncthingStatus.connectedDevices === 1 ? 'device' : 'devices'}</span>
+                  </div>
+                  {syncthingStatus.version && (
+                    <div className={styles.tooltipRow}>
+                      <span>Version:</span>
+                      <span className={styles.tooltipValue}>{syncthingStatus.version}</span>
+                    </div>
+                  )}
+                </>
+              )}
+              {syncthingStatus.status === 'disconnected' && (
+                <div className={styles.tooltipTextMuted}>
+                  Daemon offline or configuration error
+                </div>
               )}
             </div>
-
-            {/* Ambient Sounds Mixer Popover Button */}
-            <AudioManager />
           </div>
-        </header>
 
-        {/* Content Area */}
-        <div className={styles.contentWrapper}>
-          {renderContent()}
+          {/* Ambient Sounds Mixer Popover Button */}
+          <AudioManager />
+
+          {/* Focus Timer Hourglass Icon */}
+          <button
+            onClick={isActive ? pause : start}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              reset();
+            }}
+            className={`${styles.iconBtn} ${isActive ? styles.timerActive : ''}`}
+            title={`Timer: ${mode === 'focus' ? 'Focus' : 'Break'} (${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}). Click to toggle, Right-click to reset.`}
+          >
+            <Hourglass size={16} className={isActive ? 'animate-pulse' : ''} />
+          </button>
+
+          {/* Random Note Dice Icon */}
+          <button
+            onClick={handleRandomNote}
+            className={styles.iconBtn}
+            title="Open a random note"
+          >
+            <Dice5 size={16} />
+          </button>
+
+          {/* Floating Window Toggle Icon */}
+          <button
+            onClick={handleToggleFloating}
+            className={styles.iconBtn}
+            title="Toggle Quick Write Window"
+          >
+            <AppWindow size={16} />
+          </button>
         </div>
-      </main>
+      </header>
+
+      {/* Main layout underneath full width header */}
+      <div className={styles.mainLayout}>
+        {/* Sidebar Panel (Pane 1) */}
+        <Navigation 
+          activeSection={activeSection} 
+          onSectionSelect={setActiveSection} 
+          index={index} 
+          vaultPath={vaultPath} 
+        />
+
+        {/* Main Workspace content */}
+        <main className={styles.main}>
+          {/* Content Area */}
+          <div className={styles.contentWrapper}>
+            {renderContent()}
+          </div>
+        </main>
+      </div>
 
       {/* Break overlay block lock portal */}
       <TimerOverlay />

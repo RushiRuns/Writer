@@ -70,12 +70,21 @@
 
 .container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
   background-color: var(--bg-pure-black);
   color: var(--text-bright);
   overflow: hidden;
   font-family: var(--font-ui);
+}
+
+.mainLayout {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  width: 100%;
+  overflow: hidden;
 }
 
 .main {
@@ -119,7 +128,7 @@
 .rightHeader {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 20px; /* Sufficient spacing between icons */
 }
 
 .statusGroup {
@@ -238,7 +247,7 @@
 .timerPill {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 12px; /* More breathing room inside focus timer pill */
   background-color: var(--bg-panel-dark);
   border: 1px solid var(--border-subtle);
   padding: var(--spacing-1) var(--spacing-2-5);
@@ -310,4 +319,74 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  user-select: none;
+}
+
+.logoW {
+  color: var(--accent-primary);
+  margin-right: 2px;
+}
+
+.logoGemini {
+  color: var(--text-primary);
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: var(--spacing-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  outline: none;
+}
+
+.iconBtn:hover {
+  color: var(--accent-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.syncSynced {
+  color: #22c55e;
+}
+
+.syncSynced:hover {
+  color: #4ade80;
+  background-color: rgba(34, 197, 94, 0.08);
+}
+
+.syncSyncing {
+  color: #eab308;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.syncSyncing:hover {
+  color: #facc15;
+  background-color: rgba(234, 179, 8, 0.08);
+}
+
+.syncDisconnected {
+  color: #ef4444;
+}
+
+.syncDisconnected:hover {
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.timerActive {
+  color: var(--accent-primary);
 }

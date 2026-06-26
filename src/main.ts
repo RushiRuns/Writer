@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, globalShortcut } from 'electron';
+import { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { setupIpcHandlers } from './main/ipc/handlers';
@@ -47,6 +47,12 @@ const createWindow = () => {
 
   // Setup main process IPC listener bindings
   setupIpcHandlers(mainWindow);
+
+  // Register renderer toggle floating window command
+  ipcMain.handle('window:toggle-floating', () => {
+    toggleFloatingWindow();
+    return { success: true };
+  });
 };
 
 // Toggle frameless transparent Command Palette Window

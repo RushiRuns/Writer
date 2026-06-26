@@ -37,6 +37,7 @@ contextBridge.exposeInMainWorld('wrriter', {
   importFiles: () => ipcRenderer.invoke('import:files'),
   closeWindow: () => ipcRenderer.invoke('window:close'),
   triggerPaletteAction: (action: string) => ipcRenderer.invoke('palette:action', action),
+  toggleFloatingWindow: () => ipcRenderer.invoke('window:toggle-floating'),
   
   // Listeners (Main -> Renderer IPC callbacks)
   onVaultChange: (callback: (event: any, data: any) => void) => {

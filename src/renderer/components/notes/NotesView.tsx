@@ -10,9 +10,17 @@ interface NotesViewProps {
   index: VaultIndex;
   _vaultPath: string;
   onBreadcrumbChange?: (path: string) => void;
+  targetNotePath?: string | null;
+  onClearTargetNotePath?: () => void;
 }
 
-export default function NotesView({ index, _vaultPath, onBreadcrumbChange }: NotesViewProps) {
+export default function NotesView({ 
+  index, 
+  _vaultPath, 
+  onBreadcrumbChange,
+  targetNotePath,
+  onClearTargetNotePath
+}: NotesViewProps) {
   const [activeFolder, setActiveFolder] = useState<string>('.');
   const [selectedNote, setSelectedNote] = useState<NoteEntry | null>(null);
   const [createdFolders, setCreatedFolders] = useState<string[]>([]);
@@ -46,6 +54,17 @@ export default function NotesView({ index, _vaultPath, onBreadcrumbChange }: Not
       }
     }
   }, [index.notes, targetSelectedPath]);
+
+  useEffect(() => {
+    if (targetNotePath) {
+      const note = index.notes.find(n => n.path === targetNotePath);
+      if (note) {
+        setActiveFolder(note.folder || '.');
+      }
+      setTargetSelectedPath(targetNotePath);
+      onClearTargetNotePath?.();
+    }
+  }, [targetNotePath, index.notes]);
 
   useEffect(() => {
     if (onBreadcrumbChange) {

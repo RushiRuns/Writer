@@ -83,10 +83,10 @@
 
 **Independent Test**: Browse folders tree, select notes list. Drag divider handles to resize. Create note, edit heading line 1, verify `.md` file renames.
 
-- [ ] T023 [US4] Implement collapsible folder tree rendering in `src/renderer/components/notes/FolderTree.tsx`
-- [ ] T024 [P] [US4] Create note cards listing column in `src/renderer/components/notes/NoteList.tsx`
-- [ ] T025 [US4] Integrate resizable pane grid columns in `src/renderer/components/layout/ResizablePanels.tsx`
-- [ ] T026 [US4] Implement rename note via heading transaction in `src/main/vault/file-ops.ts`
+- [x] T023 [US4] Implement collapsible folder tree rendering in `src/renderer/components/notes/FolderTree.tsx`
+- [x] T024 [P] [US4] Create note cards listing column in `src/renderer/components/notes/NoteList.tsx`
+- [x] T025 [US4] Integrate resizable pane grid columns in `src/renderer/components/layout/ResizablePanels.tsx`
+- [x] T026 [US4] Implement rename note via heading transaction in `src/main/vault/file-ops.ts`
 
 ---
 

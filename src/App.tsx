@@ -5,6 +5,9 @@ import InboxView from './renderer/components/inbox/InboxView';
 import ChecklistView from './renderer/components/checklist/ChecklistView';
 import NotesView from './renderer/components/notes/NotesView';
 import DrawingView from './renderer/components/drawing/DrawingView';
+import JournalView from './renderer/components/journal/JournalView';
+import TagsView from './renderer/components/tags/TagsView';
+import ArchiveView from './renderer/components/archive/ArchiveView';
 import CommandPalette from './renderer/components/command-palette/CommandPalette';
 import FloatingWindow from './renderer/components/floating-window/FloatingWindow';
 import { VaultIndex } from './shared/ipc-types';
@@ -229,6 +232,12 @@ function AppContent() {
         return <NotesView index={index} _vaultPath={vaultPath} onBreadcrumbChange={setBreadcrumb} />;
       case 'drawing':
         return <DrawingView index={index} _vaultPath={vaultPath} />;
+      case 'journal':
+        return <JournalView index={index} vaultPath={vaultPath} />;
+      case 'tags':
+        return <TagsView index={index} vaultPath={vaultPath} />;
+      case 'archive':
+        return <ArchiveView index={index} vaultPath={vaultPath} />;
       case 'settings':
         return (
           <div className={styles.settingsWrapper}>

@@ -56,7 +56,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
       const mergedTags = Array.from(new Set([...currentTags, ...inlineTags]));
 
       const nextFrontmatter = {
-        title: parsedTitle || note.title,
+        title: note.section === 'journal' ? note.title : (parsedTitle || note.title),
         created: note.created,
         tags: mergedTags,
         reminder: currentReminder,
@@ -64,7 +64,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
         completed_at: note.completedAt
       };
 
-      if (parsedTitle && parsedTitle !== note.title) {
+      if (parsedTitle && parsedTitle !== note.title && note.section !== 'journal') {
         // Trigger rename
         const res = await (window as any).wrriter.writeNote(note.path, bodyText, nextFrontmatter, parsedTitle);
         if (res.success) {

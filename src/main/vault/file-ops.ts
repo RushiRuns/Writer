@@ -25,7 +25,7 @@ export const settingsStore = new Store<AppSettings>({
   name: 'settings',
   defaults: {
     theme: 'dark',
-    accentColor: '#E8A44B',
+    accentColor: '#9ca3af',
     font: 'Inter',
     fontSize: 14,
     texture: 'none',

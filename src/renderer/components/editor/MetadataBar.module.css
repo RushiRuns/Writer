@@ -22,8 +22,8 @@
   font-size: 11px;
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(232, 164, 75, 0.2);
-  background-color: rgba(232, 164, 75, 0.05);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+  background-color: rgba(156, 163, 175, 0.05);
   color: var(--accent-primary);
   display: flex;
   align-items: center;
@@ -33,7 +33,7 @@
 }
 
 .tagPill:hover {
-  background-color: rgba(232, 164, 75, 0.1);
+  background-color: rgba(156, 163, 175, 0.1);
 }
 
 .removeBtn {
@@ -59,7 +59,7 @@
 
 .newTagInput {
   background-color: var(--color-neutral-900);
-  border: 1px solid rgba(232, 164, 75, 0.5);
+  border: 1px solid rgba(156, 163, 175, 0.5);
   border-radius: var(--radius-sm);
   font-size: 11px;
   color: var(--color-neutral-100);
@@ -100,8 +100,8 @@
   align-items: center;
   gap: var(--space-1-5);
   font-size: 11px;
-  border: 1px solid rgba(232, 164, 75, 0.2);
-  background-color: rgba(232, 164, 75, 0.05);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+  background-color: rgba(156, 163, 175, 0.05);
   color: var(--accent-primary);
   border-radius: var(--radius-sm);
   padding: 0.125rem 0.5rem;

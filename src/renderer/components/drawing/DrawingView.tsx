@@ -325,7 +325,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
 
   // Color Palette Selection
   const colors = [
-    { name: 'Amber', value: '#E8A44B' },
+    { name: 'Amber', value: '#9ca3af' },
     { name: 'Red', value: '#EF4444' },
     { name: 'Blue', value: '#3B82F6' },
     { name: 'Green', value: '#10B981' },

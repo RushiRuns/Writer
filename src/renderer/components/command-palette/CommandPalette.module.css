@@ -2,7 +2,7 @@
   width: 100%;
   height: 100%;
   background-color: rgba(10, 10, 10, 0.95);
-  border: 1px solid rgba(232, 164, 75, 0.3);
+  border: 1px solid rgba(156, 163, 175, 0.3);
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
@@ -89,7 +89,7 @@
 }
 
 .row.selected {
-  background-color: rgba(232, 164, 75, 0.1);
+  background-color: rgba(156, 163, 175, 0.1);
   border-left-color: var(--accent-primary);
   color: var(--color-neutral-100);
 }
@@ -113,8 +113,8 @@
 }
 
 .iconWrapper.selected {
-  background-color: rgba(232, 164, 75, 0.2);
-  border-color: rgba(232, 164, 75, 0.35);
+  background-color: rgba(156, 163, 175, 0.2);
+  border-color: rgba(156, 163, 175, 0.35);
   color: var(--accent-primary);
 }
 

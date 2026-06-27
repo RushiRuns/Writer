@@ -145,7 +145,7 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
   const [redoStack, setRedoStack] = useState<Stroke[][]>([]);
   
   const [tool, setTool] = useState<'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text' | 'image' | 'vectorEraser' | 'lasso' | 'pan'>('pen');
-  const [color, setColor] = useState<string>('#E8A44B'); // default brand amber
+  const [color, setColor] = useState<string>('#9ca3af'); // default brand amber
   const [brushWidth, setBrushWidth] = useState<number>(4);
   const [opacity, setOpacity] = useState<number>(1);
   const [filled, setFilled] = useState<boolean>(false);

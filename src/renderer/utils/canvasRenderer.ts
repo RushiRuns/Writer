@@ -140,7 +140,7 @@ export function drawStroke(
     }
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = '#E8A44B'; // Brand amber selection color
+    ctx.strokeStyle = '#9ca3af'; // Brand amber selection color
     ctx.stroke();
     ctx.setLineDash([]); // Reset line dash
   }

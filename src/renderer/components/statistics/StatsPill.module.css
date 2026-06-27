@@ -22,7 +22,7 @@
 }
 
 .pill:hover {
-  background-color: rgba(232, 164, 75, 0.04);
+  background-color: rgba(156, 163, 175, 0.04);
   color: var(--color-white);
 }
 
@@ -154,11 +154,11 @@
 
 .chartBar {
   width: 1rem;
-  background: linear-gradient(to top, rgba(232, 164, 75, 0.4) 0%, var(--accent-primary) 100%);
+  background: linear-gradient(to top, rgba(156, 163, 175, 0.4) 0%, var(--accent-primary) 100%);
   border-top-left-radius: var(--radius-sm);
   border-top-right-radius: var(--radius-sm);
   transition: all 0.5s ease-out;
-  box-shadow: var(--shadow-sm), 0 0 10px rgba(232, 164, 75, 0.1);
+  box-shadow: var(--shadow-sm), 0 0 10px rgba(156, 163, 175, 0.1);
 }
 
 .chartLabel {
@@ -188,7 +188,7 @@
 
 .contribSquare.active {
   background-color: var(--accent-primary);
-  box-shadow: 0 0 5px rgba(232, 164, 75, 0.4);
+  box-shadow: 0 0 5px rgba(156, 163, 175, 0.4);
 }
 
 .contribSquare:not(.active) {

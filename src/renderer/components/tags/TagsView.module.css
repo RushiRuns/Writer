@@ -88,7 +88,7 @@
 }
 
 .tagRow.active {
-  background-color: rgba(232, 164, 75, 0.05);
+  background-color: rgba(156, 163, 175, 0.05);
   border-left-color: var(--accent-primary);
   color: var(--text-primary);
 }
@@ -140,13 +140,13 @@
 }
 
 .noteCard:hover {
-  border-color: rgba(232, 164, 75, 0.2);
+  border-color: rgba(156, 163, 175, 0.2);
   background-color: rgba(255, 255, 255, 0.04);
 }
 
 .noteCard.selected {
   border-color: var(--accent-primary);
-  background-color: rgba(232, 164, 75, 0.05);
+  background-color: rgba(156, 163, 175, 0.05);
 }
 
 .noteCardHeader {
@@ -195,7 +195,7 @@
 .cardTagPill {
   font-size: 0.65rem;
   color: var(--accent-primary);
-  background-color: rgba(232, 164, 75, 0.1);
+  background-color: rgba(156, 163, 175, 0.1);
   padding: 0.1rem 0.35rem;
   border-radius: var(--radius-sm);
 }

@@ -11,7 +11,7 @@
 }
 
 .triggerBtn.open {
-  background-color: rgba(232, 164, 75, 0.05);
+  background-color: rgba(156, 163, 175, 0.05);
   border-color: transparent;
   color: var(--accent-primary);
   box-shadow: none;
@@ -24,7 +24,7 @@
 }
 
 .triggerBtn.playing:hover {
-  color: #d48c2b;
+  color: #6b7280;
   background-color: rgba(255, 255, 255, 0.05);
 }
 
@@ -118,7 +118,7 @@
 
 .soundRow.active {
   background-color: rgba(23, 23, 23, 0.6);
-  border-color: rgba(232, 164, 75, 0.2);
+  border-color: rgba(156, 163, 175, 0.2);
 }
 
 .soundRow:not(.active) {
@@ -139,8 +139,8 @@
 }
 
 .powerBtn.active {
-  background-color: rgba(232, 164, 75, 0.2);
-  border-color: rgba(232, 164, 75, 0.35);
+  background-color: rgba(156, 163, 175, 0.2);
+  border-color: rgba(156, 163, 175, 0.35);
   color: var(--accent-primary);
 }
 

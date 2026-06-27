@@ -46,7 +46,7 @@
 .newBtn:hover {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  background-color: rgba(232, 164, 75, 0.05);
+  background-color: rgba(156, 163, 175, 0.05);
 }
 
 .scrollArea {
@@ -104,7 +104,7 @@
 }
 
 .noteRow.selected {
-  background-color: rgba(232, 164, 75, 0.05); /* Accent tint background */
+  background-color: rgba(156, 163, 175, 0.05); /* Accent tint background */
   border-left-color: var(--accent-primary);
 }
 

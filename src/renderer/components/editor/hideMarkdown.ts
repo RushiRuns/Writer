@@ -150,13 +150,13 @@ export const hideMarkdownStyles = EditorView.theme({
     display: 'none !important'
   },
   '.cm-wikilink-pill': {
-    color: '#E8A44B !important',
+    color: '#9ca3af !important',
     textDecoration: 'underline !important',
     fontWeight: '500 !important',
     cursor: 'pointer'
   },
   '.cm-link-text-amber': {
-    color: '#E8A44B !important',
+    color: '#9ca3af !important',
     textDecoration: 'underline !important',
     cursor: 'pointer'
   },

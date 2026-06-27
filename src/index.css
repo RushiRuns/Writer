@@ -56,7 +56,7 @@
   --bg-card: #1e1e1e;
   --bg-glass: rgba(18, 18, 18, 0.8);
   --border-glass: rgba(255, 255, 255, 0.05);
-  --border-focus: rgba(232, 164, 75, 0.5); /* Amber-500 */
+  --border-focus: rgba(156, 163, 175, 0.5); /* Grey-400 */
   
   --bg-pane-nav: #0A0A0A;
   --bg-pane-tree: #0D0D0D;
@@ -69,12 +69,12 @@
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted: rgba(255, 255, 255, 0.38);
   
-  /* Brand Gradients & Accents */
-  --accent-primary: #E8A44B; /* Amber */
-  --accent-secondary: #E8A44B; /* Amber */
-  --accent-glow: rgba(232, 164, 75, 0.25);
-  --gradient-brand: linear-gradient(135deg, #E8A44B 0%, #D48C2B 100%);
-  --gradient-glow: linear-gradient(135deg, rgba(232, 164, 75, 0.15) 0%, rgba(212, 140, 43, 0.15) 100%);
+  /* Brand Gradients & Accents — Grey */
+  --accent-primary: #9ca3af; /* Neutral Grey */
+  --accent-secondary: #9ca3af;
+  --accent-glow: rgba(156, 163, 175, 0.2);
+  --gradient-brand: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  --gradient-glow: linear-gradient(135deg, rgba(156, 163, 175, 0.10) 0%, rgba(107, 114, 128, 0.10) 100%);
   
   /* Font Families — via CSS vars for components using var(--font-*) */
   --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -91,31 +91,64 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 15px rgba(232, 164, 75, 0.2);
+  --shadow-glow: 0 0 15px rgba(156, 163, 175, 0.2);
   
   transition: background-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Light Mode Overrides */
 [data-theme="light"] {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.8);
-  --bg-glass: rgba(255, 255, 255, 0.7);
+  /* Backgrounds */
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #ebebeb;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-pane-nav: #efefef;
+  --bg-pane-tree: #f0f0f0;
+  --bg-pane-list: #f5f5f5;
+  --bg-pane-editor: #fafafa;
+  --bg-pure-black: #f5f5f5;
+  --bg-input-dark: rgba(0, 0, 0, 0.06);
+  --bg-hover-light: rgba(0, 0, 0, 0.04);
+
+  /* Borders */
   --border-glass: rgba(0, 0, 0, 0.08);
-  --border-focus: rgba(139, 92, 246, 0.4);
-  
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  
-  --accent-glow: rgba(139, 92, 246, 0.15);
-  --gradient-glow: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(206, 66, 171, 0.08) 100%);
-  
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 15px 45px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 25px rgba(139, 92, 246, 0.15);
+  --border-subtle: rgba(0, 0, 0, 0.07);
+  --border-focus: rgba(107, 114, 128, 0.4);
+
+  /* Text */
+  --text-primary: #111111;
+  --text-secondary: #3f3f46;
+  --text-muted: #71717a;
+  --text-bright: #111111;
+  --text-dim: #71717a;
+
+  /* Neutral scale inversion for light */
+  --color-black: #ffffff;
+  --color-white: #000000;
+  --color-neutral-100: #181818;
+  --color-neutral-200: #262626;
+  --color-neutral-300: #3a3a3a;
+  --color-neutral-400: #525252;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #a3a3a3;
+  --color-neutral-700: #d4d4d4;
+  --color-neutral-800: #e5e5e5;
+  --color-neutral-900: #f0f0f0;
+  --color-neutral-950: #f7f7f7;
+
+  /* Accent stays grey but slightly darker for light contrast */
+  --accent-primary: #6b7280;
+  --accent-secondary: #6b7280;
+  --accent-glow: rgba(107, 114, 128, 0.15);
+  --gradient-brand: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  --gradient-glow: linear-gradient(135deg, rgba(107, 114, 128, 0.08) 0%, rgba(75, 85, 99, 0.08) 100%);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.09);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 15px rgba(107, 114, 128, 0.12);
 }
 
 * {
@@ -196,9 +229,9 @@ body {
 }
 
 @keyframes glowPulse {
-  0% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); }
-  50% { box-shadow: 0 0 25px rgba(139, 92, 246, 0.35); }
-  100% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); }
+  0% { box-shadow: 0 0 15px rgba(156, 163, 175, 0.15); }
+  50% { box-shadow: 0 0 25px rgba(156, 163, 175, 0.30); }
+  100% { box-shadow: 0 0 15px rgba(156, 163, 175, 0.15); }
 }
 
 .animate-fade-in {

@@ -57,7 +57,7 @@ export interface AppConfig {
 
 export interface AppSettings {
   theme: 'dark' | 'light';
-  accentColor: string;      // default: '#E8A44B'
+  accentColor: string;      // default: '#9ca3af'
   font: string;             // default: 'Inter'
   fontSize: number;         // default: 14
   texture: 'none' | 'noise' | 'paper' | 'grid';

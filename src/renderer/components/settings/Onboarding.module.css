@@ -95,7 +95,7 @@
   gap: var(--spacing-3);
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid rgba(232, 164, 75, 0.3);
+  border: 1px solid rgba(156, 163, 175, 0.3);
   background: transparent;
   color: var(--text-bright);
   border-radius: var(--radius-md);
@@ -105,8 +105,8 @@
 
 .primaryBtn:hover:not(:disabled) {
   border-color: var(--color-brand-amber);
-  background-color: rgba(232, 164, 75, 0.1);
-  box-shadow: 0 0 15px rgba(232, 164, 75, 0.15);
+  background-color: rgba(156, 163, 175, 0.1);
+  box-shadow: 0 0 15px rgba(156, 163, 175, 0.15);
 }
 
 .primaryBtn:disabled, .secondaryBtn:disabled {

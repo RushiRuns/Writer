@@ -34,6 +34,7 @@ function AppContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<string>('inbox');
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [breadcrumb, setBreadcrumb] = useState<string>('Inbox');
   const [index, setIndex] = useState<VaultIndex>({
     notes: [],
@@ -57,8 +58,19 @@ function AppContent() {
       const nextTheme = settings.theme === 'light' ? 'dark' : 'light';
       await (window as any).wrriter.setSettings({ theme: nextTheme });
       document.documentElement.setAttribute('data-theme', nextTheme);
+      setTheme(nextTheme);
     } catch (err) {
       console.error('Failed to toggle theme:', err);
+    }
+  };
+
+  const handleSetTheme = async (t: 'dark' | 'light') => {
+    try {
+      await (window as any).wrriter.setSettings({ theme: t });
+      document.documentElement.setAttribute('data-theme', t);
+      setTheme(t);
+    } catch (err) {
+      console.error('Failed to set theme:', err);
     }
   };
 
@@ -172,6 +184,7 @@ function AppContent() {
         const settings = await (window as any).wrriter.getSettings();
         if (settings && settings.theme) {
           document.documentElement.setAttribute('data-theme', settings.theme);
+          setTheme(settings.theme as 'dark' | 'light');
         }
       } catch (err) {
         console.error('Failed to load theme on mount:', err);
@@ -369,10 +382,20 @@ function AppContent() {
                       Switch between Light and Dark interface styles.
                     </span>
                   </div>
-                  <button onClick={handleToggleTheme} className={styles.themeToggleBtn}>
-                    <SunMoon size={15} />
-                    <span>Toggle Theme</span>
-                  </button>
+                  <div className={styles.themeToggleGroup}>
+                    <button
+                      onClick={() => handleSetTheme('dark')}
+                      className={`${styles.themeBtn} ${theme === 'dark' ? styles.themeBtnActive : ''}`}
+                    >
+                      Dark
+                    </button>
+                    <button
+                      onClick={() => handleSetTheme('light')}
+                      className={`${styles.themeBtn} ${theme === 'light' ? styles.themeBtnActive : ''}`}
+                    >
+                      Light
+                    </button>
+                  </div>
                 </div>
               </div>
 

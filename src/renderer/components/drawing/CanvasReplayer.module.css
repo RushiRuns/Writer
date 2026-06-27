@@ -23,8 +23,8 @@
   background-color: var(--bg-pure-black);
   padding: var(--spacing-1-5) var(--spacing-3);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(232, 164, 75, 0.35);
-  box-shadow: var(--shadow-lg), 0 0 15px rgba(232, 164, 75, 0.05);
+  border: 1px solid rgba(156, 163, 175, 0.35);
+  box-shadow: var(--shadow-lg), 0 0 15px rgba(156, 163, 175, 0.05);
   z-index: 10;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -58,7 +58,7 @@
 .skipBtn:hover {
   background-color: var(--bg-hover-light);
   color: var(--text-bright);
-  border-color: rgba(232, 164, 75, 0.4);
+  border-color: rgba(156, 163, 175, 0.4);
 }
 
 .canvasBorder {

@@ -131,7 +131,7 @@
 
 .noteCard.selected {
   border-color: var(--accent-primary);
-  background-color: rgba(232, 164, 75, 0.04);
+  background-color: rgba(156, 163, 175, 0.04);
 }
 
 .cardHeader {
@@ -225,8 +225,8 @@
   display: flex;
   align-items: center;
   padding: 0.5rem 1.5rem;
-  background-color: rgba(232, 164, 75, 0.05);
-  border-bottom: 1px solid rgba(232, 164, 75, 0.15);
+  background-color: rgba(156, 163, 175, 0.05);
+  border-bottom: 1px solid rgba(156, 163, 175, 0.15);
   font-size: 0.75rem;
   color: var(--text-secondary);
 }

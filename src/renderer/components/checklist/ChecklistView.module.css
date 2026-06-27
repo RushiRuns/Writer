@@ -254,3 +254,9 @@
   color: var(--color-neutral-700);
   margin-bottom: var(--space-4);
 }
+
+.editorContent {
+  flex-grow: 1;
+  height: calc(100% - 48px);
+  overflow: hidden;
+}

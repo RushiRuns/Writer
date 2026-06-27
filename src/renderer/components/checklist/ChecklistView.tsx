@@ -5,12 +5,13 @@ import Editor from '../editor/Editor';
 import styles from './ChecklistView.module.css';
 
 interface ChecklistViewProps {
+  header: React.ReactNode;
   sectionId: 'later' | 'read' | 'shop' | 'watch' | 'tasks';
   index: VaultIndex;
   _vaultPath: string;
 }
 
-export default function ChecklistView({ sectionId, index, _vaultPath }: ChecklistViewProps) {
+export default function ChecklistView({ header, sectionId, index, _vaultPath }: ChecklistViewProps) {
   const [selectedNoteForEdit, setSelectedNoteForEdit] = useState<NoteEntry | null>(null);
   const [newItemText, setNewItemText] = useState('');
   const [renamingNotePath, setRenamingNotePath] = useState<string | null>(null);
@@ -160,6 +161,7 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
       
       {/* Checklist list pane */}
       <div className={`${styles.listPane} ${selectedNoteForEdit ? styles.selected : styles.idle}`}>
+        {!selectedNoteForEdit && header}
         
         {/* Header Title */}
         <div className={styles.header}>
@@ -276,12 +278,15 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
       {/* Editor Column Area */}
       {selectedNoteForEdit && (
         <div className={`${styles.editorCol} animate-fade-in`}>
-          <Editor
-            note={selectedNoteForEdit}
-            index={index}
-            onNoteSelect={setSelectedNoteForEdit}
-            onClose={() => setSelectedNoteForEdit(null)}
-          />
+          {header}
+          <div className={styles.editorContent}>
+            <Editor
+              note={selectedNoteForEdit}
+              index={index}
+              onNoteSelect={setSelectedNoteForEdit}
+              onClose={() => setSelectedNoteForEdit(null)}
+            />
+          </div>
         </div>
       )}
 

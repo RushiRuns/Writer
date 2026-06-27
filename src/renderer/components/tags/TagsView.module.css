@@ -218,3 +218,17 @@
   font-style: italic;
   background-color: var(--color-black);
 }
+
+.editorPaneContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.editorPaneContent {
+  flex-grow: 1;
+  height: calc(100% - 48px);
+  overflow: hidden;
+}

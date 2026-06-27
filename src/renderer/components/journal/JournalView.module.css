@@ -176,9 +176,17 @@
   margin-top: 2px;
 }
 
+.editorPaneContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
 .editorPane {
   flex-grow: 1;
-  height: 100%;
+  height: calc(100% - 48px);
   overflow: hidden;
 }
 

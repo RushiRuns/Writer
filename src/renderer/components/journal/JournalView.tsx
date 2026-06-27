@@ -4,6 +4,7 @@ import Editor from '../editor/Editor';
 import styles from './JournalView.module.css';
 
 interface JournalViewProps {
+  header: React.ReactNode;
   index: VaultIndex;
   vaultPath: string;
 }
@@ -13,7 +14,7 @@ interface JournalGroup {
   notes: NoteEntry[];
 }
 
-export default function JournalView({ index, vaultPath }: JournalViewProps) {
+export default function JournalView({ header, index, vaultPath }: JournalViewProps) {
   const [selectedNote, setSelectedNote] = useState<NoteEntry | null>(null);
   const [targetSelectedPath, setTargetSelectedPath] = useState<string | null>(null);
   const [isCreatingToday, setIsCreatingToday] = useState(false);
@@ -201,18 +202,21 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
       </div>
 
       {/* Editor Main Pane (Pane 4) */}
-      <div className={styles.editorPane}>
-        {selectedNote ? (
-          <Editor
-            note={selectedNote}
-            index={index}
-            onNoteSelect={setSelectedNote}
-          />
-        ) : (
-          <div className={styles.placeholder}>
-            Select a journal entry or create one to start writing
-          </div>
-        )}
+      <div className={styles.editorPaneContainer}>
+        {header}
+        <div className={styles.editorPane}>
+          {selectedNote ? (
+            <Editor
+              note={selectedNote}
+              index={index}
+              onNoteSelect={setSelectedNote}
+            />
+          ) : (
+            <div className={styles.placeholder}>
+              Select a journal entry or create one to start writing
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

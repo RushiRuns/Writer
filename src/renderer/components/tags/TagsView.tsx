@@ -5,11 +5,12 @@ import Editor from '../editor/Editor';
 import styles from './TagsView.module.css';
 
 interface TagsViewProps {
+  header: React.ReactNode;
   index: VaultIndex;
   vaultPath: string;
 }
 
-export default function TagsView({ index, vaultPath }: TagsViewProps) {
+export default function TagsView({ header, index, vaultPath }: TagsViewProps) {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [selectedNote, setSelectedNote] = useState<NoteEntry | null>(null);
   
@@ -135,19 +136,23 @@ export default function TagsView({ index, vaultPath }: TagsViewProps) {
 
   // Pane 4: Editor panel
   const renderPane4 = () => {
-    if (!selectedNote) {
-      return (
-        <div className={styles.placeholder}>
-          Select a note to view or edit
-        </div>
-      );
-    }
     return (
-      <Editor
-        note={selectedNote}
-        index={index}
-        onNoteSelect={setSelectedNote}
-      />
+      <div className={styles.editorPaneContainer}>
+        {header}
+        <div className={styles.editorPaneContent}>
+          {selectedNote ? (
+            <Editor
+              note={selectedNote}
+              index={index}
+              onNoteSelect={setSelectedNote}
+            />
+          ) : (
+            <div className={styles.placeholder}>
+              Select a note to view or edit
+            </div>
+          )}
+        </div>
+      </div>
     );
   };
 

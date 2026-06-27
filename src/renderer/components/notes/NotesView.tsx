@@ -7,6 +7,7 @@ import Editor from '../editor/Editor';
 import styles from './NotesView.module.css';
 
 interface NotesViewProps {
+  header: React.ReactNode;
   index: VaultIndex;
   _vaultPath: string;
   onBreadcrumbChange?: (path: string) => void;
@@ -15,6 +16,7 @@ interface NotesViewProps {
 }
 
 export default function NotesView({ 
+  header,
   index, 
   _vaultPath, 
   onBreadcrumbChange,
@@ -116,20 +118,23 @@ export default function NotesView({
   );
 
   const renderPane4 = () => {
-    if (!selectedNote) {
-      return (
-        <div className={styles.placeholder}>
-          Select or create a note in the list to start writing
-        </div>
-      );
-    }
-
     return (
-      <Editor
-        note={selectedNote}
-        index={index}
-        onNoteSelect={setSelectedNote}
-      />
+      <div className={styles.editorPaneContainer}>
+        {header}
+        <div className={styles.editorPaneContent}>
+          {selectedNote ? (
+            <Editor
+              note={selectedNote}
+              index={index}
+              onNoteSelect={setSelectedNote}
+            />
+          ) : (
+            <div className={styles.placeholder}>
+              Select or create a note in the list to start writing
+            </div>
+          )}
+        </div>
+      </div>
     );
   };
 

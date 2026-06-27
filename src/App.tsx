@@ -270,16 +270,18 @@ function AppContent() {
   }
 
   // Render content area based on the active section selection
-  const renderContent = () => {
+  // Render content area based on the active section selection
+  const renderContent = (header: React.ReactNode) => {
     switch (activeSection) {
       case 'inbox':
-        return <InboxView index={index} vaultPath={vaultPath} />;
+        return <InboxView header={header} index={index} vaultPath={vaultPath} />;
       case 'later':
       case 'read':
       case 'shop':
       case 'watch':
         return (
           <ListsView
+            header={header}
             activeList={activeSection}
             onSelectList={setActiveSection}
             index={index}
@@ -289,6 +291,7 @@ function AppContent() {
       case 'tasks':
         return (
           <ChecklistView
+            header={header}
             sectionId={activeSection}
             index={index}
             _vaultPath={vaultPath}
@@ -297,6 +300,7 @@ function AppContent() {
       case 'notes':
         return (
           <NotesView 
+            header={header}
             index={index} 
             _vaultPath={vaultPath} 
             onBreadcrumbChange={setBreadcrumb} 
@@ -305,13 +309,13 @@ function AppContent() {
           />
         );
       case 'drawing':
-        return <DrawingView index={index} _vaultPath={vaultPath} />;
+        return <DrawingView header={header} index={index} _vaultPath={vaultPath} />;
       case 'journal':
-        return <JournalView index={index} vaultPath={vaultPath} />;
+        return <JournalView header={header} index={index} vaultPath={vaultPath} />;
       case 'tags':
-        return <TagsView index={index} vaultPath={vaultPath} />;
+        return <TagsView header={header} index={index} vaultPath={vaultPath} />;
       case 'archive':
-        return <ArchiveView index={index} vaultPath={vaultPath} />;
+        return <ArchiveView header={header} index={index} vaultPath={vaultPath} />;
       case 'settings':
         return null;
       default:
@@ -326,132 +330,127 @@ function AppContent() {
     }
   };
 
+  const topBar = (
+    <header className={styles.header}>
+      {/* Left header space */}
+      <div className={styles.leftHeader}></div>
+
+      {/* Right Header Actions */}
+      <div className={styles.rightHeader}>
+        {/* Syncthing Link Status */}
+        <div className={styles.statusGroup}>
+          <button
+            onClick={handleSyncScan}
+            className={`${styles.iconBtn} ${
+              syncthingStatus.status === 'synced' 
+                ? styles.syncSynced 
+                : syncthingStatus.status === 'syncing'
+                  ? styles.syncSyncing
+                  : styles.syncDisconnected
+            }`}
+            title="Click to trigger manual Syncthing scan"
+          >
+            {syncthingStatus.status === 'disconnected' ? (
+              <CloudOff size={16} />
+            ) : (
+              <Cloud size={16} />
+            )}
+          </button>
+          
+          {/* Tooltip */}
+          <div className={styles.tooltip}>
+            <div className={styles.tooltipHeader}>
+              Syncthing Link
+            </div>
+            <div className={styles.tooltipRow}>
+              <span>State:</span>
+              <span className={
+                syncthingStatus.status === 'synced' 
+                  ? styles.tooltipStateSynced 
+                  : syncthingStatus.status === 'syncing'
+                    ? styles.tooltipStateSyncing
+                    : styles.tooltipStateDisconnected
+              }>
+                {syncthingStatus.status}
+              </span>
+            </div>
+            {syncthingStatus.status !== 'disconnected' && (
+              <>
+                <div className={styles.tooltipRow}>
+                  <span>Device ID:</span>
+                  <span className={styles.tooltipValue}>{syncthingStatus.deviceName || 'Unknown'}</span>
+                </div>
+                <div className={styles.tooltipRow}>
+                  <span>Connected:</span>
+                  <span className={styles.tooltipValue}>{syncthingStatus.connectedDevices} {syncthingStatus.connectedDevices === 1 ? 'device' : 'devices'}</span>
+                </div>
+                {syncthingStatus.version && (
+                  <div className={styles.tooltipRow}>
+                    <span>Version:</span>
+                    <span className={styles.tooltipValue}>{syncthingStatus.version}</span>
+                  </div>
+                )}
+              </>
+            )}
+            {syncthingStatus.status === 'disconnected' && (
+              <div className={styles.tooltipTextMuted}>
+                Daemon offline or configuration error
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Ambient Sounds Mixer Popover Button */}
+        <AudioManager />
+
+        {/* Focus Timer Hourglass Icon */}
+        <button
+          onClick={isActive ? pause : start}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            reset();
+          }}
+          className={`${styles.iconBtn} ${isActive ? styles.timerActive : ''}`}
+          title={`Timer: ${mode === 'focus' ? 'Focus' : 'Break'} (${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}). Click to toggle, Right-click to reset.`}
+        >
+          <Hourglass size={16} className={isActive ? 'animate-pulse' : ''} />
+        </button>
+
+        {/* Random Note Dice Icon */}
+        <button
+          onClick={handleRandomNote}
+          className={styles.iconBtn}
+          title="Open a random note"
+        >
+          <Dice5 size={16} />
+        </button>
+
+        {/* Floating Window Toggle Icon */}
+        <button
+          onClick={handleToggleFloating}
+          className={styles.iconBtn}
+          title="Toggle Quick Write Window"
+        >
+          <AppWindow size={16} />
+        </button>
+      </div>
+    </header>
+  );
+
   return (
     <div className={styles.container}>
-      {/* Top Bar */}
-      <header className={styles.header}>
-        {/* Left header space */}
-        <div className={styles.leftHeader}></div>
+      {/* Sidebar Panel (Pane 1) */}
+      <Navigation 
+        activeSection={activeSection} 
+        onSectionSelect={setActiveSection} 
+        isSettingsOpen={showSettings}
+        onSettingsClick={() => setShowSettings(true)}
+      />
 
-        {/* Right Header Actions */}
-        <div className={styles.rightHeader}>
-          {/* Syncthing Link Status */}
-          <div className={styles.statusGroup}>
-            <button
-              onClick={handleSyncScan}
-              className={`${styles.iconBtn} ${
-                syncthingStatus.status === 'synced' 
-                  ? styles.syncSynced 
-                  : syncthingStatus.status === 'syncing'
-                    ? styles.syncSyncing
-                    : styles.syncDisconnected
-              }`}
-              title="Click to trigger manual Syncthing scan"
-            >
-              {syncthingStatus.status === 'disconnected' ? (
-                <CloudOff size={16} />
-              ) : (
-                <Cloud size={16} />
-              )}
-            </button>
-            
-            {/* Tooltip */}
-            <div className={styles.tooltip}>
-              <div className={styles.tooltipHeader}>
-                Syncthing Link
-              </div>
-              <div className={styles.tooltipRow}>
-                <span>State:</span>
-                <span className={
-                  syncthingStatus.status === 'synced' 
-                    ? styles.tooltipStateSynced 
-                    : syncthingStatus.status === 'syncing'
-                      ? styles.tooltipStateSyncing
-                      : styles.tooltipStateDisconnected
-                }>
-                  {syncthingStatus.status}
-                </span>
-              </div>
-              {syncthingStatus.status !== 'disconnected' && (
-                <>
-                  <div className={styles.tooltipRow}>
-                    <span>Device ID:</span>
-                    <span className={styles.tooltipValue}>{syncthingStatus.deviceName || 'Unknown'}</span>
-                  </div>
-                  <div className={styles.tooltipRow}>
-                    <span>Connected:</span>
-                    <span className={styles.tooltipValue}>{syncthingStatus.connectedDevices} {syncthingStatus.connectedDevices === 1 ? 'device' : 'devices'}</span>
-                  </div>
-                  {syncthingStatus.version && (
-                    <div className={styles.tooltipRow}>
-                      <span>Version:</span>
-                      <span className={styles.tooltipValue}>{syncthingStatus.version}</span>
-                    </div>
-                  )}
-                </>
-              )}
-              {syncthingStatus.status === 'disconnected' && (
-                <div className={styles.tooltipTextMuted}>
-                  Daemon offline or configuration error
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Ambient Sounds Mixer Popover Button */}
-          <AudioManager />
-
-          {/* Focus Timer Hourglass Icon */}
-          <button
-            onClick={isActive ? pause : start}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              reset();
-            }}
-            className={`${styles.iconBtn} ${isActive ? styles.timerActive : ''}`}
-            title={`Timer: ${mode === 'focus' ? 'Focus' : 'Break'} (${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}). Click to toggle, Right-click to reset.`}
-          >
-            <Hourglass size={16} className={isActive ? 'animate-pulse' : ''} />
-          </button>
-
-          {/* Random Note Dice Icon */}
-          <button
-            onClick={handleRandomNote}
-            className={styles.iconBtn}
-            title="Open a random note"
-          >
-            <Dice5 size={16} />
-          </button>
-
-          {/* Floating Window Toggle Icon */}
-          <button
-            onClick={handleToggleFloating}
-            className={styles.iconBtn}
-            title="Toggle Quick Write Window"
-          >
-            <AppWindow size={16} />
-          </button>
-        </div>
-      </header>
-
-      {/* Main layout underneath full width header */}
-      <div className={styles.mainLayout}>
-        {/* Sidebar Panel (Pane 1) */}
-        <Navigation 
-          activeSection={activeSection} 
-          onSectionSelect={setActiveSection} 
-          isSettingsOpen={showSettings}
-          onSettingsClick={() => setShowSettings(true)}
-        />
-
-        {/* Main Workspace content */}
-        <main className={styles.main}>
-          {/* Content Area */}
-          <div className={styles.contentWrapper}>
-            {renderContent()}
-          </div>
-        </main>
-      </div>
+      {/* Main Workspace content */}
+      <main className={styles.main}>
+        {renderContent(topBar)}
+      </main>
 
       {/* Break overlay block lock portal */}
       <TimerOverlay />

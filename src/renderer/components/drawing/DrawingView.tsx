@@ -22,7 +22,12 @@ import {
   Minus,
   ArrowRight,
   Square,
-  Circle
+  Circle,
+  Scissors,
+  MousePointer,
+  Trash2,
+  X,
+  Upload
 } from 'lucide-react';
 
 interface DrawingViewProps {
@@ -71,7 +76,12 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     startDrawing,
     draw,
     endDrawing,
-    addTextStroke
+    addTextStroke,
+    addImageStroke,
+    selectedIndices,
+    deleteSelectedStrokes,
+    clearSelection,
+    startResizingSelection
   } = useCanvas({ width, height });
 
   // Save feedback state
@@ -81,6 +91,35 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   });
 
   const lastSavedStrokesRef = useRef<string>('[]');
+
+  // Keyboard Shortcuts: Ctrl+Z for undo, Ctrl+Y for redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Avoid intercepting keystrokes inside typing inputs/textareas
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        document.activeElement?.getAttribute('contenteditable') === 'true'
+      ) {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        if (e.key.toLowerCase() === 'z') {
+          e.preventDefault();
+          undo();
+        } else if (e.key.toLowerCase() === 'y') {
+          e.preventDefault();
+          redo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [undo, redo]);
 
   // Auto-save effect
   useEffect(() => {
@@ -187,7 +226,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
         
         // Find or set selected drawing to keep reference
         setTimeout(() => {
-          setSaveStatus({ type: null, message: '' });
+          setSaveStatus(prev => prev.message.includes('successfully') ? { type: null, message: '' } : prev);
         }, 3000);
       } else {
         setSaveStatus({ type: 'error', message: res.error || 'Failed to save sketch' });
@@ -195,6 +234,43 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     } catch (err) {
       console.error('Failed to save drawing:', err);
       setSaveStatus({ type: 'error', message: String(err) });
+    }
+  };
+
+  // Handle local image file import
+  const handleImageImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        addImageStroke(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset file input value so same file can be selected again
+    e.target.value = '';
+  };
+
+  // Trigger selection resizing via coordinates mapping
+  const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * width;
+    const y = ((e.clientY - rect.top) / rect.height) * height;
+
+    startResizingSelection(x, y);
+
+    // Set pointer capture to canvas to listen to draw pointermove triggers
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (err) {
+      console.warn('Pointer capture failed:', err);
     }
   };
 
@@ -247,6 +323,26 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     setStrokes(completedStrokes);
     setReplayingStrokes(null);
   };
+
+  // Calculate selection bounding box if active lasso selection is present
+  let selectionBox: { minX: number; minY: number; maxX: number; maxY: number } | null = null;
+  if (selectedIndices.length > 0) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    selectedIndices.forEach(idx => {
+      const stroke = strokes[idx];
+      if (!stroke) return;
+      stroke.points.forEach(pt => {
+        if (pt.x < minX) minX = pt.x;
+        if (pt.y < minY) minY = pt.y;
+        if (pt.x > maxX) maxX = pt.x;
+        if (pt.y > maxY) maxY = pt.y;
+      });
+    });
+
+    if (minX !== Infinity) {
+      selectionBox = { minX, minY, maxX, maxY };
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -372,8 +468,48 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   onPointerUp={endDrawing}
                   onClick={handleCanvasClick}
                   className={styles.canvas}
-                  style={{ width: `${width}px`, height: `${height}px` }}
+                  style={{ width: '100%', height: '100%' }}
                 />
+
+                {/* Selection Box Overlay (Dotted border and transform panel) */}
+                {selectionBox && (
+                  <div 
+                    className={styles.selectionOverlay}
+                    style={{
+                      left: `${(selectionBox.minX / width) * 100}%`,
+                      top: `${(selectionBox.minY / height) * 100}%`,
+                      width: `${((selectionBox.maxX - selectionBox.minX) / width) * 100}%`,
+                      height: `${((selectionBox.maxY - selectionBox.minY) / height) * 100}%`
+                    }}
+                  >
+                    {/* Bounding Box Resize Handle */}
+                    <div 
+                      className={styles.resizeHandle}
+                      onPointerDown={handleResizePointerDown}
+                      title="Drag to resize selection"
+                    />
+
+                    <div className={styles.selectionToolbar}>
+                      <button
+                        onClick={deleteSelectedStrokes}
+                        className={styles.selectionToolbarBtnDanger}
+                        title="Delete Selected Strokes"
+                      >
+                        <Trash2 size={12} />
+                        <span>Delete</span>
+                      </button>
+                      <div className={styles.selectionToolbarDivider} />
+                      <button
+                        onClick={clearSelection}
+                        className={styles.selectionToolbarBtn}
+                        title="Clear Selection"
+                      >
+                        <X size={12} />
+                        <span>Deselect</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Inline Text Input Overlay */}
                 {textInputPos && (
@@ -463,6 +599,38 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   <div className={styles.divider} />
 
                   <button
+                    onClick={() => setTool('vectorEraser')}
+                    className={`${styles.toolButton} ${tool === 'vectorEraser' ? styles.toolButtonActive : ''}`}
+                    title="Vector Eraser (Tap/drag to delete whole strokes)"
+                  >
+                    <Scissors size={13} />
+                    <span>Vector Eraser</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('lasso')}
+                    className={`${styles.toolButton} ${tool === 'lasso' ? styles.toolButtonActive : ''}`}
+                    title="Lasso Selection (Draw boundary to move strokes)"
+                  >
+                    <MousePointer size={13} />
+                    <span>Lasso Select</span>
+                  </button>
+
+                  <div className={styles.divider} />
+
+                  <label className={styles.imageImportLabel} title="Import image from local computer">
+                    <Upload size={13} />
+                    <span>Import Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageImport}
+                      className={styles.imageImportInput}
+                    />
+                  </label>
+
+                  <div className={styles.divider} />
+
+                  <button
                     onClick={() => setTool('line')}
                     className={`${styles.toolButton} ${tool === 'line' ? styles.toolButtonActive : ''}`}
                     title="Line Tool"
@@ -539,8 +707,8 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
 
               {/* Row 2: Brush properties (colors/size) and operations */}
               <div className={styles.toolbarRow}>
-                {/* Color Selection (hidden if tool is eraser) */}
-                <div className={`${styles.colorsWrapper} ${tool === 'eraser' ? styles.colorsDisabled : ''}`}>
+                {/* Color Selection (hidden if tool is eraser or vectorEraser) */}
+                <div className={`${styles.colorsWrapper} ${(tool === 'eraser' || tool === 'vectorEraser' || tool === 'lasso') ? styles.colorsDisabled : ''}`}>
                   <span className={styles.colorsLabel}>Colors</span>
                   <div className={styles.colorsContainer}>
                     {colors.map((c) => (

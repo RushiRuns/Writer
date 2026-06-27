@@ -1,5 +1,7 @@
 import { Stroke } from '../../shared/ipc-types';
 
+const imageCache = new Map<string, HTMLImageElement>();
+
 /**
  * Renders a single Stroke structure onto a given canvas 2D context.
  * Can render custom brushes (pen, marker, highlighter, eraser),
@@ -113,6 +115,34 @@ export function drawStroke(
       ctx.textBaseline = 'top';
       ctx.fillText(stroke.text, start.x, start.y);
     }
+  } else if (stroke.tool === 'image') {
+    const imgSource = stroke.image;
+    if (imgSource) {
+      const cached = imageCache.get(imgSource);
+      if (cached) {
+        ctx.drawImage(cached, start.x, start.y, end.x - start.x, end.y - start.y);
+      } else {
+        const img = new Image();
+        img.src = imgSource;
+        img.onload = () => {
+          imageCache.set(imgSource, img);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('canvas-image-loaded'));
+          }
+        };
+      }
+    }
+  } else if (stroke.tool === 'lasso') {
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i <= maxIdx; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#E8A44B'; // Brand amber selection color
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset line dash
   }
 
   ctx.restore();

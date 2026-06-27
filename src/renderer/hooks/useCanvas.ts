@@ -8,17 +8,38 @@ export interface UseCanvasOptions {
   initialStrokes?: Stroke[];
 }
 
+// Ray-casting point-in-polygon math helper
+function isPointInPolygon(px: number, py: number, polygon: Array<{ x: number; y: number }>) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].x, yi = polygon[i].y;
+    const xj = polygon[j].x, yj = polygon[j].y;
+    
+    const intersect = ((yi > py) !== (yj > py))
+        && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
 export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptions) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [strokes, setStrokes] = useState<Stroke[]>(initialStrokes);
   const [undoStack, setUndoStack] = useState<Stroke[][]>([]);
   const [redoStack, setRedoStack] = useState<Stroke[][]>([]);
   
-  const [tool, setTool] = useState<'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text'>('pen');
+  const [tool, setTool] = useState<'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text' | 'image' | 'vectorEraser' | 'lasso'>('pen');
   const [color, setColor] = useState<string>('#E8A44B'); // default brand amber
   const [brushWidth, setBrushWidth] = useState<number>(4);
   const [opacity, setOpacity] = useState<number>(1);
   const [filled, setFilled] = useState<boolean>(false);
+
+  // Lasso Selection & Transforming states
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const isTransformingRef = useRef<boolean>(false);
+  const isResizingRef = useRef<boolean>(false);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const originalStrokesRef = useRef<Stroke[]>([]);
   
   const isDrawingRef = useRef<boolean>(false);
   const currentPointsRef = useRef<StrokePoint[]>([]);
@@ -37,12 +58,15 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     } else if (tool === 'eraser') {
       setOpacity(1);
       setBrushWidth(20);
-    } else if (['line', 'rect', 'circle', 'arrow'].includes(tool)) {
+    } else if (['line', 'rect', 'circle', 'arrow', 'lasso'].includes(tool)) {
       setOpacity(1);
       setBrushWidth(4);
     } else if (tool === 'text') {
       setOpacity(1);
-      setBrushWidth(4); // Use width to determine text size scale (e.g. 4 * 3 + 12 = 24px)
+      setBrushWidth(4);
+    } else if (tool === 'vectorEraser') {
+      setOpacity(1);
+      setBrushWidth(12);
     }
   }, [tool]);
 
@@ -65,12 +89,106 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     redraw(strokes);
   }, [strokes, redraw]);
 
+  // Redraw handler trigger for asynchronous image loads
+  useEffect(() => {
+    const handleImageLoaded = () => {
+      redraw(strokes);
+    };
+    window.addEventListener('canvas-image-loaded', handleImageLoaded);
+    return () => {
+      window.removeEventListener('canvas-image-loaded', handleImageLoaded);
+    };
+  }, [strokes, redraw]);
+
+  // Helper to detect if a coordinate hits a stroke point
+  const findClickedStrokeIndex = useCallback((x: number, y: number): number => {
+    for (let i = strokes.length - 1; i >= 0; i--) {
+      const stroke = strokes[i];
+      if (!stroke) continue;
+      for (const pt of stroke.points) {
+        const dx = pt.x - x;
+        const dy = pt.y - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Dynamic threshold based on brush size + spacing buffer
+        const threshold = Math.max(15, stroke.width / 2 + 12);
+        if (distance <= threshold) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }, [strokes]);
+
+  // Expose resizing handle start hook
+  const startResizingSelection = useCallback((x: number, y: number) => {
+    isResizingRef.current = true;
+    dragStartRef.current = { x, y };
+    originalStrokesRef.current = JSON.parse(JSON.stringify(strokes));
+    setUndoStack(prev => [...prev, strokes]);
+    setRedoStack([]);
+  }, [strokes]);
+
   const startDrawing = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (tool === 'text') return; // Text tool logic is handled externally on click
+    if (tool === 'text') return; // Handled inline by text input fields
 
     const canvas = canvasRef.current;
     if (!canvas) return;
     
+    const rect = canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * width;
+    const y = ((e.clientY - rect.top) / rect.height) * height;
+    const pressure = e.pressure !== undefined && e.pressure !== 0 ? e.pressure : 0.5;
+
+    // Vector (Stroke) Eraser Mode click
+    if (tool === 'vectorEraser') {
+      isDrawingRef.current = true; // allow dragging to erase multiple strokes
+      const clickedIdx = findClickedStrokeIndex(x, y);
+      if (clickedIdx !== -1) {
+        setUndoStack(prev => [...prev, strokes]);
+        setRedoStack([]);
+        setStrokes(prev => prev.filter((_, idx) => idx !== clickedIdx));
+        setSelectedIndices(prev => prev.filter(idx => idx !== clickedIdx).map(idx => idx > clickedIdx ? idx - 1 : idx));
+      }
+      return;
+    }
+
+    // Lasso Selection Mode click
+    if (tool === 'lasso') {
+      let clickedInsideSelection = false;
+      if (selectedIndices.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        selectedIndices.forEach(idx => {
+          const stroke = strokes[idx];
+          if (!stroke) return;
+          stroke.points.forEach(pt => {
+            if (pt.x < minX) minX = pt.x;
+            if (pt.y < minY) minY = pt.y;
+            if (pt.x > maxX) maxX = pt.x;
+            if (pt.y > maxY) maxY = pt.y;
+          });
+        });
+
+        // Add padding threshold for grabbing bounding boxes
+        if (x >= minX - 15 && x <= maxX + 15 && y >= minY - 15 && y <= maxY + 15) {
+          clickedInsideSelection = true;
+        }
+      }
+
+      if (clickedInsideSelection) {
+        // Drag select transformation
+        isTransformingRef.current = true;
+        dragStartRef.current = { x, y };
+        originalStrokesRef.current = JSON.parse(JSON.stringify(strokes));
+        setUndoStack(prev => [...prev, strokes]);
+        setRedoStack([]);
+        return;
+      } else {
+        // Clicked outside, reset selection bounding boxes
+        setSelectedIndices([]);
+      }
+    }
+
     // Set pointer capture to lock events
     try {
       canvas.setPointerCapture(e.pointerId);
@@ -79,20 +197,10 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     }
     
     isDrawingRef.current = true;
-    const rect = canvas.getBoundingClientRect();
-    
-    // Convert coordinate scaling
-    const x = ((e.clientX - rect.left) / rect.width) * width;
-    const y = ((e.clientY - rect.top) / rect.height) * height;
-    
-    // Collect pressure if styling/pressure is supported
-    const pressure = e.pressure !== undefined && e.pressure !== 0 ? e.pressure : 0.5;
-    
     currentPointsRef.current = [{ x, y, pressure }];
     
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      // Redraw all strokes plus current dot preview
       ctx.clearRect(0, 0, width, height);
       strokes.forEach(s => drawStroke(ctx, s));
 
@@ -106,24 +214,105 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
       };
       drawStroke(ctx, activeStroke);
     }
-  }, [width, height, tool, color, brushWidth, opacity, strokes, filled]);
+  }, [width, height, tool, color, brushWidth, opacity, strokes, filled, selectedIndices, findClickedStrokeIndex]);
 
   const draw = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawingRef.current || tool === 'text') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * width;
     const y = ((e.clientY - rect.top) / rect.height) * height;
     const pressure = e.pressure !== undefined && e.pressure !== 0 ? e.pressure : 0.5;
+
+    // Vector Eraser Dragging
+    if (isDrawingRef.current && tool === 'vectorEraser') {
+      const clickedIdx = findClickedStrokeIndex(x, y);
+      if (clickedIdx !== -1) {
+        setUndoStack(prev => [...prev, strokes]);
+        setRedoStack([]);
+        setStrokes(prev => prev.filter((_, idx) => idx !== clickedIdx));
+        setSelectedIndices(prev => prev.filter(idx => idx !== clickedIdx).map(idx => idx > clickedIdx ? idx - 1 : idx));
+      }
+      return;
+    }
+
+    // Lasso transforming (resizing selection)
+    if (isResizingRef.current && dragStartRef.current && originalStrokesRef.current.length > 0) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      selectedIndices.forEach(idx => {
+        const stroke = originalStrokesRef.current[idx];
+        if (!stroke) return;
+        stroke.points.forEach(pt => {
+          if (pt.x < minX) minX = pt.x;
+          if (pt.y < minY) minY = pt.y;
+          if (pt.x > maxX) maxX = pt.x;
+          if (pt.y > maxY) maxY = pt.y;
+        });
+      });
+
+      if (minX !== Infinity) {
+        const origWidth = maxX - minX;
+        const origHeight = maxY - minY;
+        
+        // Prevent division by zero and constrain scale limits
+        const newWidth = Math.max(10, x - minX);
+        const newHeight = Math.max(10, y - minY);
+        
+        const sx = origWidth > 0 ? newWidth / origWidth : 1;
+        const sy = origHeight > 0 ? newHeight / origHeight : 1;
+
+        setStrokes(prev => {
+          const next = [...prev];
+          selectedIndices.forEach(sIdx => {
+            const origStroke = originalStrokesRef.current[sIdx];
+            if (!origStroke) return;
+            next[sIdx] = {
+              ...origStroke,
+              points: origStroke.points.map(pt => ({
+                ...pt,
+                x: minX + (pt.x - minX) * sx,
+                y: minY + (pt.y - minY) * sy
+              }))
+            };
+          });
+          return next;
+        });
+      }
+      return;
+    }
+
+    // Lasso transforming (dragging selection)
+    if (isTransformingRef.current && dragStartRef.current && originalStrokesRef.current.length > 0) {
+      const dx = x - dragStartRef.current.x;
+      const dy = y - dragStartRef.current.y;
+
+      setStrokes(prev => {
+        const next = [...prev];
+        selectedIndices.forEach(sIdx => {
+          const origStroke = originalStrokesRef.current[sIdx];
+          if (!origStroke) return;
+          next[sIdx] = {
+            ...origStroke,
+            points: origStroke.points.map(pt => ({
+              ...pt,
+              x: pt.x + dx,
+              y: pt.y + dy
+            }))
+          };
+        });
+        return next;
+      });
+      return;
+    }
+
+    if (!isDrawingRef.current || tool === 'text') return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
     const points = currentPointsRef.current;
     
     if (['line', 'rect', 'circle', 'arrow'].includes(tool)) {
-      // For shapes, we only need start (points[0]) and current points (points[1])
       currentPointsRef.current = [points[0], { x, y, pressure }];
     } else {
       const lastPoint = points[points.length - 1];
@@ -133,7 +322,6 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
       points.push({ x, y, pressure });
     }
     
-    // Redraw entire canvas with current preview stroke
     ctx.clearRect(0, 0, width, height);
     strokes.forEach(s => drawStroke(ctx, s));
 
@@ -146,9 +334,26 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
       filled
     };
     drawStroke(ctx, activeStroke);
-  }, [width, height, tool, color, brushWidth, opacity, strokes, filled]);
+  }, [width, height, tool, color, brushWidth, opacity, strokes, filled, selectedIndices, findClickedStrokeIndex]);
 
   const endDrawing = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (tool === 'vectorEraser') {
+      isDrawingRef.current = false;
+      return;
+    }
+
+    if (isResizingRef.current) {
+      isResizingRef.current = false;
+      dragStartRef.current = null;
+      return;
+    }
+
+    if (isTransformingRef.current) {
+      isTransformingRef.current = false;
+      dragStartRef.current = null;
+      return;
+    }
+
     if (!isDrawingRef.current || tool === 'text') return;
     isDrawingRef.current = false;
     
@@ -162,24 +367,46 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     }
     
     if (currentPointsRef.current.length > 0) {
-      const finalPoints = [...currentPointsRef.current];
-      if (['line', 'rect', 'circle', 'arrow'].includes(tool) && finalPoints.length === 1) {
-        // If it's a shape tool and they clicked/released without dragging, add a tiny offset so shape displays
-        finalPoints.push({ ...finalPoints[0], x: finalPoints[0].x + 1, y: finalPoints[0].y + 1 });
-      }
+      if (tool === 'lasso') {
+        // Enclosure boundary selection math
+        const polygon = [...currentPointsRef.current];
+        if (polygon.length >= 3) {
+          const selected: number[] = [];
+          strokes.forEach((stroke, strokeIdx) => {
+            if (!stroke) return;
+            const isEnclosed = stroke.points.some(pt => isPointInPolygon(pt.x, pt.y, polygon));
+            if (isEnclosed) {
+              selected.push(strokeIdx);
+            }
+          });
+          setSelectedIndices(selected);
+        }
+        
+        // Redraw to remove lasso dotted outline path from render buffer
+        const ctx = canvas?.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, width, height);
+          strokes.forEach(s => drawStroke(ctx, s));
+        }
+      } else {
+        const finalPoints = [...currentPointsRef.current];
+        if (['line', 'rect', 'circle', 'arrow'].includes(tool) && finalPoints.length === 1) {
+          finalPoints.push({ ...finalPoints[0], x: finalPoints[0].x + 1, y: finalPoints[0].y + 1 });
+        }
 
-      const newStroke: Stroke = {
-        tool,
-        color,
-        width: brushWidth,
-        opacity,
-        points: finalPoints,
-        filled: ['rect', 'circle'].includes(tool) ? filled : undefined
-      };
-      
-      setUndoStack(prev => [...prev, strokes]);
-      setRedoStack([]);
-      setStrokes(prev => [...prev, newStroke]);
+        const newStroke: Stroke = {
+          tool,
+          color,
+          width: brushWidth,
+          opacity,
+          points: finalPoints,
+          filled: ['rect', 'circle'].includes(tool) ? filled : undefined
+        };
+        
+        setUndoStack(prev => [...prev, strokes]);
+        setRedoStack([]);
+        setStrokes(prev => [...prev, newStroke]);
+      }
     }
     
     currentPointsRef.current = [];
@@ -200,12 +427,57 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     setStrokes(prev => [...prev, newStroke]);
   }, [strokes, color, brushWidth]);
 
+  // Expose image stroke creation helper
+  const addImageStroke = useCallback((base64: string) => {
+    // Default size 400x300 centered on canvas
+    const imgW = 400;
+    const imgH = 300;
+    const x1 = (width - imgW) / 2;
+    const y1 = (height - imgH) / 2;
+    const x2 = x1 + imgW;
+    const y2 = y1 + imgH;
+
+    const newStroke: Stroke = {
+      tool: 'image',
+      color: '#FFFFFF',
+      width: 1,
+      opacity: 1,
+      points: [
+        { x: x1, y: y1, pressure: 0.5 },
+        { x: x2, y: y2, pressure: 0.5 }
+      ],
+      image: base64
+    };
+
+    setUndoStack(prev => [...prev, strokes]);
+    setRedoStack([]);
+    setStrokes(prev => [...prev, newStroke]);
+    
+    // Select image immediately for layout positioning
+    setSelectedIndices([strokes.length]);
+    setTool('lasso');
+  }, [strokes, width, height]);
+
+  // Expose selection deletion helper
+  const deleteSelectedStrokes = useCallback(() => {
+    if (selectedIndices.length === 0) return;
+    setUndoStack(prev => [...prev, strokes]);
+    setRedoStack([]);
+    setStrokes(prev => prev.filter((_, idx) => !selectedIndices.includes(idx)));
+    setSelectedIndices([]);
+  }, [strokes, selectedIndices]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIndices([]);
+  }, []);
+
   const undo = useCallback(() => {
     if (undoStack.length === 0) return;
     const previous = undoStack[undoStack.length - 1];
     setUndoStack(prev => prev.slice(0, -1));
     setRedoStack(prev => [...prev, strokes]);
     setStrokes(previous);
+    setSelectedIndices([]);
   }, [strokes, undoStack]);
 
   const redo = useCallback(() => {
@@ -214,6 +486,7 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     setRedoStack(prev => prev.slice(0, -1));
     setUndoStack(prev => [...prev, strokes]);
     setStrokes(next);
+    setSelectedIndices([]);
   }, [strokes, redoStack]);
 
   // Toast banner support for clearing canvas
@@ -228,6 +501,7 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     setRedoStack([]);
     clearedStrokesRef.current = strokes;
     setStrokes([]);
+    setSelectedIndices([]);
     
     setShowClearUndoBanner(true);
     if (clearTimerRef.current) {
@@ -272,6 +546,12 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     startDrawing,
     draw,
     endDrawing,
-    addTextStroke
+    addTextStroke,
+    addImageStroke,
+    selectedIndices,
+    setSelectedIndices,
+    deleteSelectedStrokes,
+    clearSelection,
+    startResizingSelection
   };
 }

@@ -33,13 +33,14 @@ export interface StrokePoint {
 }
 
 export interface Stroke {
-  tool: 'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text';
+  tool: 'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text' | 'image' | 'vectorEraser' | 'lasso';
   color: string;
   width: number;
   opacity: number;
   points: StrokePoint[];
   text?: string;
   filled?: boolean;
+  image?: string;
 }
 
 export interface AppConfig {

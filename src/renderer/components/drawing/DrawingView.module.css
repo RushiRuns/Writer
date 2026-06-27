@@ -723,3 +723,126 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   width: 180px;
 }
+
+/* Lasso Selection Bounding Box Overlay */
+.selectionOverlay {
+  position: absolute;
+  border: 1.5px dashed var(--color-brand-amber);
+  border-radius: var(--radius-sm);
+  pointer-events: none; /* Make clicks pass through so drag events are processed by the canvas */
+  box-sizing: border-box;
+  box-shadow: 0 0 10px rgba(232, 164, 75, 0.25);
+  z-index: 10;
+}
+
+.selectionToolbar {
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  background-color: var(--bg-input-dark);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-1) var(--spacing-2);
+  box-shadow: var(--shadow-xl);
+  pointer-events: auto; /* Enable clicks on floating toolbar buttons */
+  z-index: 11;
+  white-space: nowrap;
+}
+
+.selectionToolbarBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-family: var(--font-ui);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  cursor: pointer;
+  padding: var(--spacing-0-5) var(--spacing-1-5);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.selectionToolbarBtn:hover {
+  color: var(--text-bright);
+  background-color: var(--bg-hover-light);
+}
+
+.selectionToolbarBtnDanger {
+  background: transparent;
+  border: none;
+  color: #EF4444;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  cursor: pointer;
+  padding: var(--spacing-0-5) var(--spacing-1-5);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.selectionToolbarBtnDanger:hover {
+  color: #ff6b6b;
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+.selectionToolbarDivider {
+  width: 1px;
+  height: 12px;
+  background-color: var(--border-subtle);
+  margin: 0 var(--spacing-1);
+}
+
+/* Image Import Trigger styling */
+.imageImportLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+  padding: var(--spacing-1-5) var(--spacing-3);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.imageImportLabel:hover {
+  color: var(--text-bright);
+  background-color: rgba(22, 22, 22, 0.55);
+}
+
+.imageImportInput {
+  display: none;
+}
+
+/* Bounding Box Resize Handle */
+.resizeHandle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--bg-pure-black);
+  border: 1.5px solid var(--color-brand-amber);
+  border-radius: 50%;
+  right: -5px;
+  bottom: -5px;
+  cursor: nwse-resize;
+  pointer-events: auto; /* Enable hover/pointerdowns on resize handle */
+  z-index: 12;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.resizeHandle:hover {
+  background-color: var(--color-brand-amber);
+  transform: scale(1.3);
+}

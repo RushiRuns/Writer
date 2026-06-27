@@ -37,12 +37,11 @@ import {
 } from 'lucide-react';
 
 interface DrawingViewProps {
-  header: React.ReactNode;
   index: VaultIndex;
   _vaultPath: string;
 }
 
-export default function DrawingView({ header, index, _vaultPath }: DrawingViewProps) {
+export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   const [selectedDrawing, setSelectedDrawing] = useState<DrawingEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [drawingName, setDrawingName] = useState('');
@@ -463,10 +462,8 @@ export default function DrawingView({ header, index, _vaultPath }: DrawingViewPr
       </div>
 
       {/* Main Workspace */}
-      <div className={styles.mainWorkspaceContainer}>
-        {header}
-        <div className={styles.mainWorkspace}>
-          {replayingStrokes ? (
+      <div className={styles.mainWorkspace}>
+        {replayingStrokes ? (
           // Replayer view
           <CanvasReplayer
             strokes={replayingStrokes}
@@ -923,7 +920,6 @@ export default function DrawingView({ header, index, _vaultPath }: DrawingViewPr
             </div>
           </div>
         )}
-      </div>
       </div>
     </div>
   );

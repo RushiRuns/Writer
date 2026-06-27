@@ -5,12 +5,11 @@ import { Plus, ArrowUp } from 'lucide-react';
 import styles from './InboxView.module.css';
 
 interface InboxViewProps {
-  header: React.ReactNode;
   index: VaultIndex;
   vaultPath: string;
 }
 
-export default function InboxView({ header, index, vaultPath }: InboxViewProps) {
+export default function InboxView({ index, vaultPath }: InboxViewProps) {
   const [selectedNotePath, setSelectedNotePath] = useState<string | null>(null);
   const [animatingOutPath, setAnimatingOutPath] = useState<string | null>(null);
   const [quickCaptureText, setQuickCaptureText] = useState('');
@@ -62,7 +61,6 @@ export default function InboxView({ header, index, vaultPath }: InboxViewProps) 
 
   return (
     <div className={`flex-grow flex flex-col h-full relative ${styles.container}`}>
-      {header}
       {/* Scrollable list of Inbox notes */}
       <div className={styles.listArea}>
         {inboxNotes.length === 0 ? (

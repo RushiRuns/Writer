@@ -592,3 +592,25 @@
   font-family: var(--font-mono);
   margin: 0;
 }
+
+.stateSynced {
+  color: #22c55e;
+  font-weight: 600;
+}
+.stateSyncing {
+  color: #eab308;
+  font-weight: 600;
+}
+.stateDisconnected {
+  color: #ef4444;
+  font-weight: 600;
+}
+.statusIconSynced {
+  color: #22c55e;
+}
+.statusIconSyncing {
+  color: #eab308;
+}
+.statusIconDisconnected {
+  color: #ef4444;
+}

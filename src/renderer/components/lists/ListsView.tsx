@@ -5,14 +5,13 @@ import { Clock, BookOpen, ShoppingBag, Eye } from 'lucide-react';
 import styles from './ListsView.module.css';
 
 interface ListsViewProps {
-  header: React.ReactNode;
   activeList: string;
   onSelectList: (list: string) => void;
   index: VaultIndex;
   vaultPath: string;
 }
 
-export default function ListsView({ header, activeList, onSelectList, index, vaultPath }: ListsViewProps) {
+export default function ListsView({ activeList, onSelectList, index, vaultPath }: ListsViewProps) {
   
   // Checklist categories sub-navigation configuration
   const listCategories = [
@@ -55,7 +54,6 @@ export default function ListsView({ header, activeList, onSelectList, index, vau
       {/* Dynamic Content Display Area */}
       <div className={styles.contentArea}>
         <ChecklistView
-          header={header}
           key={activeList} // Forces re-mount to refresh states correctly
           sectionId={activeList as any}
           index={index}

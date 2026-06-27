@@ -4,12 +4,11 @@ import Editor from '../editor/Editor';
 import styles from './ArchiveView.module.css';
 
 interface ArchiveViewProps {
-  header: React.ReactNode;
   index: VaultIndex;
   vaultPath: string;
 }
 
-export default function ArchiveView({ header, index, vaultPath }: ArchiveViewProps) {
+export default function ArchiveView({ index, vaultPath }: ArchiveViewProps) {
   const [selectedNote, setSelectedNote] = useState<NoteEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -153,31 +152,28 @@ export default function ArchiveView({ header, index, vaultPath }: ArchiveViewPro
       </div>
 
       {/* Note Editor Area (Right Column) */}
-      <div className={styles.editorPaneContainer}>
-        {header}
-        <div className={styles.editorPane}>
-          {selectedNote ? (
-            <div className="h-full w-full relative flex flex-col">
-              <div className={styles.archiveBanner}>
-                <svg className="w-4 h-4 mr-1.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span>This note is archived. You can edit it here or restore it to your active lists.</span>
-              </div>
-              <div className="flex-grow overflow-hidden">
-                <Editor
-                  note={selectedNote}
-                  index={index}
-                  onNoteSelect={setSelectedNote}
-                />
-              </div>
+      <div className={styles.editorPane}>
+        {selectedNote ? (
+          <div className="h-full w-full relative flex flex-col">
+            <div className={styles.archiveBanner}>
+              <svg className="w-4 h-4 mr-1.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>This note is archived. You can edit it here or restore it to your active lists.</span>
             </div>
-          ) : (
-            <div className={styles.placeholder}>
-              Select an archived note to view or edit
+            <div className="flex-grow overflow-hidden">
+              <Editor
+                note={selectedNote}
+                index={index}
+                onNoteSelect={setSelectedNote}
+              />
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className={styles.placeholder}>
+            Select an archived note to view or edit
+          </div>
+        )}
       </div>
     </div>
   );

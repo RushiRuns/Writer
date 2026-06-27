@@ -14,8 +14,7 @@ import {
   Archive, 
   Search, 
   Settings, 
-  SunMoon,
-  PenTool
+  SunMoon
 } from 'lucide-react';
 import styles from './Navigation.module.css';
 
@@ -26,14 +25,7 @@ interface NavigationProps {
   vaultPath: string;
 }
 
-export default function Navigation({ activeSection, onSectionSelect, index, vaultPath }: NavigationProps) {
-  const getSectionCount = (sectionId: string) => {
-    const secName = sectionId === 'drawing' ? 'notes' : sectionId; 
-    if (sectionId === 'drawing') {
-      return index.drawings.length;
-    }
-    return index.notes.filter(n => n.section === secName).length;
-  };
+export default function Navigation({ activeSection, onSectionSelect, index: _index, vaultPath: _vaultPath }: NavigationProps) {
 
   const navItems = [
     { id: 'inbox', label: 'Inbox', hasBadge: true, icon: Inbox },
@@ -65,21 +57,15 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
       <nav className={styles.navList}>
         {navItems.map((item) => {
           const isActive = activeSection === item.id;
-          const count = item.hasBadge ? getSectionCount(item.id) : 0;
           const IconComponent = item.icon;
           return (
             <button
               key={item.id}
               onClick={() => onSectionSelect(item.id)}
               className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+              title={item.label}
             >
-              <IconComponent size={16} className={styles.navIcon} />
-              <span className={styles.navLabel}>{item.label}</span>
-              {item.hasBadge && count > 0 && (
-                <span className={`${styles.navBadge} ${isActive ? styles.active : ''}`}>
-                  {count}
-                </span>
-              )}
+              <IconComponent size={18} className={styles.navIcon} />
             </button>
           );
         })}
@@ -89,23 +75,23 @@ export default function Navigation({ activeSection, onSectionSelect, index, vaul
         <button
           onClick={() => onSectionSelect('search')}
           className={`${styles.navItem} ${activeSection === 'search' ? styles.active : ''}`}
+          title="Search"
         >
-          <Search size={16} className={styles.navIcon} />
-          <span className={styles.navLabel}>Search</span>
+          <Search size={18} className={styles.navIcon} />
         </button>
         <button
           onClick={() => onSectionSelect('settings')}
           className={`${styles.navItem} ${activeSection === 'settings' ? styles.active : ''}`}
+          title="Settings"
         >
-          <Settings size={16} className={styles.navIcon} />
-          <span className={styles.navLabel}>Settings</span>
+          <Settings size={18} className={styles.navIcon} />
         </button>
         <button
           onClick={handleToggleTheme}
           className={styles.navItem}
+          title="Theme"
         >
-          <SunMoon size={16} className={styles.navIcon} />
-          <span className={styles.navLabel}>Theme</span>
+          <SunMoon size={18} className={styles.navIcon} />
         </button>
       </div>
     </aside>

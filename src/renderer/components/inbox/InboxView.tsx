@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { VaultIndex } from '../../../shared/ipc-types';
 import RoutingToolbar from './RoutingToolbar';
+import { Plus, ArrowUp } from 'lucide-react';
 import styles from './InboxView.module.css';
 
 interface InboxViewProps {
@@ -131,6 +132,7 @@ export default function InboxView({ header, index, vaultPath }: InboxViewProps) 
       <div className={styles.quickCaptureContainer}>
         <form onSubmit={handleQuickCaptureSubmit} className={styles.quickCaptureForm}>
           <div className={styles.inputWrapper}>
+            <Plus size={16} className={styles.plusIcon} />
             <input
               type="text"
               value={quickCaptureText}
@@ -143,11 +145,10 @@ export default function InboxView({ header, index, vaultPath }: InboxViewProps) 
               disabled={!quickCaptureText.trim()}
               className={styles.submitBtn}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
+              <ArrowUp size={16} />
             </button>
           </div>
+          <div className={styles.helperText}>Press Enter to save</div>
         </form>
       </div>
     </div>

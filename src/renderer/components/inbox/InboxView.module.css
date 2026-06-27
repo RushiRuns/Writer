@@ -133,8 +133,8 @@
   background: linear-gradient(to top, var(--color-black) 0%, var(--color-black) 60%, transparent 100%);
   padding-top: var(--space-6);
   padding-bottom: var(--space-6);
-  padding-left: var(--space-6);
-  padding-right: var(--space-6);
+  padding-left: calc(var(--space-6) + var(--space-4));
+  padding-right: calc(var(--space-6) + var(--space-4));
   pointer-events: none;
 }
 
@@ -151,13 +151,19 @@
   align-items: center;
   background-color: var(--color-neutral-900);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   padding: 0.625rem var(--space-4);
   transition: border-color 0.2s ease-out;
 }
 
 .inputWrapper:focus-within {
   border-color: rgba(232, 164, 75, 0.5);
+}
+
+.plusIcon {
+  color: var(--color-neutral-500);
+  margin-right: var(--space-2);
+  flex-shrink: 0;
 }
 
 .quickCaptureInput {
@@ -192,4 +198,14 @@
 .submitBtn:disabled {
   color: var(--color-neutral-600);
   cursor: not-allowed;
+}
+
+.helperText {
+  display: block;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-neutral-600);
+  margin-top: 0.5rem;
+  font-family: var(--font-ui);
+  user-select: none;
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import ChecklistContextMenu from './ChecklistContextMenu';
 import Editor from '../editor/Editor';
+import { Plus, ArrowUp } from 'lucide-react';
 import styles from './ChecklistView.module.css';
 
 interface ChecklistViewProps {
@@ -161,13 +162,8 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
       {/* Checklist list pane */}
       <div className={`${styles.listPane} ${selectedNoteForEdit ? styles.selected : styles.idle}`}>
         
-        {/* Header Title */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>{getSectionTitle()}</h1>
-          <p className={styles.subtitle}>
-            {checklistNotes.length} {checklistNotes.length === 1 ? 'item' : 'items'}
-          </p>
-        </div>
+        {/* Title */}
+        <h1 className={styles.viewTitle}>{getSectionTitle()}</h1>
 
         {/* Notes Items List */}
         <div className={styles.itemsScroll}>
@@ -251,26 +247,28 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
         </div>
 
         {/* Input box to add new item directly */}
-        <form onSubmit={handleAddItem} className={styles.bottomForm}>
-          <div className={styles.bottomInputWrapper}>
-            <input
-              type="text"
-              value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
-              placeholder={`Add item to ${getSectionTitle()}...`}
-              className={styles.bottomInput}
-            />
-            <button
-              type="submit"
-              disabled={!newItemText.trim()}
-              className={styles.addBtn}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-          </div>
-        </form>
+        <div className={styles.quickCaptureContainer}>
+          <form onSubmit={handleAddItem} className={styles.quickCaptureForm}>
+            <div className={styles.inputWrapper}>
+              <Plus size={16} className={styles.plusIcon} />
+              <input
+                type="text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder={`Add item to ${getSectionTitle()}...`}
+                className={styles.quickCaptureInput}
+              />
+              <button
+                type="submit"
+                disabled={!newItemText.trim()}
+                className={styles.submitBtn}
+              >
+                <ArrowUp size={16} />
+              </button>
+            </div>
+            <div className={styles.helperText}>Press Enter to save</div>
+          </form>
+        </div>
       </div>
 
       {/* Editor Column Area */}

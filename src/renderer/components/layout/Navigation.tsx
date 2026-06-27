@@ -16,9 +16,11 @@ import styles from './Navigation.module.css';
 interface NavigationProps {
   activeSection: string;
   onSectionSelect: (section: string) => void;
+  isSettingsOpen: boolean;
+  onSettingsClick: () => void;
 }
 
-export default function Navigation({ activeSection, onSectionSelect }: NavigationProps) {
+export default function Navigation({ activeSection, onSectionSelect, isSettingsOpen, onSettingsClick }: NavigationProps) {
 
   // First Pane Navigation Items Configuration
   // 1. Move Notes right below Inbox
@@ -72,8 +74,8 @@ export default function Navigation({ activeSection, onSectionSelect }: Navigatio
           <Search size={18} className={styles.navIcon} />
         </button>
         <button
-          onClick={() => onSectionSelect('settings')}
-          className={`${styles.navItem} ${activeSection === 'settings' ? styles.active : ''}`}
+          onClick={onSettingsClick}
+          className={`${styles.navItem} ${isSettingsOpen ? styles.active : ''}`}
           title="Settings"
         >
           <Settings size={18} className={styles.navIcon} />

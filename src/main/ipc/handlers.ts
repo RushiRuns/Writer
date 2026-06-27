@@ -108,6 +108,7 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle('hotkeys:set', (_event, newHotkeys) => {
     hotkeysStore.set(newHotkeys);
+    ipcMain.emit('register-global-hotkeys');
     return { success: true };
   });
 

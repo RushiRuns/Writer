@@ -2,6 +2,7 @@ import { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain } from 'electro
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { setupIpcHandlers } from './main/ipc/handlers';
+import { hotkeysStore } from './main/vault/file-ops';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -197,13 +198,38 @@ app.on('ready', () => {
   createTray();
 
   // Register global hotkeys
-  globalShortcut.register('Ctrl+Shift+Space', () => {
-    toggleCommandPalette();
-  });
+  registerGlobalShortcuts();
+});
 
-  globalShortcut.register('Ctrl+Shift+W', () => {
-    toggleFloatingWindow();
-  });
+// Helper to register dynamic global hotkeys loaded from settings store
+function registerGlobalShortcuts() {
+  globalShortcut.unregisterAll();
+  const hotkeys = hotkeysStore.store;
+
+  if (hotkeys && hotkeys.commandPalette) {
+    try {
+      globalShortcut.register(hotkeys.commandPalette, () => {
+        toggleCommandPalette();
+      });
+    } catch (err) {
+      console.error('Failed to register global shortcut commandPalette:', err);
+    }
+  }
+
+  if (hotkeys && hotkeys.floatingWindow) {
+    try {
+      globalShortcut.register(hotkeys.floatingWindow, () => {
+        toggleFloatingWindow();
+      });
+    } catch (err) {
+      console.error('Failed to register global shortcut floatingWindow:', err);
+    }
+  }
+}
+
+// IPC listener to re-register hotkeys at runtime
+ipcMain.on('register-global-hotkeys', () => {
+  registerGlobalShortcuts();
 });
 
 // Capture quit flags and unregister global hotkeys

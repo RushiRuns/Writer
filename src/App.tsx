@@ -16,7 +16,8 @@ import { TimerProvider, useTimer } from './renderer/contexts/TimerContext';
 import TimerOverlay from './renderer/components/timer/TimerOverlay';
 import AudioManager from './renderer/components/ambient-sounds/AudioManager';
 import SyncthingSettings from './renderer/components/settings/SyncthingSettings';
-import { Cloud, CloudOff, Hourglass, Dice5, AppWindow, SunMoon } from 'lucide-react';
+import HotkeysSettings from './renderer/components/settings/HotkeysSettings';
+import { Cloud, CloudOff, Hourglass, Dice5, AppWindow, SunMoon, X } from 'lucide-react';
 import styles from './App.module.css';
 
 export default function App() {
@@ -32,6 +33,7 @@ function AppContent() {
   const [vaultPath, setVaultPath] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<string>('inbox');
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   const [breadcrumb, setBreadcrumb] = useState<string>('Inbox');
   const [index, setIndex] = useState<VaultIndex>({
     notes: [],
@@ -113,6 +115,7 @@ function AppContent() {
     if (appMode !== 'main') return;
 
     const fetchStatus = async () => {
+      if (!(window as any).wrriter) return;
       try {
         const status = await (window as any).wrriter.getSyncthingStatus();
         setSyncthingStatus(status);
@@ -142,6 +145,10 @@ function AppContent() {
       
       // Check onboarding status on start (only needed for main window)
       const checkStatus = async () => {
+        if (!(window as any).wrriter) {
+          setLoading(false);
+          return;
+        }
         try {
           const status = await (window as any).wrriter.getVaultStatus();
           if (status.isLoaded && status.path) {
@@ -160,6 +167,7 @@ function AppContent() {
   // Load and apply saved theme on mount
   useEffect(() => {
     const loadTheme = async () => {
+      if (!(window as any).wrriter) return;
       try {
         const settings = await (window as any).wrriter.getSettings();
         if (settings && settings.theme) {
@@ -174,6 +182,7 @@ function AppContent() {
 
   // Handle global command palette actions
   useEffect(() => {
+    if (!(window as any).wrriter) return;
     const unsubscribe = (window as any).wrriter.onNavigateNote(async (_event: any, action: string) => {
       if (action === 'new-note') {
         try {
@@ -188,17 +197,34 @@ function AppContent() {
         handleToggleTheme();
       } else if (action.startsWith('switch-')) {
         const targetSection = action.replace('switch-', '');
-        setActiveSection(targetSection);
+        if (targetSection === 'settings') {
+          setShowSettings(true);
+        } else {
+          setActiveSection(targetSection);
+        }
       }
     });
 
     return () => unsubscribe();
   }, []);
 
+  // Listen for Escape key to close Settings Modal
+  useEffect(() => {
+    if (!showSettings) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowSettings(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSettings]);
+
   useEffect(() => {
     if (vaultPath && appMode === 'main') {
       // Fetch initial index
       const fetchIndex = async () => {
+        if (!(window as any).wrriter) return;
         try {
           const idx = await (window as any).wrriter.getVaultIndex();
           setIndex(idx);
@@ -208,6 +234,7 @@ function AppContent() {
       };
       fetchIndex();
 
+      if (!(window as any).wrriter) return;
       // Listen for updates from the chokidar watcher
       const unsubscribe = (window as any).wrriter.onIndexUpdate((_event: any, newIndex: VaultIndex) => {
         setIndex(newIndex);
@@ -286,36 +313,7 @@ function AppContent() {
       case 'archive':
         return <ArchiveView index={index} vaultPath={vaultPath} />;
       case 'settings':
-        return (
-          <div className={styles.settingsWrapper}>
-            <h2 className={styles.settingsTitle}>Settings</h2>
-            <p className={styles.settingsSubtitle}>
-              Configuration and preferences management panel.
-            </p>
-            <div className={styles.settingsInner}>
-              {/* Appearance Settings Panel */}
-              <div className={styles.settingsCard}>
-                <div className={styles.settingsCardHeader}>
-                  <h3 className={styles.settingsCardTitle}>Appearance</h3>
-                </div>
-                <div className={styles.settingsRow}>
-                  <div className={styles.settingsRowText}>
-                    <span className={styles.settingsLabel}>Application Theme</span>
-                    <span className={styles.settingsDescription}>
-                      Switch between Light and Dark interface styles.
-                    </span>
-                  </div>
-                  <button onClick={handleToggleTheme} className={styles.themeToggleBtn}>
-                    <SunMoon size={15} />
-                    <span>Toggle Theme</span>
-                  </button>
-                </div>
-              </div>
-
-              <SyncthingSettings />
-            </div>
-          </div>
-        );
+        return null;
       default:
         return (
           <div className={styles.fallbackView}>
@@ -442,6 +440,8 @@ function AppContent() {
         <Navigation 
           activeSection={activeSection} 
           onSectionSelect={setActiveSection} 
+          isSettingsOpen={showSettings}
+          onSettingsClick={() => setShowSettings(true)}
         />
 
         {/* Main Workspace content */}
@@ -455,6 +455,48 @@ function AppContent() {
 
       {/* Break overlay block lock portal */}
       <TimerOverlay />
+
+      {/* Settings Modal (Material Design 2 style) */}
+      {showSettings && (
+        <div className={styles.modalBackdrop} onClick={() => setShowSettings(false)}>
+          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Settings</h2>
+              <button className={styles.modalCloseBtn} onClick={() => setShowSettings(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className={styles.modalContent}>
+              {/* Appearance settings card */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardHeader}>
+                  <SunMoon size={15} className={styles.appearanceIcon} />
+                  <h3 className={styles.settingsCardTitle}>Appearance</h3>
+                </div>
+                <div className={styles.settingsRow}>
+                  <div className={styles.settingsRowText}>
+                    <span className={styles.settingsLabel}>Application Theme</span>
+                    <span className={styles.settingsDescription}>
+                      Switch between Light and Dark interface styles.
+                    </span>
+                  </div>
+                  <button onClick={handleToggleTheme} className={styles.themeToggleBtn}>
+                    <SunMoon size={15} />
+                    <span>Toggle Theme</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Shortcuts config card */}
+              <HotkeysSettings />
+
+              {/* Syncthing config panel */}
+              <SyncthingSettings />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

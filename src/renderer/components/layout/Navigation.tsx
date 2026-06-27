@@ -1,67 +1,59 @@
 import React from 'react';
-import { VaultIndex } from '../../../shared/ipc-types';
 import { 
   Inbox, 
-  Clock, 
-  BookOpen, 
-  ShoppingBag, 
-  Eye, 
+  FileText,
+  List,
   CheckSquare, 
   Calendar, 
-  FileText, 
   Hash, 
   Palette, 
   Archive, 
   Search, 
-  Settings, 
-  SunMoon
+  Settings
 } from 'lucide-react';
 import styles from './Navigation.module.css';
 
 interface NavigationProps {
   activeSection: string;
   onSectionSelect: (section: string) => void;
-  index: VaultIndex;
-  vaultPath: string;
 }
 
-export default function Navigation({ activeSection, onSectionSelect, index: _index, vaultPath: _vaultPath }: NavigationProps) {
+export default function Navigation({ activeSection, onSectionSelect }: NavigationProps) {
 
+  // First Pane Navigation Items Configuration
+  // 1. Move Notes right below Inbox
+  // 2. Consolidate checklist items (later, read, shop, watch) into 'lists'
   const navItems = [
-    { id: 'inbox', label: 'Inbox', hasBadge: true, icon: Inbox },
-    { id: 'later', label: 'Later', hasBadge: true, icon: Clock },
-    { id: 'read', label: 'Read', hasBadge: true, icon: BookOpen },
-    { id: 'shop', label: 'Shop', hasBadge: true, icon: ShoppingBag },
-    { id: 'watch', label: 'Watch', hasBadge: true, icon: Eye },
-    { id: 'tasks', label: 'Tasks', hasBadge: true, icon: CheckSquare },
-    { id: 'journal', label: 'Journal', hasBadge: false, icon: Calendar },
-    { id: 'notes', label: 'Notes', hasBadge: false, icon: FileText },
-    { id: 'tags', label: 'Tags', hasBadge: false, icon: Hash },
-    { id: 'drawing', label: 'Drawing Pad', hasBadge: true, icon: Palette },
-    { id: 'archive', label: 'Archive', hasBadge: false, icon: Archive },
+    { id: 'inbox', label: 'Inbox', icon: Inbox },
+    { id: 'notes', label: 'Notes', icon: FileText },
+    { id: 'lists', label: 'Lists', icon: List },
+    { id: 'tasks', label: 'Tasks', icon: CheckSquare },
+    { id: 'journal', label: 'Journal', icon: Calendar },
+    { id: 'tags', label: 'Tags', icon: Hash },
+    { id: 'drawing', label: 'Drawing Pad', icon: Palette },
+    { id: 'archive', label: 'Archive', icon: Archive },
   ];
-
-  const handleToggleTheme = async () => {
-    try {
-      const settings = await (window as any).wrriter.getSettings();
-      const nextTheme = settings.theme === 'light' ? 'dark' : 'light';
-      await (window as any).wrriter.setSettings({ theme: nextTheme });
-      document.documentElement.setAttribute('data-theme', nextTheme);
-    } catch (err) {
-      console.error('Failed to toggle theme:', err);
-    }
-  };
 
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.navList}>
         {navItems.map((item) => {
-          const isActive = activeSection === item.id;
+          // Highlight Lists icon if activeSection is lists, later, read, shop, or watch
+          const isActive = activeSection === item.id || 
+            (item.id === 'lists' && ['later', 'read', 'shop', 'watch'].includes(activeSection));
+          
           const IconComponent = item.icon;
           return (
             <button
               key={item.id}
-              onClick={() => onSectionSelect(item.id)}
+              onClick={() => {
+                if (item.id === 'lists') {
+                  // Default to 'later' if lists is clicked
+                  onSectionSelect('later');
+                } else {
+                  onSectionSelect(item.id);
+                }
+              }}
               className={`${styles.navItem} ${isActive ? styles.active : ''}`}
               title={item.label}
             >
@@ -86,15 +78,7 @@ export default function Navigation({ activeSection, onSectionSelect, index: _ind
         >
           <Settings size={18} className={styles.navIcon} />
         </button>
-        <button
-          onClick={handleToggleTheme}
-          className={styles.navItem}
-          title="Theme"
-        >
-          <SunMoon size={18} className={styles.navIcon} />
-        </button>
       </div>
     </aside>
   );
 }
-

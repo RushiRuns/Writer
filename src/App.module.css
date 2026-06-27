@@ -391,3 +391,88 @@
 .timerActive {
   color: var(--accent-primary);
 }
+
+/* Settings appearance card styling */
+.settingsInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.settingsCard {
+  width: 100%;
+  background-color: #121212;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-muted);
+}
+
+.settingsCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-2-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settingsCardTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  margin: 0;
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.settingsRowText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.settingsLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-bright);
+  font-family: var(--font-sans);
+}
+
+.settingsDescription {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.themeToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+  background-color: var(--bg-pure-black);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-bright);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2) var(--spacing-3-5);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.themeToggleBtn:hover {
+  border-color: rgba(232, 164, 75, 0.5);
+  color: var(--color-brand-amber);
+  background-color: rgba(255, 255, 255, 0.02);
+}

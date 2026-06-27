@@ -8,6 +8,7 @@ import DrawingView from './renderer/components/drawing/DrawingView';
 import JournalView from './renderer/components/journal/JournalView';
 import TagsView from './renderer/components/tags/TagsView';
 import ArchiveView from './renderer/components/archive/ArchiveView';
+import ListsView from './renderer/components/lists/ListsView';
 import CommandPalette from './renderer/components/command-palette/CommandPalette';
 import FloatingWindow from './renderer/components/floating-window/FloatingWindow';
 import { VaultIndex } from './shared/ipc-types';
@@ -15,7 +16,7 @@ import { TimerProvider, useTimer } from './renderer/contexts/TimerContext';
 import TimerOverlay from './renderer/components/timer/TimerOverlay';
 import AudioManager from './renderer/components/ambient-sounds/AudioManager';
 import SyncthingSettings from './renderer/components/settings/SyncthingSettings';
-import { Cloud, CloudOff, Hourglass, Dice5, AppWindow } from 'lucide-react';
+import { Cloud, CloudOff, Hourglass, Dice5, AppWindow, SunMoon } from 'lucide-react';
 import styles from './App.module.css';
 
 export default function App() {
@@ -46,6 +47,17 @@ function AppContent() {
     const note = index.notes[randomIdx];
     setActiveSection('notes');
     setTargetNotePath(note.path);
+  };
+
+  const handleToggleTheme = async () => {
+    try {
+      const settings = await (window as any).wrriter.getSettings();
+      const nextTheme = settings.theme === 'light' ? 'dark' : 'light';
+      await (window as any).wrriter.setSettings({ theme: nextTheme });
+      document.documentElement.setAttribute('data-theme', nextTheme);
+    } catch (err) {
+      console.error('Failed to toggle theme:', err);
+    }
   };
 
   const handleToggleFloating = async () => {
@@ -173,14 +185,7 @@ function AppContent() {
           console.error('Failed to create new note from command palette:', err);
         }
       } else if (action === 'toggle-theme') {
-        try {
-          const settings = await (window as any).wrriter.getSettings();
-          const nextTheme = settings.theme === 'light' ? 'dark' : 'light';
-          await (window as any).wrriter.setSettings({ theme: nextTheme });
-          document.documentElement.setAttribute('data-theme', nextTheme);
-        } catch (err) {
-          console.error('Failed to toggle theme:', err);
-        }
+        handleToggleTheme();
       } else if (action.startsWith('switch-')) {
         const targetSection = action.replace('switch-', '');
         setActiveSection(targetSection);
@@ -246,10 +251,18 @@ function AppContent() {
       case 'read':
       case 'shop':
       case 'watch':
+        return (
+          <ListsView
+            activeList={activeSection}
+            onSelectList={setActiveSection}
+            index={index}
+            vaultPath={vaultPath}
+          />
+        );
       case 'tasks':
         return (
           <ChecklistView
-            sectionId={activeSection as any}
+            sectionId={activeSection}
             index={index}
             _vaultPath={vaultPath}
           />
@@ -280,6 +293,25 @@ function AppContent() {
               Configuration and preferences management panel.
             </p>
             <div className={styles.settingsInner}>
+              {/* Appearance Settings Panel */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardHeader}>
+                  <h3 className={styles.settingsCardTitle}>Appearance</h3>
+                </div>
+                <div className={styles.settingsRow}>
+                  <div className={styles.settingsRowText}>
+                    <span className={styles.settingsLabel}>Application Theme</span>
+                    <span className={styles.settingsDescription}>
+                      Switch between Light and Dark interface styles.
+                    </span>
+                  </div>
+                  <button onClick={handleToggleTheme} className={styles.themeToggleBtn}>
+                    <SunMoon size={15} />
+                    <span>Toggle Theme</span>
+                  </button>
+                </div>
+              </div>
+
               <SyncthingSettings />
             </div>
           </div>
@@ -410,8 +442,6 @@ function AppContent() {
         <Navigation 
           activeSection={activeSection} 
           onSectionSelect={setActiveSection} 
-          index={index} 
-          vaultPath={vaultPath} 
         />
 
         {/* Main Workspace content */}
@@ -428,5 +458,3 @@ function AppContent() {
     </div>
   );
 }
-
-

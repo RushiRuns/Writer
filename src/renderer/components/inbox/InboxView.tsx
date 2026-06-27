@@ -63,6 +63,7 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
     <div className={`flex-grow flex flex-col h-full relative ${styles.container}`}>
       {/* Scrollable list of Inbox notes */}
       <div className={styles.listArea}>
+        <h1 className={styles.viewTitle}>Inbox</h1>
         {inboxNotes.length === 0 ? (
           <div className={`${styles.emptyState} animate-fade-in`}>
             <div className={styles.emptyIcon}>

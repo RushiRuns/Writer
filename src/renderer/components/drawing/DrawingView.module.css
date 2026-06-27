@@ -175,7 +175,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: #1c1c1c;
+  background-color: var(--bg-secondary);
   height: calc(100% - 48px);
   overflow: hidden;
 }
@@ -191,7 +191,7 @@
 .editorHeader {
   padding: var(--spacing-3) var(--spacing-6);
   border-bottom: 1px solid var(--border-subtle);
-  background-color: #141414;
+  background-color: var(--bg-pane-nav);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -309,7 +309,7 @@
   position: relative;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
-  background-color: #050505;
+  background-color: var(--bg-sketchpad);
   box-shadow: var(--shadow-2xl);
   overflow: hidden;
   width: 100%;
@@ -375,7 +375,7 @@
 .toolbar {
   padding: var(--spacing-3) var(--spacing-6);
   border-top: 1px solid var(--border-subtle);
-  background-color: #141414;
+  background-color: var(--bg-pane-nav);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
@@ -475,7 +475,7 @@
 }
 
 .colorBtnActive {
-  border-color: #ffffff;
+  border-color: var(--text-primary);
   transform: scale(1.1);
   box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
 }
@@ -572,7 +572,7 @@
 .divider {
   width: 1px;
   height: 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--border-subtle);
   margin: 0 var(--spacing-1);
 }
 
@@ -594,7 +594,7 @@
 
 .customColorPickerWrapper:hover {
   transform: scale(1.1);
-  border-color: #ffffff;
+  border-color: var(--text-primary);
 }
 
 .customColorInput {

@@ -2,19 +2,19 @@
   flex-grow: 1;
   height: 100%;
   overflow: hidden;
-  background-color: var(--color-black);
+  background-color: var(--bg-primary);
 }
 
 .tagsPanel, .notesPanel {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #0A0A0A; /* --bg-pane-nav / dark slate */
+  background-color: var(--bg-pane-tree);
   overflow: hidden;
 }
 
 .notesPanel {
-  background-color: #111111; /* --bg-pane-list */
+  background-color: var(--bg-pane-list);
 }
 
 .panelHeader {
@@ -37,7 +37,7 @@
 
 .countBadge {
   font-size: 0.75rem;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-hover-light);
   color: var(--text-secondary);
   padding: 0.2rem 0.5rem;
   border-radius: var(--radius-full);
@@ -83,7 +83,7 @@
 }
 
 .tagRow:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-hover-light);
   color: var(--text-primary);
 }
 
@@ -105,7 +105,7 @@
 
 .tagBadge {
   font-size: 0.7rem;
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--bg-hover-light);
   color: var(--text-muted);
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-md);
@@ -129,7 +129,7 @@
   display: flex;
   flex-direction: column;
   padding: 0.85rem 1rem;
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-card);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -141,7 +141,7 @@
 
 .noteCard:hover {
   border-color: rgba(156, 163, 175, 0.2);
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--bg-hover-light);
 }
 
 .noteCard.selected {
@@ -216,7 +216,7 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   font-style: italic;
-  background-color: var(--color-black);
+  background-color: var(--bg-pane-editor);
 }
 
 .editorPaneContainer {

@@ -163,7 +163,7 @@ export const hideMarkdownStyles = EditorView.theme({
   '.cm-line-heading-1': {
     fontSize: '28px !important',
     fontWeight: '700 !important',
-    color: '#FFFFFF !important',
+    color: 'var(--text-bright) !important',
     lineHeight: '1.3 !important',
     marginTop: '20px !important',
     marginBottom: '10px !important',
@@ -171,7 +171,7 @@ export const hideMarkdownStyles = EditorView.theme({
   '.cm-line-heading-2': {
     fontSize: '20px !important',
     fontWeight: '700 !important',
-    color: '#EFEFEF !important',
+    color: 'var(--text-secondary) !important',
     lineHeight: '1.4 !important',
     marginTop: '16px !important',
     marginBottom: '8px !important',
@@ -179,8 +179,8 @@ export const hideMarkdownStyles = EditorView.theme({
   '.cm-line-code-block': {
     fontFamily: 'var(--font-mono) !important',
     fontSize: '13px !important',
-    backgroundColor: '#0D0D0D !important',
-    color: '#D4D4D4 !important',
+    backgroundColor: 'var(--bg-pane-nav) !important',
+    color: 'var(--text-primary) !important',
     paddingLeft: '16px !important',
     paddingRight: '16px !important',
     borderLeft: '2px solid var(--accent-primary) !important',

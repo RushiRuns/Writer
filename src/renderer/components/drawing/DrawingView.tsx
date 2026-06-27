@@ -323,14 +323,15 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     }
   };
 
-  // Color Palette Selection
+  // Color Palette Selection (Dynamic depending on Light/Dark theme mode)
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const colors = [
-    { name: 'Amber', value: '#9ca3af' },
+    { name: isLight ? 'Black' : 'White', value: isLight ? '#000000' : '#FFFFFF' },
+    { name: 'Grey', value: '#9ca3af' },
     { name: 'Red', value: '#EF4444' },
     { name: 'Blue', value: '#3B82F6' },
     { name: 'Green', value: '#10B981' },
-    { name: 'White', value: '#FFFFFF' },
-    { name: 'Gray', value: '#6B7280' }
+    { name: 'Dark Gray', value: '#6B7280' }
   ];
 
   // Handle canvas click specifically for Text Input

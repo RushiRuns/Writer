@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { VaultIndex, DrawingEntry, Stroke } from '../../../shared/ipc-types';
 import { useCanvas } from '../../hooks/useCanvas';
 import CanvasReplayer from './CanvasReplayer';
@@ -46,8 +46,8 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   const [textValue, setTextValue] = useState('');
 
   // Canvas configuration
-  const width = 800;
-  const height = 600;
+  const width = 960;
+  const height = 500;
   
   const {
     canvasRef,
@@ -80,6 +80,40 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     message: ''
   });
 
+  const lastSavedStrokesRef = useRef<string>('[]');
+
+  // Auto-save effect
+  useEffect(() => {
+    const strokesStr = JSON.stringify(strokes);
+    if (strokesStr === lastSavedStrokesRef.current) return;
+
+    const timer = setTimeout(async () => {
+      const nameToSave = drawingName.trim() || 'Untitled Sketch';
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      try {
+        setSaveStatus({ type: 'saving', message: 'Saving...' });
+        const pngBase64 = canvas.toDataURL('image/png');
+        const res = await (window as any).wrriter.saveDrawing(nameToSave, strokes, pngBase64);
+        if (res.success) {
+          lastSavedStrokesRef.current = strokesStr;
+          setSaveStatus({ type: 'success', message: 'Auto-saved' });
+          setTimeout(() => {
+            setSaveStatus(prev => prev.message === 'Auto-saved' ? { type: null, message: '' } : prev);
+          }, 2000);
+        } else {
+          setSaveStatus({ type: 'error', message: res.error || 'Auto-save failed' });
+        }
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+        setSaveStatus({ type: 'error', message: String(err) });
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [strokes, drawingName]);
+
   // Handle selected drawing changes - load strokes and trigger replay
   useEffect(() => {
     if (selectedDrawing) {
@@ -91,10 +125,12 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
           
           if (res && res.strokes) {
             setDrawingName(selectedDrawing.name);
+            lastSavedStrokesRef.current = JSON.stringify(res.strokes);
             // Trigger replay animation
             setReplayingStrokes(res.strokes);
           } else {
             setDrawingName(selectedDrawing.name);
+            lastSavedStrokesRef.current = '[]';
             setStrokes([]);
             setReplayingStrokes(null);
           }
@@ -102,6 +138,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
           console.error('Failed to load drawing:', err);
           setSaveStatus({ type: 'error', message: 'Failed to load drawing data' });
           setDrawingName(selectedDrawing.name);
+          lastSavedStrokesRef.current = '[]';
           setStrokes([]);
           setReplayingStrokes(null);
         }
@@ -109,6 +146,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
       loadDrawingStrokes();
     } else {
       setDrawingName('');
+      lastSavedStrokesRef.current = '[]';
       setStrokes([]);
       setReplayingStrokes(null);
     }
@@ -123,6 +161,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   const handleNewDrawing = () => {
     setSelectedDrawing(null);
     setDrawingName('Untitled Sketch');
+    lastSavedStrokesRef.current = '[]';
     setStrokes([]);
     setReplayingStrokes(null);
     setSaveStatus({ type: null, message: '' });
@@ -143,6 +182,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
       const res = await (window as any).wrriter.saveDrawing(nameToSave, strokes, pngBase64);
       
       if (res.success) {
+        lastSavedStrokesRef.current = JSON.stringify(strokes);
         setSaveStatus({ type: 'success', message: `Saved "${nameToSave}" successfully!` });
         
         // Find or set selected drawing to keep reference

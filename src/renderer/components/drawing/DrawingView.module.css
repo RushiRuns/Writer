@@ -307,7 +307,7 @@
 }
 
 .canvas {
-  background-color: #050505;
+  background-color: transparent;
   display: block;
   cursor: crosshair;
   touch-action: none;

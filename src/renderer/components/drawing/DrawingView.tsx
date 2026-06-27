@@ -46,8 +46,8 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   const [textValue, setTextValue] = useState('');
 
   // Canvas configuration
-  const width = 960;
-  const height = 500;
+  const width = 1200;
+  const height = 600;
   
   const {
     canvasRef,

@@ -5,29 +5,154 @@
   background-color: var(--color-black);
 }
 
-.placeholder {
+.workspaceContainer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--color-neutral-600);
-  font-style: italic;
-  background-color: #1c1c1c;
-}
-
-.editorPaneContainer {
-  display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100%;
   width: 100%;
   overflow: hidden;
+  background-color: var(--color-black);
 }
 
-.editorPaneContent {
-  flex-grow: 1;
-  height: calc(100% - 48px);
+.paneContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
   overflow: hidden;
+  transition: border-color 0.2s ease-out;
+}
+
+.paneContainer + .paneContainer {
+  border-left: 1px solid var(--border-subtle);
+}
+
+.paneActive {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.tabBar {
+  height: 38px;
+  background-color: #0b0b0b;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding-right: var(--space-2);
+}
+
+.tabsList {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Hide scrollbars on Firefox */
+}
+
+.tabsList::-webkit-scrollbar {
+  display: none; /* Hide scrollbars on Chrome/Safari/Webkit */
+}
+
+.tabItem {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--space-4);
+  border-right: 1px solid var(--border-subtle);
+  background-color: #0d0d0d;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  transition: all 0.15s ease;
+  position: relative;
+  user-select: none;
+  max-width: 150px;
+}
+
+.tabItem:hover {
+  background-color: #121212;
+  color: var(--color-neutral-200);
+}
+
+.tabActive {
+  background-color: var(--bg-pane-editor);
+  color: var(--color-neutral-100);
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent-primary);
+}
+
+.tabTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 6px;
+}
+
+.tabCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  color: var(--color-neutral-500);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tabCloseBtn:hover {
+  background-color: var(--color-neutral-800);
+  color: var(--color-neutral-200);
+}
+
+.paneControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  color: var(--color-neutral-400);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.controlBtn:hover {
+  color: var(--color-white);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.paneContent {
+  flex-grow: 1;
+  height: calc(100% - 38px);
+  overflow: hidden;
+  background-color: var(--bg-pane-editor);
+}
+
+.panePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.85rem;
+  color: var(--color-neutral-600);
+  font-family: var(--font-ui);
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--bg-pane-editor);
 }

@@ -27,7 +27,13 @@ import {
   MousePointer,
   Trash2,
   X,
-  Upload
+  Upload,
+  Hand,
+  Sparkles,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Grid
 } from 'lucide-react';
 
 interface DrawingViewProps {
@@ -44,10 +50,10 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   const [replayingStrokes, setReplayingStrokes] = useState<Stroke[] | null>(null);
   
   // Guideline pattern state
-  const [guidePattern, setGuidePattern] = useState<'blank' | 'grid' | 'dots' | 'lines'>('blank');
+  const [guidePattern, setGuidePattern] = useState<'blank' | 'grid' | 'dots' | 'lines' | 'cornell' | 'music' | 'isometric'>('blank');
   
   // Inline text input positioning state
-  const [textInputPos, setTextInputPos] = useState<{ x: number; y: number; clientX: number; clientY: number } | null>(null);
+  const [textInputPos, setTextInputPos] = useState<{ x: number; y: number } | null>(null);
   const [textValue, setTextValue] = useState('');
 
   // Canvas configuration
@@ -81,7 +87,15 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     selectedIndices,
     deleteSelectedStrokes,
     clearSelection,
-    startResizingSelection
+    startResizingSelection,
+    zoom,
+    setZoom,
+    pan,
+    setPan,
+    snapToGrid,
+    setSnapToGrid,
+    autoCorrect,
+    setAutoCorrect
   } = useCanvas({ width, height });
 
   // Save feedback state
@@ -91,11 +105,44 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   });
 
   const lastSavedStrokesRef = useRef<string>('[]');
+  const prevToolRef = useRef<'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text' | 'image' | 'vectorEraser' | 'lasso' | 'pan'>('pen');
+
+  // Spacebar Panning Keyboard Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        document.activeElement?.getAttribute('contenteditable') === 'true'
+      ) {
+        return;
+      }
+
+      if (e.key === ' ' && tool !== 'pan') {
+        e.preventDefault();
+        prevToolRef.current = tool;
+        setTool('pan');
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === ' ' && tool === 'pan') {
+        e.preventDefault();
+        setTool(prevToolRef.current);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [tool, setTool]);
 
   // Keyboard Shortcuts: Ctrl+Z for undo, Ctrl+Y for redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Avoid intercepting keystrokes inside typing inputs/textareas
       if (
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA' ||
@@ -261,12 +308,14 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * width;
-    const y = ((e.clientY - rect.top) / rect.height) * height;
+    const canvasX = ((e.clientX - rect.left) / rect.width) * width;
+    const canvasY = ((e.clientY - rect.top) / rect.height) * height;
 
-    startResizingSelection(x, y);
+    const mappedX = (canvasX - pan.x) / zoom;
+    const mappedY = (canvasY - pan.y) / zoom;
 
-    // Set pointer capture to canvas to listen to draw pointermove triggers
+    startResizingSelection(mappedX, mappedY);
+
     try {
       canvas.setPointerCapture(e.pointerId);
     } catch (err) {
@@ -291,19 +340,20 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * width;
-    const y = ((e.clientY - rect.top) / rect.height) * height;
+    const canvasX = ((e.clientX - rect.left) / rect.width) * width;
+    const canvasY = ((e.clientY - rect.top) / rect.height) * height;
+
+    const mappedX = (canvasX - pan.x) / zoom;
+    const mappedY = (canvasY - pan.y) / zoom;
 
     setTextInputPos({
-      x,
-      y,
-      clientX: e.clientX - rect.left,
-      clientY: e.clientY - rect.top
+      x: mappedX,
+      y: mappedY
     });
     setTextValue('');
   };
 
-  // Commit text input to stroke history
+  // Commit text input overlay changes to stroke list
   const commitText = () => {
     if (!textInputPos) return;
     const trimmedValue = textValue.trim();
@@ -324,7 +374,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     setReplayingStrokes(null);
   };
 
-  // Calculate selection bounding box if active lasso selection is present
+  // Calculate selection bounding box mapped through Zoom/Pan translations
   let selectionBox: { minX: number; minY: number; maxX: number; maxY: number } | null = null;
   if (selectedIndices.length > 0) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -344,9 +394,18 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     }
   }
 
+  // Calculate text input overlays position relative to parent DOM bounding rects
+  let textInputLeft = 0;
+  let textInputTop = 0;
+  if (textInputPos && canvasRef.current) {
+    const rect = canvasRef.current.getBoundingClientRect();
+    textInputLeft = ((textInputPos.x * zoom + pan.x) / width) * rect.width;
+    textInputTop = ((textInputPos.y * zoom + pan.y) / height) * rect.height;
+  }
+
   return (
     <div className={styles.container}>
-      {/* Drawings List Sidebar (Pane 3 layout equivalent) */}
+      {/* Drawings List Sidebar */}
       <div className={styles.sidebar}>
         {/* Header */}
         <div className={styles.sidebarHeader}>
@@ -402,7 +461,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
         </div>
       </div>
 
-      {/* Main Workspace (Pane 4 layout equivalent) */}
+      {/* Main Workspace */}
       <div className={styles.mainWorkspace}>
         {replayingStrokes ? (
           // Replayer view
@@ -467,19 +526,19 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   onPointerMove={draw}
                   onPointerUp={endDrawing}
                   onClick={handleCanvasClick}
-                  className={styles.canvas}
+                  className={`${styles.canvas} ${tool === 'pan' ? styles.canvasPanMode : ''}`}
                   style={{ width: '100%', height: '100%' }}
                 />
 
-                {/* Selection Box Overlay (Dotted border and transform panel) */}
+                {/* Selection Box Overlay (Dotted border, transform panel, mapped to zoom/pan matrix) */}
                 {selectionBox && (
                   <div 
                     className={styles.selectionOverlay}
                     style={{
-                      left: `${(selectionBox.minX / width) * 100}%`,
-                      top: `${(selectionBox.minY / height) * 100}%`,
-                      width: `${((selectionBox.maxX - selectionBox.minX) / width) * 100}%`,
-                      height: `${((selectionBox.maxY - selectionBox.minY) / height) * 100}%`
+                      left: `${((selectionBox.minX * zoom + pan.x) / width) * 100}%`,
+                      top: `${((selectionBox.minY * zoom + pan.y) / height) * 100}%`,
+                      width: `${(((selectionBox.maxX - selectionBox.minX) * zoom) / width) * 100}%`,
+                      height: `${(((selectionBox.maxY - selectionBox.minY) * zoom) / height) * 100}%`
                     }}
                   >
                     {/* Bounding Box Resize Handle */}
@@ -511,13 +570,13 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   </div>
                 )}
 
-                {/* Inline Text Input Overlay */}
+                {/* Inline Text Input Overlay (Correctly translated via zoom/pan) */}
                 {textInputPos && (
                   <div 
                     className={styles.textInputOverlay}
                     style={{
-                      left: `${textInputPos.clientX}px`,
-                      top: `${textInputPos.clientY}px`
+                      left: `${textInputLeft}px`,
+                      top: `${textInputTop}px`
                     }}
                   >
                     <input
@@ -536,7 +595,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                       className={styles.textOverlayInput}
                       style={{
                         color: color,
-                        fontSize: `${Math.max(12, brushWidth * 3 + 12)}px`,
+                        fontSize: `${Math.max(12, brushWidth * 3 + 12) * zoom}px`,
                       }}
                       placeholder="Type text..."
                     />
@@ -594,6 +653,16 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   >
                     <Eraser size={13} />
                     <span>Eraser</span>
+                  </button>
+                  
+                  {/* Hand Tool button */}
+                  <button
+                    onClick={() => setTool('pan')}
+                    className={`${styles.toolButton} ${tool === 'pan' ? styles.toolButtonActive : ''}`}
+                    title="Hand Tool (Pan canvas - hold Spacebar to toggle)"
+                  >
+                    <Hand size={13} />
+                    <span>Pan</span>
                   </button>
 
                   <div className={styles.divider} />
@@ -687,18 +756,47 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   </div>
                 )}
 
+                {/* Auto-shape Correction Toggle */}
+                <button
+                  onClick={() => setAutoCorrect(prev => !prev)}
+                  className={`${styles.toggleButton} ${autoCorrect ? styles.toggleButtonActive : ''}`}
+                  title="Auto Shape Correction (Smooth wobbly hand-drawn lines, circles, and boxes)"
+                >
+                  <Sparkles size={13} />
+                  <span>Auto-Shape</span>
+                </button>
+
+                {/* Coordinate Snap to Grid Toggle */}
+                <button
+                  onClick={() => setSnapToGrid(prev => !prev)}
+                  className={`${styles.toggleButton} ${snapToGrid ? styles.toggleButtonActive : ''}`}
+                  title="Coordinate Snap-to-Grid (Snaps shapes and selections to grid dots)"
+                >
+                  <Grid size={13} />
+                  <span>Grid Snap</span>
+                </button>
+
                 {/* Guidelines Toggle */}
                 <div className={styles.guidesWrapper}>
                   <span className={styles.guidesLabel}>Guides</span>
                   <div className={styles.guidesContainer}>
-                    {(['blank', 'grid', 'dots', 'lines'] as const).map((pattern) => (
+                    {(['blank', 'grid', 'dots', 'lines', 'cornell', 'music', 'isometric'] as const).map((pattern) => (
                       <button
                         key={pattern}
                         onClick={() => setGuidePattern(pattern)}
                         className={`${styles.guideBtn} ${guidePattern === pattern ? styles.guideBtnActive : ''}`}
-                        title={`${pattern.charAt(0).toUpperCase() + pattern.slice(1)} Guide`}
+                        title={`${pattern.charAt(0).toUpperCase() + pattern.slice(1)} Template`}
                       >
-                        {pattern === 'blank' ? 'None' : pattern.charAt(0).toUpperCase() + pattern.slice(1)}
+                        {pattern === 'blank' 
+                          ? 'None' 
+                          : pattern === 'cornell'
+                            ? 'Cornell'
+                            : pattern === 'music'
+                              ? 'Music'
+                              : pattern === 'isometric'
+                                ? '3D Dots'
+                                : pattern.charAt(0).toUpperCase() + pattern.slice(1)
+                        }
                       </button>
                     ))}
                   </div>
@@ -708,7 +806,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
               {/* Row 2: Brush properties (colors/size) and operations */}
               <div className={styles.toolbarRow}>
                 {/* Color Selection (hidden if tool is eraser or vectorEraser) */}
-                <div className={`${styles.colorsWrapper} ${(tool === 'eraser' || tool === 'vectorEraser' || tool === 'lasso') ? styles.colorsDisabled : ''}`}>
+                <div className={`${styles.colorsWrapper} ${(tool === 'eraser' || tool === 'vectorEraser' || tool === 'lasso' || tool === 'pan') ? styles.colorsDisabled : ''}`}>
                   <span className={styles.colorsLabel}>Colors</span>
                   <div className={styles.colorsContainer}>
                     {colors.map((c) => (
@@ -754,6 +852,32 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                     />
                     <span className={styles.sizeText}>{brushWidth}px</span>
                   </div>
+                </div>
+
+                {/* Zoom Control Pill (Toolbar Zoom/Pan triggers) */}
+                <div className={styles.zoomContainer}>
+                  <button
+                    onClick={() => setZoom(z => Math.max(0.2, z - 0.1))}
+                    className={styles.zoomBtn}
+                    title="Zoom Out"
+                  >
+                    <ZoomOut size={13} />
+                  </button>
+                  <span className={styles.zoomText}>{Math.round(zoom * 100)}%</span>
+                  <button
+                    onClick={() => setZoom(z => Math.min(5, z + 0.1))}
+                    className={styles.zoomBtn}
+                    title="Zoom In"
+                  >
+                    <ZoomIn size={13} />
+                  </button>
+                  <button
+                    onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+                    className={styles.zoomResetBtn}
+                    title="Reset Zoom & Pan"
+                  >
+                    <Maximize2 size={13} />
+                  </button>
                 </div>
 
                 {/* Action Operations (Undo / Redo / Clear / Replay) */}

@@ -8,6 +8,122 @@ export interface UseCanvasOptions {
   initialStrokes?: Stroke[];
 }
 
+// Perpendicular distance math helper for polyline simplification
+function perpendicularDistance(p: StrokePoint, a: StrokePoint, b: StrokePoint) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  if (dx === 0 && dy === 0) {
+    return Math.sqrt((p.x - a.x) ** 2 + (p.y - a.y) ** 2);
+  }
+  const num = Math.abs(dy * p.x - dx * p.y + b.x * a.y - b.y * a.x);
+  const den = Math.sqrt(dx * dx + dy * dy);
+  return num / den;
+}
+
+// Ramer-Douglas-Peucker polyline simplification algorithm
+function simplifyPath(points: StrokePoint[], epsilon: number): StrokePoint[] {
+  if (points.length <= 2) return points;
+  let dmax = 0;
+  let index = 0;
+  const end = points.length - 1;
+  for (let i = 1; i < end; i++) {
+    const d = perpendicularDistance(points[i], points[0], points[end]);
+    if (d > dmax) {
+      index = i;
+      dmax = d;
+    }
+  }
+  if (dmax > epsilon) {
+    const recResults1 = simplifyPath(points.slice(0, index + 1), epsilon);
+    const recResults2 = simplifyPath(points.slice(index), epsilon);
+    return recResults1.slice(0, recResults1.length - 1).concat(recResults2);
+  }
+  return [points[0], points[end]];
+}
+
+// Detect and correct wobbly shapes to lines, circles/ellipses, and rectangles
+function detectCorrectedShape(stroke: Stroke): Stroke | null {
+  const points = stroke.points;
+  if (points.length < 8) return null; // too short to classify
+
+  const simplified = simplifyPath(points, 12);
+  const start = points[0];
+  const end = points[points.length - 1];
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  points.forEach(pt => {
+    if (pt.x < minX) minX = pt.x;
+    if (pt.y < minY) minY = pt.y;
+    if (pt.x > maxX) maxX = pt.x;
+    if (pt.y > maxY) maxY = pt.y;
+  });
+  const w = maxX - minX;
+  const h = maxY - minY;
+
+  // Start to end distance
+  const seDist = Math.sqrt((end.x - start.x) ** 2 + (end.y - start.y) ** 2);
+
+  // Total path length
+  let pathLength = 0;
+  for (let i = 1; i < points.length; i++) {
+    pathLength += Math.sqrt((points[i].x - points[i - 1].x) ** 2 + (points[i].y - points[i - 1].y) ** 2);
+  }
+
+  // 1. Line check: if path is straight
+  if (pathLength / (seDist || 1) < 1.15) {
+    return {
+      ...stroke,
+      tool: 'line',
+      points: [start, end]
+    };
+  }
+
+  // 2. Closed shape checks (start and end points are near each other)
+  const isClosed = seDist < 45 || seDist < pathLength * 0.25;
+  if (isClosed) {
+    // Is it a Circle?
+    const cx = minX + w / 2;
+    const cy = minY + h / 2;
+    let rSum = 0;
+    points.forEach(pt => {
+      rSum += Math.sqrt((pt.x - cx) ** 2 + (pt.y - cy) ** 2);
+    });
+    const rAvg = rSum / points.length;
+
+    let variance = 0;
+    points.forEach(pt => {
+      const r = Math.sqrt((pt.x - cx) ** 2 + (pt.y - cy) ** 2);
+      variance += (r - rAvg) ** 2;
+    });
+    const stdDev = Math.sqrt(variance / points.length);
+
+    if (stdDev / (rAvg || 1) < 0.12) {
+      return {
+        ...stroke,
+        tool: 'circle',
+        points: [
+          { x: minX, y: minY, pressure: 0.5 },
+          { x: maxX, y: maxY, pressure: 0.5 }
+        ]
+      };
+    }
+
+    // Is it a Rectangle?
+    if (simplified.length >= 3 && simplified.length <= 6) {
+      return {
+        ...stroke,
+        tool: 'rect',
+        points: [
+          { x: minX, y: minY, pressure: 0.5 },
+          { x: maxX, y: maxY, pressure: 0.5 }
+        ]
+      };
+    }
+  }
+
+  return null;
+}
+
 // Ray-casting point-in-polygon math helper
 function isPointInPolygon(px: number, py: number, polygon: Array<{ x: number; y: number }>) {
   let inside = false;
@@ -28,11 +144,22 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
   const [undoStack, setUndoStack] = useState<Stroke[][]>([]);
   const [redoStack, setRedoStack] = useState<Stroke[][]>([]);
   
-  const [tool, setTool] = useState<'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text' | 'image' | 'vectorEraser' | 'lasso'>('pen');
+  const [tool, setTool] = useState<'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text' | 'image' | 'vectorEraser' | 'lasso' | 'pan'>('pen');
   const [color, setColor] = useState<string>('#E8A44B'); // default brand amber
   const [brushWidth, setBrushWidth] = useState<number>(4);
   const [opacity, setOpacity] = useState<number>(1);
   const [filled, setFilled] = useState<boolean>(false);
+
+  // Zoom & Pan states
+  const [zoom, setZoom] = useState<number>(1);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [snapToGrid, setSnapToGrid] = useState<boolean>(false);
+  const [autoCorrect, setAutoCorrect] = useState<boolean>(false);
+
+  // Panning operational states
+  const isPanningRef = useRef<boolean>(false);
+  const panStartRef = useRef<{ x: number; y: number } | null>(null);
+  const panInitRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Lasso Selection & Transforming states
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
@@ -58,7 +185,7 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     } else if (tool === 'eraser') {
       setOpacity(1);
       setBrushWidth(20);
-    } else if (['line', 'rect', 'circle', 'arrow', 'lasso'].includes(tool)) {
+    } else if (['line', 'rect', 'circle', 'arrow', 'lasso', 'pan'].includes(tool)) {
       setOpacity(1);
       setBrushWidth(4);
     } else if (tool === 'text') {
@@ -70,7 +197,7 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     }
   }, [tool]);
 
-  // Redraw helper function using shared renderer
+  // Redraw helper function incorporating scaling translation matrices
   const redraw = useCallback((strokesToDraw: Stroke[]) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -79,15 +206,21 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     
     ctx.clearRect(0, 0, width, height);
     
+    ctx.save();
+    ctx.translate(pan.x, pan.y);
+    ctx.scale(zoom, zoom);
+    
     strokesToDraw.forEach(stroke => {
       drawStroke(ctx, stroke);
     });
-  }, [width, height]);
+    
+    ctx.restore();
+  }, [width, height, zoom, pan]);
 
-  // Redraw when strokes list updates
+  // Redraw when strokes list updates or pan/zoom values shift
   useEffect(() => {
     redraw(strokes);
-  }, [strokes, redraw]);
+  }, [strokes, redraw, zoom, pan]);
 
   // Redraw handler trigger for asynchronous image loads
   useEffect(() => {
@@ -110,7 +243,6 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
         const dy = pt.y - y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Dynamic threshold based on brush size + spacing buffer
         const threshold = Math.max(15, stroke.width / 2 + 12);
         if (distance <= threshold) {
           return i;
@@ -135,10 +267,34 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     const canvas = canvasRef.current;
     if (!canvas) return;
     
+    // Check for Hand/Pan Mode drag
+    if (tool === 'pan') {
+      isPanningRef.current = true;
+      panStartRef.current = { x: e.clientX, y: e.clientY };
+      panInitRef.current = { ...pan };
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch (err) {
+        // Ignore
+      }
+      return;
+    }
+
     const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * width;
-    const y = ((e.clientY - rect.top) / rect.height) * height;
+    const canvasX = ((e.clientX - rect.left) / rect.width) * width;
+    const canvasY = ((e.clientY - rect.top) / rect.height) * height;
+    
+    // Map coordinate through zoom/pan matrices
+    let x = (canvasX - pan.x) / zoom;
+    let y = (canvasY - pan.y) / zoom;
     const pressure = e.pressure !== undefined && e.pressure !== 0 ? e.pressure : 0.5;
+
+    // Apply snap-to-grid alignment (20px coordinates)
+    const snapEligibleTools = ['line', 'rect', 'circle', 'arrow', 'text'];
+    if (snapToGrid && snapEligibleTools.includes(tool)) {
+      x = Math.round(x / 20) * 20;
+      y = Math.round(y / 20) * 20;
+    }
 
     // Vector (Stroke) Eraser Mode click
     if (tool === 'vectorEraser') {
@@ -202,6 +358,10 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(pan.x, pan.y);
+      ctx.scale(zoom, zoom);
+      
       strokes.forEach(s => drawStroke(ctx, s));
 
       const activeStroke: Stroke = {
@@ -213,17 +373,40 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
         filled
       };
       drawStroke(ctx, activeStroke);
+      ctx.restore();
     }
-  }, [width, height, tool, color, brushWidth, opacity, strokes, filled, selectedIndices, findClickedStrokeIndex]);
+  }, [width, height, tool, color, brushWidth, opacity, strokes, filled, selectedIndices, findClickedStrokeIndex, zoom, pan, snapToGrid]);
 
   const draw = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Handle Pan Dragging operations
+    if (isPanningRef.current && panStartRef.current) {
+      const dx = e.clientX - panStartRef.current.x;
+      const dy = e.clientY - panStartRef.current.y;
+      setPan({
+        x: panInitRef.current.x + dx,
+        y: panInitRef.current.y + dy
+      });
+      return;
+    }
+
     const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * width;
-    const y = ((e.clientY - rect.top) / rect.height) * height;
+    const canvasX = ((e.clientX - rect.left) / rect.width) * width;
+    const canvasY = ((e.clientY - rect.top) / rect.height) * height;
+    
+    // Map coordinate through zoom/pan matrices
+    let x = (canvasX - pan.x) / zoom;
+    let y = (canvasY - pan.y) / zoom;
     const pressure = e.pressure !== undefined && e.pressure !== 0 ? e.pressure : 0.5;
+
+    // Apply grid snap coordinates alignment
+    const snapEligibleTools = ['line', 'rect', 'circle', 'arrow', 'text'];
+    if (snapToGrid && (snapEligibleTools.includes(tool) || isResizingRef.current)) {
+      x = Math.round(x / 20) * 20;
+      y = Math.round(y / 20) * 20;
+    }
 
     // Vector Eraser Dragging
     if (isDrawingRef.current && tool === 'vectorEraser') {
@@ -255,7 +438,6 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
         const origWidth = maxX - minX;
         const origHeight = maxY - minY;
         
-        // Prevent division by zero and constrain scale limits
         const newWidth = Math.max(10, x - minX);
         const newHeight = Math.max(10, y - minY);
         
@@ -323,6 +505,10 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     }
     
     ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.translate(pan.x, pan.y);
+    ctx.scale(zoom, zoom);
+    
     strokes.forEach(s => drawStroke(ctx, s));
 
     const activeStroke: Stroke = {
@@ -334,9 +520,16 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
       filled
     };
     drawStroke(ctx, activeStroke);
-  }, [width, height, tool, color, brushWidth, opacity, strokes, filled, selectedIndices, findClickedStrokeIndex]);
+    ctx.restore();
+  }, [width, height, tool, color, brushWidth, opacity, strokes, filled, selectedIndices, findClickedStrokeIndex, zoom, pan, snapToGrid]);
 
   const endDrawing = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (tool === 'pan') {
+      isPanningRef.current = false;
+      panStartRef.current = null;
+      return;
+    }
+
     if (tool === 'vectorEraser') {
       isDrawingRef.current = false;
       return;
@@ -386,7 +579,11 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
         const ctx = canvas?.getContext('2d');
         if (ctx) {
           ctx.clearRect(0, 0, width, height);
+          ctx.save();
+          ctx.translate(pan.x, pan.y);
+          ctx.scale(zoom, zoom);
           strokes.forEach(s => drawStroke(ctx, s));
+          ctx.restore();
         }
       } else {
         const finalPoints = [...currentPointsRef.current];
@@ -394,7 +591,7 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
           finalPoints.push({ ...finalPoints[0], x: finalPoints[0].x + 1, y: finalPoints[0].y + 1 });
         }
 
-        const newStroke: Stroke = {
+        let newStroke: Stroke = {
           tool,
           color,
           width: brushWidth,
@@ -402,6 +599,15 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
           points: finalPoints,
           filled: ['rect', 'circle'].includes(tool) ? filled : undefined
         };
+
+        // Smart Shape Auto-Correction
+        const brushes = ['pen', 'marker', 'highlighter'];
+        if (autoCorrect && brushes.includes(tool)) {
+          const corrected = detectCorrectedShape(newStroke);
+          if (corrected) {
+            newStroke = corrected;
+          }
+        }
         
         setUndoStack(prev => [...prev, strokes]);
         setRedoStack([]);
@@ -410,7 +616,7 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     }
     
     currentPointsRef.current = [];
-  }, [strokes, tool, color, brushWidth, opacity, filled]);
+  }, [strokes, tool, color, brushWidth, opacity, filled, autoCorrect, zoom, pan]);
 
   // Expose text stroke creation helper
   const addTextStroke = useCallback((text: string, x: number, y: number) => {
@@ -429,11 +635,16 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
 
   // Expose image stroke creation helper
   const addImageStroke = useCallback((base64: string) => {
-    // Default size 400x300 centered on canvas
+    // Default size 400x300 centered on canvas relative to current zoom/pan center
     const imgW = 400;
     const imgH = 300;
-    const x1 = (width - imgW) / 2;
-    const y1 = (height - imgH) / 2;
+    
+    // Position image centered inside the visible workspace
+    const visualCenterX = (width / 2 - pan.x) / zoom;
+    const visualCenterY = (height / 2 - pan.y) / zoom;
+    
+    const x1 = visualCenterX - imgW / 2;
+    const y1 = visualCenterY - imgH / 2;
     const x2 = x1 + imgW;
     const y2 = y1 + imgH;
 
@@ -453,10 +664,9 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     setRedoStack([]);
     setStrokes(prev => [...prev, newStroke]);
     
-    // Select image immediately for layout positioning
     setSelectedIndices([strokes.length]);
     setTool('lasso');
-  }, [strokes, width, height]);
+  }, [strokes, width, height, zoom, pan]);
 
   // Expose selection deletion helper
   const deleteSelectedStrokes = useCallback(() => {
@@ -552,6 +762,14 @@ export function useCanvas({ width, height, initialStrokes = [] }: UseCanvasOptio
     setSelectedIndices,
     deleteSelectedStrokes,
     clearSelection,
-    startResizingSelection
+    startResizingSelection,
+    zoom,
+    setZoom,
+    pan,
+    setPan,
+    snapToGrid,
+    setSnapToGrid,
+    autoCorrect,
+    setAutoCorrect
   };
 }

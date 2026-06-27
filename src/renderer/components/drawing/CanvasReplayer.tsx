@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Stroke } from '../../../shared/ipc-types';
 import { Play, SkipForward } from 'lucide-react';
+import { drawStroke } from '../../utils/canvasRenderer';
 import styles from './CanvasReplayer.module.css';
 
 interface CanvasReplayerProps {
@@ -52,8 +53,7 @@ export default function CanvasReplayer({ strokes, width, height, onComplete }: C
 
     let currentIndex = 0;
     
-    // Calculate points to draw per frame so the total replay time is ~2-3 seconds max,
-    // avoiding extremely long waits on large drawings, but still showing the sequence.
+    // Calculate points to draw per frame so the total replay time is ~2-3 seconds max
     const pointsPerFrame = Math.max(1, Math.ceil(replayPoints.length / 150));
 
     const animate = () => {
@@ -63,42 +63,18 @@ export default function CanvasReplayer({ strokes, width, height, onComplete }: C
       if (!ctx) return;
 
       const limit = Math.min(currentIndex + pointsPerFrame, replayPoints.length);
+      const pt = replayPoints[limit - 1];
 
-      for (let i = currentIndex; i < limit; i++) {
-        const pt = replayPoints[i];
-        const stroke = pt.stroke;
+      if (pt) {
+        ctx.clearRect(0, 0, width, height);
 
-        ctx.save();
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        if (stroke.tool === 'eraser') {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.strokeStyle = 'rgba(0,0,0,1)';
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.strokeStyle = stroke.color;
-          ctx.globalAlpha = stroke.opacity;
+        // Draw all completed strokes prior to current stroke
+        for (let sIdx = 0; sIdx < pt.strokeIndex; sIdx++) {
+          drawStroke(ctx, strokes[sIdx]);
         }
 
-        if (pt.pointIndex === 0) {
-          // Draw start of stroke
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, (stroke.width * (0.2 + pt.pressure * 0.8)) / 2, 0, Math.PI * 2);
-          ctx.fillStyle = stroke.tool === 'eraser' ? 'rgba(0,0,0,1)' : stroke.color;
-          ctx.fill();
-        } else {
-          // Draw line from previous point in the same stroke
-          const prevPt = stroke.points[pt.pointIndex - 1];
-          ctx.beginPath();
-          ctx.moveTo(prevPt.x, prevPt.y);
-          ctx.lineTo(pt.x, pt.y);
-          const segmentPressure = (prevPt.pressure + pt.pressure) / 2;
-          ctx.lineWidth = stroke.width * (0.2 + segmentPressure * 0.8);
-          ctx.stroke();
-        }
-
-        ctx.restore();
+        // Draw currently animating stroke up to current point index
+        drawStroke(ctx, pt.stroke, pt.pointIndex);
       }
 
       currentIndex = limit;
@@ -136,7 +112,6 @@ export default function CanvasReplayer({ strokes, width, height, onComplete }: C
       </button>
 
       <div className={styles.canvasBorder}>
-        {/* Canvas background noise/grid style matching settings default */}
         <canvas
           ref={canvasRef}
           width={width}

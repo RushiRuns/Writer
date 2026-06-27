@@ -17,7 +17,12 @@ import {
   Search, 
   Image as ImageIcon,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Type,
+  Minus,
+  ArrowRight,
+  Square,
+  Circle
 } from 'lucide-react';
 
 interface DrawingViewProps {
@@ -33,6 +38,13 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   // Replay animation state
   const [replayingStrokes, setReplayingStrokes] = useState<Stroke[] | null>(null);
   
+  // Guideline pattern state
+  const [guidePattern, setGuidePattern] = useState<'blank' | 'grid' | 'dots' | 'lines'>('blank');
+  
+  // Inline text input positioning state
+  const [textInputPos, setTextInputPos] = useState<{ x: number; y: number; clientX: number; clientY: number } | null>(null);
+  const [textValue, setTextValue] = useState('');
+
   // Canvas configuration
   const width = 800;
   const height = 600;
@@ -54,9 +66,12 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     setColor,
     brushWidth,
     setBrushWidth,
+    filled,
+    setFilled,
     startDrawing,
     draw,
-    endDrawing
+    endDrawing,
+    addTextStroke
   } = useCanvas({ width, height });
 
   // Save feedback state
@@ -152,6 +167,35 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     { name: 'White', value: '#FFFFFF' },
     { name: 'Gray', value: '#6B7280' }
   ];
+
+  // Handle canvas click specifically for Text Input
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (tool !== 'text') return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * width;
+    const y = ((e.clientY - rect.top) / rect.height) * height;
+
+    setTextInputPos({
+      x,
+      y,
+      clientX: e.clientX - rect.left,
+      clientY: e.clientY - rect.top
+    });
+    setTextValue('');
+  };
+
+  // Commit text input to stroke history
+  const commitText = () => {
+    if (!textInputPos) return;
+    const trimmedValue = textValue.trim();
+    if (trimmedValue) {
+      addTextStroke(trimmedValue, textInputPos.x, textInputPos.y);
+    }
+    setTextInputPos(null);
+  };
 
   // Filter drawings list by search
   const filteredDrawings = index.drawings.filter(d => 
@@ -278,7 +322,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
 
             {/* Canvas Area Container */}
             <div className={styles.canvasWrapper}>
-              <div className={styles.canvasBorder}>
+              <div className={`${styles.canvasBorder} ${styles[`guide_${guidePattern}`]}`}>
                 <canvas
                   ref={canvasRef}
                   width={width}
@@ -286,9 +330,42 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   onPointerDown={startDrawing}
                   onPointerMove={draw}
                   onPointerUp={endDrawing}
+                  onClick={handleCanvasClick}
                   className={styles.canvas}
                   style={{ width: `${width}px`, height: `${height}px` }}
                 />
+
+                {/* Inline Text Input Overlay */}
+                {textInputPos && (
+                  <div 
+                    className={styles.textInputOverlay}
+                    style={{
+                      left: `${textInputPos.clientX}px`,
+                      top: `${textInputPos.clientY}px`
+                    }}
+                  >
+                    <input
+                      type="text"
+                      autoFocus
+                      value={textValue}
+                      onChange={(e) => setTextValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          commitText();
+                        } else if (e.key === 'Escape') {
+                          setTextInputPos(null);
+                        }
+                      }}
+                      onBlur={commitText}
+                      className={styles.textOverlayInput}
+                      style={{
+                        color: color,
+                        fontSize: `${Math.max(12, brushWidth * 3 + 12)}px`,
+                      }}
+                      placeholder="Type text..."
+                    />
+                  </div>
+                )}
 
                 {/* 5-second Undo Clear Notification */}
                 {showClearUndoBanner && (
@@ -305,115 +382,208 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
               </div>
             </div>
 
-            {/* Bottom Tools Toolbar */}
+            {/* Bottom Tools Toolbar (Premium layout using double row spacing) */}
             <div className={styles.toolbar}>
-              {/* Tool Selection */}
-              <div className={styles.toolsContainer}>
-                <button
-                  onClick={() => setTool('pen')}
-                  className={`${styles.toolButton} ${tool === 'pen' ? styles.toolButtonActive : ''}`}
-                  title="Fine Pen"
-                >
-                  <PenTool size={13} />
-                  <span>Pen</span>
-                </button>
-                <button
-                  onClick={() => setTool('marker')}
-                  className={`${styles.toolButton} ${tool === 'marker' ? styles.toolButtonActive : ''}`}
-                  title="Medium Marker"
-                >
-                  <Paintbrush size={13} />
-                  <span>Marker</span>
-                </button>
-                <button
-                  onClick={() => setTool('highlighter')}
-                  className={`${styles.toolButton} ${tool === 'highlighter' ? styles.toolButtonActive : ''}`}
-                  title="Translucent Highlighter"
-                >
-                  <Highlighter size={13} />
-                  <span>Highlighter</span>
-                </button>
-                <button
-                  onClick={() => setTool('eraser')}
-                  className={`${styles.toolButton} ${tool === 'eraser' ? styles.toolButtonActive : ''}`}
-                  title="Eraser"
-                >
-                  <Eraser size={13} />
-                  <span>Eraser</span>
-                </button>
-              </div>
+              {/* Row 1: Tools selection and configurations */}
+              <div className={styles.toolbarRow}>
+                <div className={styles.toolsContainer}>
+                  <button
+                    onClick={() => setTool('pen')}
+                    className={`${styles.toolButton} ${tool === 'pen' ? styles.toolButtonActive : ''}`}
+                    title="Fine Pen"
+                  >
+                    <PenTool size={13} />
+                    <span>Pen</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('marker')}
+                    className={`${styles.toolButton} ${tool === 'marker' ? styles.toolButtonActive : ''}`}
+                    title="Medium Marker"
+                  >
+                    <Paintbrush size={13} />
+                    <span>Marker</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('highlighter')}
+                    className={`${styles.toolButton} ${tool === 'highlighter' ? styles.toolButtonActive : ''}`}
+                    title="Translucent Highlighter"
+                  >
+                    <Highlighter size={13} />
+                    <span>Highlighter</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('eraser')}
+                    className={`${styles.toolButton} ${tool === 'eraser' ? styles.toolButtonActive : ''}`}
+                    title="Eraser"
+                  >
+                    <Eraser size={13} />
+                    <span>Eraser</span>
+                  </button>
 
-              {/* Color Selection (hidden if tool is eraser) */}
-              <div className={`${styles.colorsWrapper} ${tool === 'eraser' ? styles.colorsDisabled : ''}`}>
-                <span className={styles.colorsLabel}>Colors</span>
-                <div className={styles.colorsContainer}>
-                  {colors.map((c) => (
-                    <button
-                      key={c.value}
-                      onClick={() => setColor(c.value)}
-                      className={`${styles.colorBtn} ${color === c.value ? styles.colorBtnActive : ''}`}
-                      style={{ backgroundColor: c.value }}
-                      title={c.name}
-                    >
-                      {color === c.value && (
-                        <span className={styles.colorBtnInner} />
-                      )}
-                    </button>
-                  ))}
+                  <div className={styles.divider} />
+
+                  <button
+                    onClick={() => setTool('line')}
+                    className={`${styles.toolButton} ${tool === 'line' ? styles.toolButtonActive : ''}`}
+                    title="Line Tool"
+                  >
+                    <Minus size={13} style={{ transform: 'rotate(-45deg)' }} />
+                    <span>Line</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('arrow')}
+                    className={`${styles.toolButton} ${tool === 'arrow' ? styles.toolButtonActive : ''}`}
+                    title="Arrow Tool"
+                  >
+                    <ArrowRight size={13} style={{ transform: 'rotate(-45deg)' }} />
+                    <span>Arrow</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('rect')}
+                    className={`${styles.toolButton} ${tool === 'rect' ? styles.toolButtonActive : ''}`}
+                    title="Rectangle Tool"
+                  >
+                    <Square size={13} />
+                    <span>Rect</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('circle')}
+                    className={`${styles.toolButton} ${tool === 'circle' ? styles.toolButtonActive : ''}`}
+                    title="Circle Tool"
+                  >
+                    <Circle size={13} />
+                    <span>Circle</span>
+                  </button>
+                  <button
+                    onClick={() => setTool('text')}
+                    className={`${styles.toolButton} ${tool === 'text' ? styles.toolButtonActive : ''}`}
+                    title="Text Tool"
+                  >
+                    <Type size={13} />
+                    <span>Text</span>
+                  </button>
+                </div>
+
+                {/* Optional Shape Fill Toggle */}
+                {(tool === 'rect' || tool === 'circle') && (
+                  <div className={styles.fillToggleWrapper}>
+                    <label className={styles.fillLabel}>
+                      <input
+                        type="checkbox"
+                        checked={filled}
+                        onChange={(e) => setFilled(e.target.checked)}
+                        className={styles.fillCheckbox}
+                      />
+                      <span>Fill Shape</span>
+                    </label>
+                  </div>
+                )}
+
+                {/* Guidelines Toggle */}
+                <div className={styles.guidesWrapper}>
+                  <span className={styles.guidesLabel}>Guides</span>
+                  <div className={styles.guidesContainer}>
+                    {(['blank', 'grid', 'dots', 'lines'] as const).map((pattern) => (
+                      <button
+                        key={pattern}
+                        onClick={() => setGuidePattern(pattern)}
+                        className={`${styles.guideBtn} ${guidePattern === pattern ? styles.guideBtnActive : ''}`}
+                        title={`${pattern.charAt(0).toUpperCase() + pattern.slice(1)} Guide`}
+                      >
+                        {pattern === 'blank' ? 'None' : pattern.charAt(0).toUpperCase() + pattern.slice(1)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Size slider info */}
-              <div className={styles.sizeWrapper}>
-                <span className={styles.sizeLabel}>Brush Size</span>
-                <div className={styles.sizeContainer}>
-                  <input
-                    type="range"
-                    min="1"
-                    max="50"
-                    value={brushWidth}
-                    onChange={(e) => setBrushWidth(Number(e.target.value))}
-                    className={styles.sizeSlider}
-                  />
-                  <span className={styles.sizeText}>{brushWidth}px</span>
+              {/* Row 2: Brush properties (colors/size) and operations */}
+              <div className={styles.toolbarRow}>
+                {/* Color Selection (hidden if tool is eraser) */}
+                <div className={`${styles.colorsWrapper} ${tool === 'eraser' ? styles.colorsDisabled : ''}`}>
+                  <span className={styles.colorsLabel}>Colors</span>
+                  <div className={styles.colorsContainer}>
+                    {colors.map((c) => (
+                      <button
+                        key={c.value}
+                        onClick={() => setColor(c.value)}
+                        className={`${styles.colorBtn} ${color === c.value ? styles.colorBtnActive : ''}`}
+                        style={{ backgroundColor: c.value }}
+                        title={c.name}
+                      >
+                        {color === c.value && (
+                          <span className={styles.colorBtnInner} />
+                        )}
+                      </button>
+                    ))}
+                    
+                    {/* Custom Color Spectrum Picker Button */}
+                    <div className={styles.customColorPickerWrapper} title="Pick custom color">
+                      <input
+                        type="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        className={styles.customColorInput}
+                      />
+                      <span className={styles.customColorBtnInner} />
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Action Operations (Undo / Redo / Clear / Replay) */}
-              <div className={styles.actionsContainer}>
-                <button
-                  onClick={undo}
-                  disabled={!canUndo}
-                  className={styles.actionBtn}
-                  title="Undo last stroke"
-                >
-                  <Undo2 size={15} />
-                </button>
-                <button
-                  onClick={redo}
-                  disabled={!canRedo}
-                  className={styles.actionBtn}
-                  title="Redo stroke"
-                >
-                  <Redo2 size={15} />
-                </button>
-                <button
-                  onClick={clearCanvas}
-                  disabled={strokes.length === 0}
-                  className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                  title="Clear canvas (undone within 5s)"
-                >
-                  <RotateCcw size={15} />
-                </button>
-                <div className={styles.divider} />
-                <button
-                  onClick={() => setReplayingStrokes(strokes)}
-                  disabled={strokes.length === 0}
-                  className={styles.actionBtn}
-                  title="Replay drawing animation"
-                >
-                  <Play size={15} />
-                </button>
+                {/* Size slider info */}
+                <div className={styles.sizeWrapper}>
+                  <span className={styles.sizeLabel}>
+                    {tool === 'text' ? 'Font Size' : 'Brush Size'}
+                  </span>
+                  <div className={styles.sizeContainer}>
+                    <input
+                      type="range"
+                      min="1"
+                      max="50"
+                      value={brushWidth}
+                      onChange={(e) => setBrushWidth(Number(e.target.value))}
+                      className={styles.sizeSlider}
+                    />
+                    <span className={styles.sizeText}>{brushWidth}px</span>
+                  </div>
+                </div>
+
+                {/* Action Operations (Undo / Redo / Clear / Replay) */}
+                <div className={styles.actionsContainer}>
+                  <button
+                    onClick={undo}
+                    disabled={!canUndo}
+                    className={styles.actionBtn}
+                    title="Undo last stroke"
+                  >
+                    <Undo2 size={15} />
+                  </button>
+                  <button
+                    onClick={redo}
+                    disabled={!canRedo}
+                    className={styles.actionBtn}
+                    title="Redo stroke"
+                  >
+                    <Redo2 size={15} />
+                  </button>
+                  <button
+                    onClick={clearCanvas}
+                    disabled={strokes.length === 0}
+                    className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+                    title="Clear canvas (undone within 5s)"
+                  >
+                    <RotateCcw size={15} />
+                  </button>
+                  <div className={styles.divider} />
+                  <button
+                    onClick={() => setReplayingStrokes(strokes)}
+                    disabled={strokes.length === 0}
+                    className={styles.actionBtn}
+                    title="Replay drawing animation"
+                  >
+                    <Play size={15} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -421,5 +591,4 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
       </div>
     </div>
   );
-
 }

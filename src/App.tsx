@@ -300,18 +300,8 @@ function AppContent() {
     <div className={styles.container}>
       {/* Top Bar */}
       <header className={styles.header}>
-        {/* Syncthing Link on Left */}
-        <div className={styles.leftHeader}>
-          <div className={styles.logo}>
-            <span className={styles.logoW}>W</span>
-            <span className={styles.logoGemini}>Gemini</span>
-          </div>
-        </div>
-
-        {/* Centered Breadcrumb */}
-        <div className={styles.centerHeader}>
-          <span className={styles.appBreadcrumb}>{breadcrumb}</span>
-        </div>
+        {/* Left header space */}
+        <div className={styles.leftHeader}></div>
 
         {/* Right Header Actions */}
         <div className={styles.rightHeader}>

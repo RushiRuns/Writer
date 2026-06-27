@@ -26,12 +26,20 @@ export interface VaultIndex {
   reminders: NoteEntry[];            // subset with non-null reminder
 }
 
+export interface StrokePoint {
+  x: number;
+  y: number;
+  pressure: number;
+}
+
 export interface Stroke {
-  tool: 'pen' | 'marker' | 'highlighter' | 'eraser';
+  tool: 'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text';
   color: string;
   width: number;
   opacity: number;
-  points: Array<{ x: number; y: number; pressure: number }>;
+  points: StrokePoint[];
+  text?: string;
+  filled?: boolean;
 }
 
 export interface AppConfig {

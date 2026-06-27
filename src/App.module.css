@@ -95,13 +95,13 @@
 }
 
 .header {
-  height: 40px;
+  height: 48px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-6);
-  background-color: transparent;
+  padding: 0 var(--spacing-8);
+  background-color: #343434;
   flex-shrink: 0;
 }
 
@@ -129,6 +129,7 @@
   display: flex;
   align-items: center;
   gap: 20px; /* Sufficient spacing between icons */
+  margin-right: var(--spacing-4);
 }
 
 .statusGroup {

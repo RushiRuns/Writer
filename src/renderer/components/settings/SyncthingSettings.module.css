@@ -4,7 +4,7 @@
   background-color: #121212;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
+  padding: var(--space-6);
   box-shadow: var(--shadow-lg);
   user-select: none;
   color: var(--text-muted);
@@ -13,9 +13,9 @@
 .header {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-6);
-  padding-bottom: var(--spacing-2-5);
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -41,20 +41,20 @@
 .description {
   font-size: 0.75rem;
   color: var(--text-muted);
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--space-6);
   line-height: 1.625;
 }
 
 .fieldsList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--space-4);
 }
 
 .fieldWrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1-5);
+  gap: var(--space-2);
 }
 
 .label {
@@ -70,7 +70,7 @@
   background-color: var(--bg-pure-black);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: var(--spacing-2) var(--spacing-3);
+  padding: var(--space-2) var(--space-3);
   font-size: 0.75rem;
   color: var(--text-bright);
   outline: none;
@@ -88,14 +88,14 @@
 }
 
 .feedbackBanner {
-  margin-top: var(--spacing-5);
-  padding: var(--spacing-3);
+  margin-top: var(--space-5);
+  padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   font-size: 0.75rem;
   display: flex;
   align-items: center;
-  gap: var(--spacing-2-5);
+  gap: var(--space-3);
   transition: all 0.15s ease;
 }
 
@@ -121,21 +121,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-4);
-  margin-top: var(--spacing-6);
-  padding-top: var(--spacing-5);
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
   border-top: 1px solid var(--border-subtle);
 }
 
 .testBtn {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1-5);
+  gap: var(--space-2);
   border: 1px solid var(--border-medium);
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  padding: var(--spacing-2) var(--spacing-4);
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 600;
@@ -157,7 +157,7 @@
 .saveActions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: var(--space-3);
 }
 
 .saveStatusText {
@@ -175,10 +175,10 @@
 .saveBtn {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1-5);
+  gap: var(--space-2);
   background-color: var(--color-brand-amber);
   color: var(--bg-pure-black);
-  padding: var(--spacing-2) var(--spacing-4);
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 600;

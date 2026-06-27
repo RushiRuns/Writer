@@ -22,7 +22,7 @@ import {
   testSyncthingConnection 
 } from '../syncthing/client';
 
-export function setupIpcHandlers(mainWindow: BrowserWindow) {
+export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () => void) {
   // Start file watcher if vault path is configured on startup
   const initialVaultPath = configStore.get('vaultPath');
   if (initialVaultPath) {
@@ -107,8 +107,12 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
   });
 
   ipcMain.handle('hotkeys:set', (_event, newHotkeys) => {
-    hotkeysStore.set(newHotkeys);
-    ipcMain.emit('register-global-hotkeys');
+    for (const key of Object.keys(newHotkeys)) {
+      hotkeysStore.set(key, newHotkeys[key]);
+    }
+    if (onHotkeyChange) {
+      onHotkeyChange();
+    }
     return { success: true };
   });
 

@@ -3,7 +3,7 @@
   background-color: #121212;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
+  padding: var(--space-6);
   box-shadow: var(--shadow-lg);
   color: var(--text-muted);
 }
@@ -11,9 +11,9 @@
 .settingsCardHeader {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-6);
-  padding-bottom: var(--spacing-2-5);
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -34,19 +34,19 @@
 .fieldsList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5);
+  gap: var(--space-5);
 }
 
 .fieldWrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: var(--space-2);
 }
 
 .labelTextGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-0-5);
+  gap: var(--space-1);
 }
 
 .label {
@@ -66,14 +66,14 @@
 
 .inputWrapper {
   display: flex;
-  gap: var(--spacing-2);
+  gap: var(--space-2);
 }
 
 .input {
   background-color: var(--bg-pure-black);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: var(--spacing-2) var(--spacing-3);
+  padding: var(--space-2) var(--space-3);
   font-size: 0.75rem;
   color: var(--text-bright);
   outline: none;
@@ -98,7 +98,7 @@
   border: 1px solid var(--border-subtle);
   color: var(--text-muted);
   border-radius: var(--radius-md);
-  padding: 0 var(--spacing-4);
+  padding: 0 var(--space-4);
   font-size: 11px;
   font-family: var(--font-ui);
   cursor: pointer;
@@ -114,8 +114,8 @@
 .footerRow {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
-  margin-top: var(--spacing-2);
+  gap: var(--space-4);
+  margin-top: var(--space-2);
 }
 
 .saveBtn {
@@ -123,7 +123,7 @@
   border: 1px solid var(--border-subtle);
   color: var(--text-bright);
   border-radius: var(--radius-md);
-  padding: var(--spacing-2) var(--spacing-4);
+  padding: var(--space-2) var(--space-4);
   font-size: 0.75rem;
   font-weight: 500;
   font-family: var(--font-ui);

@@ -519,7 +519,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-5) var(--spacing-6);
+  padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
@@ -554,10 +554,10 @@
 .modalContent {
   flex-grow: 1;
   overflow-y: auto;
-  padding: var(--spacing-6);
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--space-6);
 }
 
 .appearanceIcon {
@@ -569,7 +569,7 @@
   background-color: #121212;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
+  padding: var(--space-6);
   box-shadow: var(--shadow-lg);
   color: var(--text-muted);
 }
@@ -577,9 +577,9 @@
 .settingsCardHeader {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-6);
-  padding-bottom: var(--spacing-2-5);
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
 }
 

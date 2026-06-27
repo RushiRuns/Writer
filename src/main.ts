@@ -47,7 +47,7 @@ const createWindow = () => {
   });
 
   // Setup main process IPC listener bindings
-  setupIpcHandlers(mainWindow);
+  setupIpcHandlers(mainWindow, registerGlobalShortcuts);
 
   // Register renderer toggle floating window command
   ipcMain.handle('window:toggle-floating', () => {
@@ -227,10 +227,7 @@ function registerGlobalShortcuts() {
   }
 }
 
-// IPC listener to re-register hotkeys at runtime
-ipcMain.on('register-global-hotkeys', () => {
-  registerGlobalShortcuts();
-});
+
 
 // Capture quit flags and unregister global hotkeys
 app.on('will-quit', () => {

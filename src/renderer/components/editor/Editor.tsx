@@ -172,10 +172,18 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
             autocompletion({ override: [createWikiLinkAutocomplete(index.notes)] }),
             hideMarkdownPlugin,
             hideMarkdownStyles,
+            EditorView.lineWrapping,
             EditorView.theme({
               '&': { height: '100%', fontSize: '15px', fontFamily: 'var(--font-ui)', lineHeight: '1.75' },
-              '.cm-scroller': { overflow: 'auto' },
-              '.cm-content': { padding: '2rem 4rem 60px 6rem', maxWidth: 'none', margin: '0 auto', color: 'var(--text-primary)', caretColor: 'var(--accent-primary)' },
+              '.cm-scroller': { overflow: 'auto', display: 'flex', flexDirection: 'column' },
+              '.cm-content': { 
+                padding: '2rem 6rem 60px 6rem', 
+                maxWidth: 'none', 
+                color: 'var(--text-primary)', 
+                caretColor: 'var(--accent-primary)',
+                minHeight: '100%',
+                boxSizing: 'border-box'
+              },
               '&.cm-focused': { outline: 'none' },
               '.cm-cursor, .cm-dropCursor': { borderLeftWidth: '2px', borderLeftStyle: 'solid', borderLeftColor: 'var(--accent-primary)' }
             }),

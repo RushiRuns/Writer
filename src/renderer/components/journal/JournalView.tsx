@@ -7,6 +7,8 @@ import styles from './JournalView.module.css';
 interface JournalViewProps {
   index: VaultIndex;
   vaultPath: string;
+  isZenMode?: boolean;
+  onToggleZenMode?: () => void;
 }
 
 interface JournalGroup {
@@ -14,7 +16,7 @@ interface JournalGroup {
   notes: NoteEntry[];
 }
 
-export default function JournalView({ index, vaultPath }: JournalViewProps) {
+export default function JournalView({ index, vaultPath, isZenMode = false, onToggleZenMode }: JournalViewProps) {
   const [selectedNote, setSelectedNote] = useState<NoteEntry | null>(null);
   const [targetSelectedPath, setTargetSelectedPath] = useState<string | null>(null);
   const [isCreatingToday, setIsCreatingToday] = useState(false);
@@ -156,85 +158,89 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
   return (
     <div className={styles.container}>
       {/* Date List Sidebar (Pane 2) */}
-      <div className={styles.sidebar}>
-        <div className={styles.header}>
-          <button
-            onClick={handleCreateTodayEntry}
-            disabled={isCreatingToday}
-            className={styles.addTodayBtn}
-            title="Create today's journal entry"
-          >
-            <Plus size={14} />
-            <span>Add Today's Entry</span>
-          </button>
-          
-          <button 
-            onClick={handleCalendarClick} 
-            className={styles.customDateBtn} 
-            title="Create entry for custom date"
-          >
-            <Calendar size={14} />
-          </button>
-          <input
-            ref={dateInputRef}
-            type="date"
-            value={datePickerValue}
-            onChange={handleDatePickerChange}
-            className={styles.hiddenDatePicker}
-          />
-        </div>
+      {!isZenMode && (
+        <div className={styles.sidebar}>
+          <div className={styles.header}>
+            <button
+              onClick={handleCreateTodayEntry}
+              disabled={isCreatingToday}
+              className={styles.addTodayBtn}
+              title="Create today's journal entry"
+            >
+              <Plus size={14} />
+              <span>Add Today's Entry</span>
+            </button>
+            
+            <button 
+              onClick={handleCalendarClick} 
+              className={styles.customDateBtn} 
+              title="Create entry for custom date"
+            >
+              <Calendar size={14} />
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={datePickerValue}
+              onChange={handleDatePickerChange}
+              className={styles.hiddenDatePicker}
+            />
+          </div>
 
-        <div className={styles.scrollArea}>
+          <div className={styles.scrollArea}>
 
 
-          {groupedNotes.length === 0 ? (
-            <div className={styles.emptyState}>
-              <p>No journal entries yet</p>
-            </div>
-          ) : (
-            groupedNotes.map(group => (
-              <div key={group.monthYearLabel} className={styles.group}>
-                <h3 className={styles.groupHeader}>{group.monthYearLabel}</h3>
-                <div className={styles.groupList}>
-                  {group.notes.map(note => {
-                    const isSelected = selectedNote?.path === note.path;
-                    const dateObj = parseLocalDate(note.title);
-                    const dayNum = dateObj.getDate();
-                    const dayName = dateObj.toLocaleString('default', { weekday: 'short' });
-                    
-                    return (
-                      <button
-                        key={note.path}
-                        onClick={() => setSelectedNote(note)}
-                        className={`${styles.noteRow} ${isSelected ? styles.selected : ''}`}
-                      >
-                        <div className={styles.dateBadge}>
-                          <span className={styles.dayNum}>{dayNum}</span>
-                          <span className={styles.dayName}>{dayName}</span>
-                        </div>
-                        <div className={styles.noteMeta}>
-                          <span className={styles.noteTitle}>{note.title}</span>
-                          <span className={styles.previewText}>
-                            {note.preview || 'No content yet'}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+            {groupedNotes.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>No journal entries yet</p>
               </div>
-            ))
-          )}
+            ) : (
+              groupedNotes.map(group => (
+                <div key={group.monthYearLabel} className={styles.group}>
+                  <h3 className={styles.groupHeader}>{group.monthYearLabel}</h3>
+                  <div className={styles.groupList}>
+                    {group.notes.map(note => {
+                      const isSelected = selectedNote?.path === note.path;
+                      const dateObj = parseLocalDate(note.title);
+                      const dayNum = dateObj.getDate();
+                      const dayName = dateObj.toLocaleString('default', { weekday: 'short' });
+                      
+                      return (
+                        <button
+                          key={note.path}
+                          onClick={() => setSelectedNote(note)}
+                          className={`${styles.noteRow} ${isSelected ? styles.selected : ''}`}
+                        >
+                          <div className={styles.dateBadge}>
+                            <span className={styles.dayNum}>{dayNum}</span>
+                            <span className={styles.dayName}>{dayName}</span>
+                          </div>
+                          <div className={styles.noteMeta}>
+                            <span className={styles.noteTitle}>{note.title}</span>
+                            <span className={styles.previewText}>
+                              {note.preview || 'No content yet'}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Editor Main Pane (Pane 4) */}
-      <div className={styles.editorPane}>
+      <div className={styles.editorPane} style={isZenMode ? { flexGrow: 1 } : undefined}>
         {selectedNote ? (
           <Editor
             note={selectedNote}
             index={index}
             onNoteSelect={setSelectedNote}
+            isZenMode={isZenMode}
+            onToggleZenMode={onToggleZenMode}
           />
         ) : (
           <div className={styles.placeholder}>

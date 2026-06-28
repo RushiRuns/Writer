@@ -1033,3 +1033,25 @@
     opacity: 0;
   }
 }
+
+/* Zen Mode Styling overrides */
+.container.zenMode {
+  background-color: var(--bg-pure-black);
+}
+
+.container.zenMode .mainWorkspace {
+  max-width: 750px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  flex-grow: 1;
+}
+
+/* Fade out bottom bar elements in Zen mode when writing, but show on hover */
+.container.zenMode .bottomBar {
+  opacity: 0.15;
+  transition: opacity 0.3s ease;
+}
+
+.container.zenMode .bottomBar:hover {
+  opacity: 1;
+}

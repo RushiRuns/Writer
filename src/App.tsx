@@ -54,6 +54,7 @@ function AppContent() {
     folders: []
   });
   const [targetNotePath, setTargetNotePath] = useState<string | null>(null);
+  const [isZenMode, setIsZenMode] = useState<boolean>(false);
 
   const handleRandomNote = () => {
     if (index.notes.length === 0) return;
@@ -326,13 +327,22 @@ function AppContent() {
             onBreadcrumbChange={setBreadcrumb}
             onNoteSelected={setCurrentNotePath}
             targetNotePath={targetNotePath} 
-            onClearTargetNotePath={() => setTargetNotePath(null)} 
+            onClearTargetNotePath={() => setTargetNotePath(null)}
+            isZenMode={isZenMode}
+            onToggleZenMode={() => setIsZenMode(!isZenMode)}
           />
         );
       case 'drawing':
         return <DrawingView index={index} _vaultPath={vaultPath} />;
       case 'journal':
-        return <JournalView index={index} vaultPath={vaultPath} />;
+        return (
+          <JournalView 
+            index={index} 
+            vaultPath={vaultPath} 
+            isZenMode={isZenMode}
+            onToggleZenMode={() => setIsZenMode(!isZenMode)}
+          />
+        );
       case 'tags':
         return <TagsView index={index} vaultPath={vaultPath} />;
       case 'archive':
@@ -354,12 +364,14 @@ function AppContent() {
   return (
     <div className={styles.container}>
       {/* Sidebar Panel (Pane 1) */}
-      <Navigation 
-        activeSection={activeSection} 
-        onSectionSelect={setActiveSection} 
-        isSettingsOpen={showSettings}
-        onSettingsClick={() => setShowSettings(true)}
-      />
+      {!isZenMode && (
+        <Navigation 
+          activeSection={activeSection} 
+          onSectionSelect={setActiveSection} 
+          isSettingsOpen={showSettings}
+          onSettingsClick={() => setShowSettings(true)}
+        />
+      )}
 
       {/* Main Workspace content */}
       <main className={styles.main}>

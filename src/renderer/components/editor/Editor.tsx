@@ -27,7 +27,9 @@ import {
   Shuffle,
   Trash2,
   Calendar,
-  Target
+  Target,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import ConfirmationModal from '../ui/ConfirmationModal';
 import styles from './Editor.module.css';
@@ -82,9 +84,18 @@ interface EditorProps {
   index: VaultIndex;
   onNoteSelect: (note: NoteEntry | null) => void;
   onClose?: () => void;
+  isZenMode?: boolean;
+  onToggleZenMode?: () => void;
 }
 
-export default function Editor({ note, index, onNoteSelect, onClose }: EditorProps) {
+export default function Editor({ 
+  note, 
+  index, 
+  onNoteSelect, 
+  onClose,
+  isZenMode = false,
+  onToggleZenMode
+}: EditorProps) {
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [reminder, setReminder] = useState<string | null>(null);
@@ -563,7 +574,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   };
 
   return (
-    <div className={`${styles.container} animate-fade-in`}>
+    <div className={`${styles.container} ${isZenMode ? styles.zenMode : ''} animate-fade-in`}>
       <div className={styles.mainWorkspace}>
         {/* CodeMirror Workspace container */}
         <div 
@@ -792,22 +803,37 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
                 </span>
               )}
             </div>
+
+            {/* Zen Mode */}
+            {onToggleZenMode && (
+              <div className={styles.bottomBarItem}>
+                <button 
+                  onClick={onToggleZenMode} 
+                  className={`${styles.bottomBarBtn} ${isZenMode ? styles.activeBtn : ''}`}
+                  title={isZenMode ? "Exit Zen Mode" : "Enter Zen Mode (Distraction-Free)"}
+                >
+                  {isZenMode ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Hover right-edge squeeze toggle button */}
-        <div 
-          className={`${styles.edgeToggleWrapper} ${showSidebar ? styles.sidebarOpen : ''}`}
-          onClick={() => setShowSidebar(!showSidebar)}
-        >
-          <button className={styles.edgeToggleBtn} title={showSidebar ? "Close inspector" : "Open inspector"}>
-            {showSidebar ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-          </button>
-        </div>
+        {!isZenMode && (
+          <div 
+            className={`${styles.edgeToggleWrapper} ${showSidebar ? styles.sidebarOpen : ''}`}
+            onClick={() => setShowSidebar(!showSidebar)}
+          >
+            <button className={styles.edgeToggleBtn} title={showSidebar ? "Close inspector" : "Open inspector"}>
+              {showSidebar ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Inspector Sidebar Pane */}
-      {showSidebar && (
+      {!isZenMode && showSidebar && (
         <div className={styles.inspectorSidebar}>
           {/* Header */}
           <div className={styles.sidebarHeader}>

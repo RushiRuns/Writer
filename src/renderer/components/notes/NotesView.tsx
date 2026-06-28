@@ -14,6 +14,8 @@ interface NotesViewProps {
   onNoteSelected?: (notePath: string | null) => void;
   targetNotePath?: string | null;
   onClearTargetNotePath?: () => void;
+  isZenMode?: boolean;
+  onToggleZenMode?: () => void;
 }
 
 interface TabItem {
@@ -33,7 +35,9 @@ export default function NotesView({
   onBreadcrumbChange,
   onNoteSelected,
   targetNotePath,
-  onClearTargetNotePath
+  onClearTargetNotePath,
+  isZenMode = false,
+  onToggleZenMode
 }: NotesViewProps) {
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [targetSelectedPath, setTargetSelectedPath] = useState<string | null>(null);
@@ -276,58 +280,60 @@ export default function NotesView({
               className={`${styles.paneContainer} ${isActivePane ? styles.paneActive : ''}`}
             >
               {/* Tab Bar Header */}
-              <div className={styles.tabBar}>
-                <div className={styles.tabsList}>
-                  {pane.tabs.map((tab) => {
-                    const isActiveTab = pane.activeTabPath === tab.path;
-                    return (
-                      <div 
-                        key={tab.path}
-                        className={`${styles.tabItem} ${isActiveTab ? styles.tabActive : ''}`}
-                        onClick={() => handleSwitchTab(pane.id, tab.path)}
-                      >
-                        <span className={styles.tabTitle}>{tab.title}</span>
-                        <button 
-                          className={styles.tabCloseBtn}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCloseTab(pane.id, tab.path);
-                          }}
+              {!isZenMode && (
+                <div className={styles.tabBar}>
+                  <div className={styles.tabsList}>
+                    {pane.tabs.map((tab) => {
+                      const isActiveTab = pane.activeTabPath === tab.path;
+                      return (
+                        <div 
+                          key={tab.path}
+                          className={`${styles.tabItem} ${isActiveTab ? styles.tabActive : ''}`}
+                          onClick={() => handleSwitchTab(pane.id, tab.path)}
                         >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+                          <span className={styles.tabTitle}>{tab.title}</span>
+                          <button 
+                            className={styles.tabCloseBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCloseTab(pane.id, tab.path);
+                            }}
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                {/* Pane Split/Close Controls */}
-                <div className={styles.paneControls}>
-                  {panes.length === 1 ? (
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSplitPane();
-                      }}
-                      className={styles.controlBtn}
-                      title="Split Vertically"
-                    >
-                      <Columns size={14} />
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClosePane(pane.id);
-                      }}
-                      className={styles.controlBtn}
-                      title="Close Pane"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
+                  {/* Pane Split/Close Controls */}
+                  <div className={styles.paneControls}>
+                    {panes.length === 1 ? (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSplitPane();
+                        }}
+                        className={styles.controlBtn}
+                        title="Split Vertically"
+                      >
+                        <Columns size={14} />
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClosePane(pane.id);
+                        }}
+                        className={styles.controlBtn}
+                        title="Close Pane"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Editor Workspace */}
               <div className={styles.paneContent}>
@@ -337,6 +343,8 @@ export default function NotesView({
                     note={activeNote}
                     index={index}
                     onNoteSelect={(fresh) => handleNoteSelectFromEditor(pane.id, activeNote.path, fresh)}
+                    isZenMode={isZenMode}
+                    onToggleZenMode={onToggleZenMode}
                   />
                 ) : (
                   <div className={styles.panePlaceholder}>
@@ -350,6 +358,14 @@ export default function NotesView({
       </div>
     );
   };
+
+  if (isZenMode) {
+    return (
+      <div className={styles.container}>
+        {renderPane4()}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

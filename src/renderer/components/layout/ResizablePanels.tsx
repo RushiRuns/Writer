@@ -69,11 +69,11 @@ export default function ResizablePanels({
   return (
     <div ref={containerRef} className={`flex h-full w-full overflow-hidden ${styles.container}`}>
       {/* Folder Tree Pane (Pane 2) */}
-      <div style={{ width: showPane3And4 ? `${pane2Width}px` : '100%' }} className={styles.pane}>
+      <div style={{ width: `${pane2Width}px` }} className={styles.pane}>
         {pane2}
       </div>
 
-      {showPane3And4 && (
+      {showPane3And4 ? (
         <>
           {/* Draggable Divider 1 */}
           <div
@@ -97,6 +97,9 @@ export default function ResizablePanels({
             {pane4}
           </div>
         </>
+      ) : (
+        /* Empty placeholder for the remaining workspace area */
+        <div className="flex-grow h-full" style={{ backgroundColor: 'var(--bg-pane-editor)' }} />
       )}
     </div>
   );

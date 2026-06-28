@@ -194,3 +194,15 @@
   color: var(--text-primary);
   border-color: var(--color-brand-amber);
 }
+
+.renameInput {
+  background-color: var(--color-neutral-900);
+  border: 1px solid rgba(156, 163, 175, 0.5);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--color-neutral-100);
+  padding: 2px 6px;
+  outline: none;
+  width: 100%;
+  font-family: var(--font-ui);
+}

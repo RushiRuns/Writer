@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import { FolderPlus } from 'lucide-react';
+import FolderContextMenu from './FolderContextMenu';
 import styles from './FolderTree.module.css';
 
 export interface TreeNode {
@@ -88,11 +89,56 @@ export default function FolderTree({
   const [creatingInPath, setCreatingInPath] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
 
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    folderPath: string;
+  } | null>(null);
+
+  const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
+  const [renameFolderText, setRenameFolderText] = useState('');
+
   const tree = buildFolderTree(index.notes, createdFolders);
 
   const toggleExpand = (path: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpanded(prev => ({ ...prev, [path]: !prev[path] }));
+  };
+
+  const handleRenameFolderSubmit = async (folderPath: string) => {
+    const nextName = renameFolderText.trim();
+    if (nextName && nextName !== folderPath.split(/[/\\]/).pop()) {
+      try {
+        const res = await (window as any).wrriter.renameFolder(folderPath, nextName);
+        if (res.success && res.path) {
+          setCreatedFolders(prev => prev.map(f => f === folderPath ? res.path : f));
+          if (activeFolder === folderPath) {
+            onFolderSelect(res.path);
+          } else if (activeFolder.startsWith(folderPath + '/')) {
+            onFolderSelect(activeFolder.replace(folderPath, res.path));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to rename folder:', err);
+      }
+    }
+    setRenamingFolder(null);
+  };
+
+  const handleDeleteFolder = async (folderPath: string) => {
+    if (confirm(`Are you sure you want to delete folder "${folderPath.split(/[/\\]/).pop()}" and all its contents?`)) {
+      try {
+        const res = await (window as any).wrriter.deleteFolder(folderPath);
+        if (res.success) {
+          setCreatedFolders(prev => prev.filter(f => f !== folderPath && !f.startsWith(folderPath + '/')));
+          if (activeFolder === folderPath || activeFolder.startsWith(folderPath + '/')) {
+            onFolderSelect('.');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to delete folder:', err);
+      }
+    }
   };
 
   const handleCreateFolderSubmit = async (parentPath: string) => {
@@ -127,7 +173,20 @@ export default function FolderTree({
       <div key={node.path} className={styles.nodeWrapper}>
         {/* Folder row */}
         <div
-          onClick={() => onFolderSelect(node.path)}
+          onClick={() => {
+            if (renamingFolder !== node.path) {
+              onFolderSelect(node.path);
+            }
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setContextMenu({
+              x: e.clientX,
+              y: e.clientY,
+              folderPath: node.path
+            });
+          }}
           style={{ paddingLeft: `${depth * 12 + 8}px` }}
           className={`group ${styles.row} ${isActive ? styles.active : ''}`}
         >
@@ -147,8 +206,24 @@ export default function FolderTree({
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
           </svg>
 
-          {/* Folder Name */}
-          <span className="truncate flex-grow select-none">{node.name}</span>
+          {/* Folder Name / Rename Input */}
+          {renamingFolder === node.path ? (
+            <input
+              type="text"
+              value={renameFolderText}
+              onChange={(e) => setRenameFolderText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRenameFolderSubmit(node.path);
+                if (e.key === 'Escape') setRenamingFolder(null);
+              }}
+              onBlur={() => handleRenameFolderSubmit(node.path)}
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+              className={styles.renameInput}
+            />
+          ) : (
+            <span className="truncate flex-grow select-none">{node.name}</span>
+          )}
 
           {/* Note count badge */}
           {node.noteCount > 0 && (
@@ -197,11 +272,6 @@ export default function FolderTree({
     );
   };
 
-  const getHeaderTitle = () => {
-    if (activeFolder === '.') return 'Notes';
-    return activeFolder.split(/[/\\]/).pop() || activeFolder;
-  };
-
   return (
     <div className={styles.container}>
       {/* Pane 2 Header with Add Folder Button */}
@@ -240,6 +310,27 @@ export default function FolderTree({
         {/* Render child folders recursively */}
         {tree.map(node => renderNode(node, 0))}
       </div>
+
+      {/* Folder Context Menu Popup */}
+      {contextMenu && (
+        <FolderContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          onRename={() => {
+            const folderName = contextMenu.folderPath.split(/[/\\]/).pop() || '';
+            setRenamingFolder(contextMenu.folderPath);
+            setRenameFolderText(folderName);
+          }}
+          onNewSubfolder={() => {
+            setCreatingInPath(contextMenu.folderPath);
+            setExpanded(prev => ({ ...prev, [contextMenu.folderPath]: true }));
+          }}
+          onDelete={() => {
+            handleDeleteFolder(contextMenu.folderPath);
+          }}
+        />
+      )}
     </div>
   );
 }

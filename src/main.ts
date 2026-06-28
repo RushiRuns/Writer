@@ -15,6 +15,20 @@ let floatingWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
 
+const registerDevToolsShortcut = (win: BrowserWindow) => {
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown') {
+      const isDevToolsKey = 
+        input.key === 'F12' || 
+        (input.control && input.shift && input.key.toLowerCase() === 'i');
+      if (isDevToolsKey) {
+        win.webContents.toggleDevTools();
+        event.preventDefault();
+      }
+    }
+  });
+};
+
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -27,6 +41,7 @@ const createWindow = () => {
     },
   });
 
+  registerDevToolsShortcut(mainWindow);
   mainWindow.setMenu(null);
 
   // and load the index.html of the app.
@@ -79,6 +94,8 @@ const toggleCommandPalette = () => {
     },
   });
 
+  registerDevToolsShortcut(paletteWindow);
+
   const url = MAIN_WINDOW_VITE_DEV_SERVER_URL
     ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}?mode=palette`
     : `file://${path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)}?mode=palette`;
@@ -120,6 +137,8 @@ const toggleFloatingWindow = () => {
       nodeIntegration: false,
     },
   });
+
+  registerDevToolsShortcut(floatingWindow);
 
   const url = MAIN_WINDOW_VITE_DEV_SERVER_URL
     ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}?mode=floating`

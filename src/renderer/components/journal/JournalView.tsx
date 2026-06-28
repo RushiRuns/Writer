@@ -55,6 +55,9 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
     }
   };
 
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerValue, setDatePickerValue] = useState('');
+
   // Keep selection synchronized with vault index updates
   useEffect(() => {
     if (targetSelectedPath) {
@@ -114,31 +117,27 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
 
   const groupedNotes = getGroupedNotes();
 
-  const handleCreateCustomDate = async () => {
-    const dateInput = prompt('Enter date (YYYY-MM-DD):', getTodayStr());
-    if (!dateInput) return;
+  const handleDatePickerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value; // Format is YYYY-MM-DD
+    if (!selectedDate) return;
 
-    // Validate format
-    const match = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!match) {
-      alert('Please use YYYY-MM-DD format');
-      return;
-    }
-
-    const dateExists = journalNotes.some(n => n.title === dateInput);
+    const dateExists = journalNotes.some(n => n.title === selectedDate);
     if (dateExists) {
-      const existing = journalNotes.find(n => n.title === dateInput);
+      const existing = journalNotes.find(n => n.title === selectedDate);
       if (existing) setSelectedNote(existing);
+      setShowDatePicker(false);
       return;
     }
 
     try {
-      const res = await (window as any).wrriter.createNote('Journal', dateInput);
+      const res = await (window as any).wrriter.createNote('Journal', selectedDate);
       if (res.success && res.path) {
         setTargetSelectedPath(res.path);
       }
     } catch (err) {
       console.error('Failed to create journal note:', err);
+    } finally {
+      setShowDatePicker(false);
     }
   };
 
@@ -158,7 +157,12 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
           </button>
           
           <button 
-            onClick={handleCreateCustomDate} 
+            onClick={() => {
+              setShowDatePicker(!showDatePicker);
+              if (!showDatePicker) {
+                setDatePickerValue(getTodayStr());
+              }
+            }} 
             className={styles.customDateBtn} 
             title="Create entry for custom date"
           >
@@ -167,6 +171,22 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
         </div>
 
         <div className={styles.scrollArea}>
+          {showDatePicker && (
+            <div className={styles.datePickerWrapper}>
+              <input
+                type="date"
+                value={datePickerValue}
+                onChange={handleDatePickerChange}
+                onBlur={() => setShowDatePicker(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setShowDatePicker(false);
+                }}
+                autoFocus
+                className={styles.datePickerInput}
+              />
+            </div>
+          )}
+
           {groupedNotes.length === 0 ? (
             <div className={styles.emptyState}>
               <p>No journal entries yet</p>

@@ -175,7 +175,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
             EditorView.theme({
               '&': { height: '100%', fontSize: '15px', fontFamily: 'var(--font-ui)', lineHeight: '1.75' },
               '.cm-scroller': { overflow: 'auto' },
-              '.cm-content': { padding: '30px 0 60px 0', maxWidth: 'none', margin: '0 auto', color: 'var(--text-primary)', caretColor: 'var(--accent-primary)' },
+              '.cm-content': { padding: '2rem 4rem 60px 4rem', maxWidth: 'none', margin: '0 auto', color: 'var(--text-primary)', caretColor: 'var(--accent-primary)' },
               '&.cm-focused': { outline: 'none' },
               '.cm-cursor, .cm-dropCursor': { borderLeftWidth: '2px', borderLeftStyle: 'solid', borderLeftColor: 'var(--accent-primary)' }
             }),

@@ -332,6 +332,80 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
     }
   });
 
+  ipcMain.handle('drawing:delete', async (_event, name) => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) return { success: false, error: 'Vault path not configured' };
+      const sanitized = sanitizeFilename(name);
+      const attachmentsDir = path.join(vaultPath, 'Attachments');
+      const pngPath = path.join(attachmentsDir, `${sanitized}.png`);
+      const jsonPath = path.join(attachmentsDir, `${sanitized}.json`);
+      
+      await fs.unlink(pngPath).catch(() => {});
+      await fs.unlink(jsonPath).catch(() => {});
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to delete drawing:', err);
+      return { success: false, error: String(err) };
+    }
+  });
+
+  ipcMain.handle('drawing:rename', async (_event, { oldName, newName }) => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) return { success: false, error: 'Vault path not configured' };
+      const oldSanitized = sanitizeFilename(oldName);
+      const newSanitized = sanitizeFilename(newName);
+      if (!newSanitized) return { success: false, error: 'Invalid new name' };
+      
+      const attachmentsDir = path.join(vaultPath, 'Attachments');
+      const oldPng = path.join(attachmentsDir, `${oldSanitized}.png`);
+      const newPng = path.join(attachmentsDir, `${newSanitized}.png`);
+      const oldJson = path.join(attachmentsDir, `${oldSanitized}.json`);
+      const newJson = path.join(attachmentsDir, `${newSanitized}.json`);
+      
+      await fs.rename(oldPng, newPng).catch(() => {});
+      await fs.rename(oldJson, newJson).catch(() => {});
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to rename drawing:', err);
+      return { success: false, error: String(err) };
+    }
+  });
+
+  ipcMain.handle('drawing:duplicate', async (_event, name) => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) return { success: false, error: 'Vault path not configured' };
+      const sanitized = sanitizeFilename(name);
+      
+      const attachmentsDir = path.join(vaultPath, 'Attachments');
+      const sourcePng = path.join(attachmentsDir, `${sanitized}.png`);
+      const sourceJson = path.join(attachmentsDir, `${sanitized}.json`);
+      
+      let copyName = `${name} copy`;
+      let copySanitized = sanitizeFilename(copyName);
+      let destPng = path.join(attachmentsDir, `${copySanitized}.png`);
+      let destJson = path.join(attachmentsDir, `${copySanitized}.json`);
+      
+      let counter = 1;
+      while (await fs.access(destPng).then(() => true).catch(() => false)) {
+        copyName = `${name} copy ${counter}`;
+        copySanitized = sanitizeFilename(copyName);
+        destPng = path.join(attachmentsDir, `${copySanitized}.png`);
+        destJson = path.join(attachmentsDir, `${copySanitized}.json`);
+        counter++;
+      }
+      
+      await fs.copyFile(sourcePng, destPng).catch(() => {});
+      await fs.copyFile(sourceJson, destJson).catch(() => {});
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to duplicate drawing:', err);
+      return { success: false, error: String(err) };
+    }
+  });
+
   ipcMain.handle('syncthing:getStatus', async () => {
     return await getSyncthingStatus();
   });

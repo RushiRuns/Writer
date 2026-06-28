@@ -963,3 +963,16 @@
   color: var(--color-brand-amber);
   background-color: rgba(156, 163, 175, 0.08);
 }
+
+.renameInput {
+  background: var(--bg-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+}

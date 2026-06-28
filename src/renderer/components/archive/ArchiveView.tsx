@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import Editor from '../editor/Editor';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import styles from './ArchiveView.module.css';
 
 interface ArchiveViewProps {
@@ -52,18 +53,24 @@ export default function ArchiveView({ index, vaultPath }: ArchiveViewProps) {
     }
   };
 
-  const handleDeletePermanently = async (e: React.MouseEvent, note: NoteEntry) => {
-    e.stopPropagation();
-    const confirmDelete = confirm(`Are you sure you want to permanently delete "${note.title}"? This will move it to the system trash.`);
-    if (!confirmDelete) return;
+  const [noteToDelete, setNoteToDelete] = useState<NoteEntry | null>(null);
 
+  const handleDeletePermanently = (e: React.MouseEvent, note: NoteEntry) => {
+    e.stopPropagation();
+    setNoteToDelete(note);
+  };
+
+  const confirmDeletePermanently = async () => {
+    if (!noteToDelete) return;
     try {
-      await (window as any).wrriter.deleteNote(note.path);
-      if (selectedNote?.path === note.path) {
+      await (window as any).wrriter.deleteNote(noteToDelete.path);
+      if (selectedNote?.path === noteToDelete.path) {
         setSelectedNote(null);
       }
     } catch (err) {
       console.error('Failed to permanently delete note:', err);
+    } finally {
+      setNoteToDelete(null);
     }
   };
 
@@ -175,6 +182,18 @@ export default function ArchiveView({ index, vaultPath }: ArchiveViewProps) {
           </div>
         )}
       </div>
+
+      {/* Delete Permanently Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={noteToDelete !== null}
+        title="Permanently Delete Note"
+        message={`Are you sure you want to permanently delete "${noteToDelete?.title}"? This action cannot be undone and will move it to the system trash.`}
+        confirmText="Delete Permanently"
+        cancelText="Cancel"
+        onConfirm={confirmDeletePermanently}
+        onCancel={() => setNoteToDelete(null)}
+        isDangerous={true}
+      />
     </div>
   );
 }

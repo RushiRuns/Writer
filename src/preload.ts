@@ -22,6 +22,10 @@ contextBridge.exposeInMainWorld('wrriter', {
   saveDrawing: (name: string, strokes: any[], pngBase64: string) => 
     ipcRenderer.invoke('drawing:save', { name, strokes, pngBase64 }),
   loadDrawing: (name: string) => ipcRenderer.invoke('drawing:load', name),
+  deleteDrawing: (name: string) => ipcRenderer.invoke('drawing:delete', name),
+  renameDrawing: (oldName: string, newName: string) => 
+    ipcRenderer.invoke('drawing:rename', { oldName, newName }),
+  duplicateDrawing: (name: string) => ipcRenderer.invoke('drawing:duplicate', name),
   getSyncthingStatus: () => ipcRenderer.invoke('syncthing:getStatus'),
   triggerSyncthingScan: () => ipcRenderer.invoke('syncthing:scan'),
   testSyncthingConnection: (url: string, apiKey: string) => 

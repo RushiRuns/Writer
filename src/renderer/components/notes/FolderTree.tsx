@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import { FolderPlus } from 'lucide-react';
 import FolderContextMenu from './FolderContextMenu';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import styles from './FolderTree.module.css';
 
 export interface TreeNode {
@@ -120,18 +121,25 @@ export default function FolderTree({
     setRenamingFolder(null);
   };
 
-  const handleDeleteFolder = async (folderPath: string) => {
-    if (confirm(`Are you sure you want to delete folder "${folderPath.split(/[/\\]/).pop()}" and all its contents?`)) {
-      try {
-        const res = await (window as any).wrriter.deleteFolder(folderPath);
-        if (res.success) {
-          if (activeFolder === folderPath || (activeFolder && activeFolder.startsWith(folderPath + '/'))) {
-            onFolderSelect('.');
-          }
+  const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
+
+  const handleDeleteFolder = (folderPath: string) => {
+    setFolderToDelete(folderPath);
+  };
+
+  const confirmDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    try {
+      const res = await (window as any).wrriter.deleteFolder(folderToDelete);
+      if (res.success) {
+        if (activeFolder === folderToDelete || (activeFolder && activeFolder.startsWith(folderToDelete + '/'))) {
+          onFolderSelect('.');
         }
-      } catch (err) {
-        console.error('Failed to delete folder:', err);
       }
+    } catch (err) {
+      console.error('Failed to delete folder:', err);
+    } finally {
+      setFolderToDelete(null);
     }
   };
 
@@ -338,6 +346,18 @@ export default function FolderTree({
           }}
         />
       )}
+
+      {/* Delete Folder Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={folderToDelete !== null}
+        title="Delete Folder"
+        message={`Are you sure you want to delete folder "${folderToDelete?.split(/[/\\]/).pop()}" and all its contents? This action cannot be undone.`}
+        confirmText="Delete Folder"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteFolder}
+        onCancel={() => setFolderToDelete(null)}
+        isDangerous={true}
+      />
     </div>
   );
 }

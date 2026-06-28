@@ -29,6 +29,7 @@ import {
   Calendar,
   Target
 } from 'lucide-react';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import styles from './Editor.module.css';
 
 export function calculateStreak(notes: NoteEntry[]): number {
@@ -93,6 +94,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   const [celebrated, setCelebrated] = useState(false);
   const [confetti, setConfetti] = useState<{ id: number; x: number; y: number; color: string; size: number }[]>([]);
   const initialWordCount = useRef<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Inspector panel UI states
   const [showSidebar, setShowSidebar] = useState(false);
@@ -488,14 +490,18 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     }
   };
 
-  const handleDeleteNote = async () => {
-    if (confirm(`Are you sure you want to delete note "${note.title}"?`)) {
-      try {
-        await (window as any).wrriter.deleteNote(note.path);
-        onNoteSelect(null);
-      } catch (err) {
-        console.error('Failed to delete note:', err);
-      }
+  const handleDeleteNote = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteNote = async () => {
+    try {
+      await (window as any).wrriter.deleteNote(note.path);
+      onNoteSelect(null);
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+    } finally {
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -1130,6 +1136,18 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
           </div>
         </div>
       )}
+
+      {/* Delete Note Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        title="Delete Note"
+        message={`Are you sure you want to delete note "${note.title}"? This will move it to the system trash.`}
+        confirmText="Delete Note"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteNote}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isDangerous={true}
+      />
     </div>
   );
 }

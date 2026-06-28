@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { VaultIndex, DrawingEntry, Stroke } from '../../../shared/ipc-types';
 import { useCanvas } from '../../hooks/useCanvas';
 import CanvasReplayer from './CanvasReplayer';
+import DrawingContextMenu from './DrawingContextMenu';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import styles from './DrawingView.module.css';
 import { 
   PenTool, 
@@ -48,6 +50,12 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   
   // Replay animation state
   const [replayingStrokes, setReplayingStrokes] = useState<Stroke[] | null>(null);
+
+  // Context Menu and Rename/Delete states
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; drawing: DrawingEntry } | null>(null);
+  const [renamingDrawing, setRenamingDrawing] = useState<string | null>(null);
+  const [renameText, setRenameText] = useState('');
+  const [drawingToDelete, setDrawingToDelete] = useState<DrawingEntry | null>(null);
   
   // Guideline pattern state
   const [guidePattern, setGuidePattern] = useState<'blank' | 'grid' | 'dots' | 'lines' | 'cornell' | 'music' | 'isometric'>('blank');
@@ -375,6 +383,75 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     setReplayingStrokes(null);
   };
 
+  const handleRenameSubmit = async (oldName: string) => {
+    const newName = renameText.trim();
+    if (!newName || newName === oldName) {
+      setRenamingDrawing(null);
+      return;
+    }
+
+    try {
+      const res = await (window as any).wrriter.renameDrawing(oldName, newName);
+      if (res.success) {
+        if (selectedDrawing && selectedDrawing.name === oldName) {
+          setSelectedDrawing({
+            ...selectedDrawing,
+            name: newName
+          });
+        }
+      } else {
+        alert(res.error || 'Failed to rename sketch');
+      }
+    } catch (err) {
+      console.error('Failed to rename drawing:', err);
+    } finally {
+      setRenamingDrawing(null);
+    }
+  };
+
+  const handleDuplicateDrawing = async (drawing: DrawingEntry) => {
+    try {
+      const res = await (window as any).wrriter.duplicateDrawing(drawing.name);
+      if (!res.success) {
+        alert(res.error || 'Failed to duplicate sketch');
+      }
+    } catch (err) {
+      console.error('Failed to duplicate drawing:', err);
+    }
+  };
+
+  const handleConfirmDeleteDrawing = async () => {
+    if (!drawingToDelete) return;
+    try {
+      const res = await (window as any).wrriter.deleteDrawing(drawingToDelete.name);
+      if (res.success) {
+        if (selectedDrawing && selectedDrawing.name === drawingToDelete.name) {
+          setSelectedDrawing(null);
+          clearCanvas();
+        }
+      } else {
+        alert(res.error || 'Failed to delete sketch');
+      }
+    } catch (err) {
+      console.error('Failed to delete drawing:', err);
+    } finally {
+      setDrawingToDelete(null);
+    }
+  };
+
+  const handleReplayDrawing = async (drawing: DrawingEntry) => {
+    try {
+      const res = await (window as any).wrriter.loadDrawing(drawing.name);
+      if (res.strokes && res.strokes.length > 0) {
+        setReplayingStrokes(res.strokes);
+      } else {
+        alert('No strokes to replay in this drawing!');
+      }
+    } catch (err) {
+      console.error('Failed to load drawing for replay:', err);
+    }
+  };
+
   // Calculate selection bounding box mapped through Zoom/Pan translations
   let selectionBox: { minX: number; minY: number; maxX: number; maxY: number } | null = null;
   if (selectedIndices.length > 0) {
@@ -447,14 +524,38 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                 <div
                   key={drawing.name}
                   onClick={() => setSelectedDrawing(drawing)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setContextMenu({
+                      x: e.clientX,
+                      y: e.clientY,
+                      drawing
+                    });
+                  }}
                   className={`${styles.drawingItem} ${isSelected ? styles.drawingItemActive : ''}`}
                 >
                   <div className={styles.drawingIcon}>
                     <ImageIcon size={14} />
                   </div>
-                  <span className={`${styles.drawingName} ${isSelected ? styles.drawingNameActive : ''}`}>
-                    {drawing.name}
-                  </span>
+                  {renamingDrawing === drawing.name ? (
+                    <input
+                      type="text"
+                      value={renameText}
+                      onChange={(e) => setRenameText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleRenameSubmit(drawing.name);
+                        if (e.key === 'Escape') setRenamingDrawing(null);
+                      }}
+                      onBlur={() => handleRenameSubmit(drawing.name)}
+                      className={styles.renameInput}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <span className={`${styles.drawingName} ${isSelected ? styles.drawingNameActive : ''}`}>
+                      {drawing.name}
+                    </span>
+                  )}
                 </div>
               );
             })
@@ -902,6 +1003,34 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
           </div>
         )}
       </div>
+
+      {/* Context Menu Popup */}
+      {contextMenu && (
+        <DrawingContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          onRename={() => {
+            setRenamingDrawing(contextMenu.drawing.name);
+            setRenameText(contextMenu.drawing.name);
+          }}
+          onReplay={() => handleReplayDrawing(contextMenu.drawing)}
+          onDuplicate={() => handleDuplicateDrawing(contextMenu.drawing)}
+          onDelete={() => setDrawingToDelete(contextMenu.drawing)}
+        />
+      )}
+
+      {/* Delete Drawing Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={drawingToDelete !== null}
+        title="Delete Sketch"
+        message={`Are you sure you want to delete the sketch "${drawingToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete Sketch"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDeleteDrawing}
+        onCancel={() => setDrawingToDelete(null)}
+        isDangerous={true}
+      />
     </div>
   );
 }

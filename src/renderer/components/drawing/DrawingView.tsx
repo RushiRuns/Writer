@@ -527,7 +527,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   onPointerMove={draw}
                   onPointerUp={endDrawing}
                   onClick={handleCanvasClick}
-                  className={`${styles.canvas} ${tool === 'pan' ? styles.canvasPanMode : ''}`}
+                  className={`${styles.canvas} ${styles[`tool_${tool}`] || ''}`}
                   style={{ width: '100%', height: '100%' }}
                 />
 
@@ -732,19 +732,17 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                   <div className={styles.toolGroup}>
                     <button
                       onClick={() => setAutoCorrect(prev => !prev)}
-                      className={`${styles.toggleButton} ${autoCorrect ? styles.toggleButtonActive : ''}`}
+                      className={`${styles.toolButton} ${autoCorrect ? styles.toolButtonActive : ''}`}
                       title="Auto Shape Correction (Smooth wobbly hand-drawn lines, circles, and boxes)"
                     >
-                      <Sparkles size={13} />
-                      <span>Auto-Shape</span>
+                      <Sparkles size={14} />
                     </button>
                     <button
                       onClick={() => setSnapToGrid(prev => !prev)}
-                      className={`${styles.toggleButton} ${snapToGrid ? styles.toggleButtonActive : ''}`}
+                      className={`${styles.toolButton} ${snapToGrid ? styles.toolButtonActive : ''}`}
                       title="Coordinate Snap-to-Grid (Snaps shapes and selections to grid dots)"
                     >
-                      <Grid size={13} />
-                      <span>Grid Snap</span>
+                      <Grid size={14} />
                     </button>
                   </div>
                 </div>

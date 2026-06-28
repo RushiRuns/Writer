@@ -1,12 +1,108 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
-import { markdown } from '@codemirror/lang-markdown';
-import { autocompletion } from '@codemirror/autocomplete';
+import { useEditor, EditorContent } from '@tiptap/react';
+import { StarterKit } from '@tiptap/starter-kit';
+import { Markdown } from '@tiptap/markdown';
+import { WikiLink } from './WikiLink';
+import { SlashCommands } from './SlashCommands';
+import { WikiLinkAutocomplete } from './wikiLinkAutocomplete';
+import FloatingToolbar from './FloatingToolbar';
 
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
-import { hideMarkdownPlugin, hideMarkdownStyles } from './hideMarkdown';
-import { createWikiLinkAutocomplete } from './wikiLinkAutocomplete';
+
+interface TiptapEditorWrapperProps {
+  note: NoteEntry;
+  index: VaultIndex;
+  onContentChange: (content: string) => void;
+  onNoteSelect: (note: NoteEntry | null) => void;
+  onBlur: () => void;
+}
+
+function TiptapEditorWrapper({
+  note,
+  index,
+  onContentChange,
+  onNoteSelect,
+  onBlur,
+}: TiptapEditorWrapperProps) {
+  const [initialContent, setInitialContent] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadContent = async () => {
+      try {
+        const res = await (window as any).wrriter.readNote(note.path);
+        if (!active) return;
+        let displayContent = res.content;
+        if (!displayContent.trim().startsWith('# ')) {
+          displayContent = `# ${note.title}\n\n${displayContent.trim()}`;
+        }
+        setInitialContent(displayContent);
+        onContentChange(displayContent);
+      } catch (err) {
+        console.error('Failed to load note content in wrapper:', err);
+      }
+    };
+    loadContent();
+    return () => {
+      active = false;
+    };
+  }, [note.path]);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Markdown,
+      WikiLink.configure({
+        onClick: (title) => {
+          const targetNote = index.notes.find(
+            n => n.title.toLowerCase() === title.toLowerCase()
+          );
+          if (targetNote) {
+            onNoteSelect(targetNote);
+          }
+        },
+      }),
+      SlashCommands,
+      WikiLinkAutocomplete.configure({
+        notes: index.notes,
+      }),
+    ],
+    content: '',
+    onUpdate: ({ editor }) => {
+      onContentChange(editor.getMarkdown());
+    },
+    onBlur,
+  });
+
+  useEffect(() => {
+    if (editor && initialContent !== null) {
+      editor.commands.setContent(initialContent, { emitUpdate: false });
+      editor.commands.focus('end');
+    }
+  }, [editor, initialContent]);
+
+  useEffect(() => {
+    if (editor && !editor.isDestroyed) {
+      const autocompleteExtension = editor.extensionManager.extensions.find(
+        e => e.name === 'wikiLinkAutocomplete'
+      );
+      if (autocompleteExtension) {
+        autocompleteExtension.options.notes = index.notes;
+      }
+    }
+  }, [index.notes, editor]);
+
+  if (initialContent === null) {
+    return <div className={styles.loadingSpinner}>Loading...</div>;
+  }
+
+  return (
+    <div className={styles.tiptapEditorContainer}>
+      {editor && <FloatingToolbar editor={editor} />}
+      <EditorContent editor={editor} className={styles.editorAreaInner} />
+    </div>
+  );
+}
 import { useAutoSave } from './useAutoSave';
 import { useTimer } from '../../contexts/TimerContext';
 import AudioManager from '../ambient-sounds/AudioManager';
@@ -147,8 +243,7 @@ export default function Editor({
     }, 2500);
   };
 
-  const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
+
 
   // Stats Modal Calculations
   const getContributionGridData = () => {
@@ -292,22 +387,11 @@ export default function Editor({
     2000
   );
 
-  // Initialize CodeMirror once per note path
+  // Load settings on note path change
   useEffect(() => {
-    const container = editorRef.current;
-    if (!container) return;
-
-    const initEditor = async () => {
+    const loadSettings = async () => {
       try {
         const res = await (window as any).wrriter.readNote(note.path);
-        let displayContent = res.content;
-        
-        // Prepend H1 header if it's missing on disk
-        if (!displayContent.trim().startsWith('# ')) {
-          displayContent = `# ${note.title}\n\n${displayContent.trim()}`;
-        }
-        
-        setContent(displayContent);
         setTags(res.frontmatter.tags || []);
         setReminder(res.frontmatter.reminder || null);
         setGoal(res.frontmatter.goal || 0);
@@ -331,77 +415,17 @@ export default function Editor({
           setGoalType(noteGoalType);
         }
 
-        // Set starting word count for this session
+        let displayContent = res.content;
+        if (!displayContent.trim().startsWith('# ')) {
+          displayContent = `# ${note.title}\n\n${displayContent.trim()}`;
+        }
         const startingWords = displayContent.trim() ? displayContent.trim().split(/\s+/).length : 0;
         initialWordCount.current = startingWords;
-
-        if (viewRef.current) {
-          viewRef.current.destroy();
-        }
-
-        const state = EditorState.create({
-          doc: displayContent,
-          extensions: [
-            markdown(),
-            autocompletion({ override: [createWikiLinkAutocomplete(index.notes)] }),
-            hideMarkdownPlugin,
-            hideMarkdownStyles,
-            EditorView.lineWrapping,
-            EditorView.theme({
-              '&': { height: '100%', fontSize: '15px', fontFamily: 'var(--font-ui)', lineHeight: '1.75' },
-              '.cm-scroller': { overflow: 'auto', display: 'flex', flexDirection: 'column' },
-              '.cm-content': { 
-                padding: '2rem 6rem 60px 6rem', 
-                maxWidth: 'none', 
-                color: 'var(--text-primary)', 
-                caretColor: 'var(--accent-primary)',
-                minHeight: '100%',
-                boxSizing: 'border-box'
-              },
-              '&.cm-focused': { outline: 'none' },
-              '.cm-cursor, .cm-dropCursor': { borderLeftWidth: '2px', borderLeftStyle: 'solid', borderLeftColor: 'var(--accent-primary)' }
-            }),
-            EditorView.updateListener.of((update) => {
-              if (update.docChanged) {
-                const nextText = update.state.doc.toString();
-                setContent(nextText);
-              }
-            }),
-            EditorView.domEventHandlers({
-              click(event) {
-                const target = event.target as HTMLElement;
-                if (target.classList.contains('cm-wikilink-pill')) {
-                  const linkTitle = target.innerText.trim();
-                  const targetNote = index.notes.find(
-                    n => n.title.toLowerCase() === linkTitle.toLowerCase()
-                  );
-                  if (targetNote) {
-                    onNoteSelect(targetNote);
-                  }
-                }
-              }
-            })
-          ]
-        });
-
-        const view = new EditorView({
-          state,
-          parent: container
-        });
-        viewRef.current = view;
       } catch (err) {
-        console.error('Failed to load note content:', err);
+        console.error('Failed to load note settings:', err);
       }
     };
-
-    initEditor();
-
-    return () => {
-      if (viewRef.current) {
-        viewRef.current.destroy();
-        viewRef.current = null;
-      }
-    };
+    loadSettings();
   }, [note.path]);
 
   const handleTagsChange = (newTags: string[]) => {
@@ -576,12 +600,17 @@ export default function Editor({
   return (
     <div className={`${styles.container} animate-fade-in`}>
       <div className={styles.mainWorkspace}>
-        {/* CodeMirror Workspace container */}
-        <div 
-          ref={editorRef} 
-          onBlur={handleEditorBlur}
-          className={styles.editorArea}
-        />
+        {/* Tiptap Workspace Container */}
+        <div className={styles.editorArea}>
+          <TiptapEditorWrapper
+            key={note.path}
+            note={note}
+            index={index}
+            onContentChange={setContent}
+            onNoteSelect={onNoteSelect}
+            onBlur={handleEditorBlur}
+          />
+        </div>
 
         {/* Writing Goal Popover */}
         {showGoalPopover && (

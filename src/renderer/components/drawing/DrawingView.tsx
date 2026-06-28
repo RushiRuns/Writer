@@ -628,32 +628,28 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                     className={`${styles.toolButton} ${tool === 'pen' ? styles.toolButtonActive : ''}`}
                     title="Fine Pen"
                   >
-                    <PenTool size={13} />
-                    <span>Pen</span>
+                    <PenTool size={14} />
                   </button>
                   <button
                     onClick={() => setTool('marker')}
                     className={`${styles.toolButton} ${tool === 'marker' ? styles.toolButtonActive : ''}`}
                     title="Medium Marker"
                   >
-                    <Paintbrush size={13} />
-                    <span>Marker</span>
+                    <Paintbrush size={14} />
                   </button>
                   <button
                     onClick={() => setTool('highlighter')}
                     className={`${styles.toolButton} ${tool === 'highlighter' ? styles.toolButtonActive : ''}`}
                     title="Translucent Highlighter"
                   >
-                    <Highlighter size={13} />
-                    <span>Highlighter</span>
+                    <Highlighter size={14} />
                   </button>
                   <button
                     onClick={() => setTool('eraser')}
                     className={`${styles.toolButton} ${tool === 'eraser' ? styles.toolButtonActive : ''}`}
                     title="Eraser"
                   >
-                    <Eraser size={13} />
-                    <span>Eraser</span>
+                    <Eraser size={14} />
                   </button>
                   
                   {/* Hand Tool button */}
@@ -662,8 +658,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                     className={`${styles.toolButton} ${tool === 'pan' ? styles.toolButtonActive : ''}`}
                     title="Hand Tool (Pan canvas - hold Spacebar to toggle)"
                   >
-                    <Hand size={13} />
-                    <span>Pan</span>
+                    <Hand size={14} />
                   </button>
 
                   <div className={styles.divider} />
@@ -673,23 +668,20 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                     className={`${styles.toolButton} ${tool === 'vectorEraser' ? styles.toolButtonActive : ''}`}
                     title="Vector Eraser (Tap/drag to delete whole strokes)"
                   >
-                    <Scissors size={13} />
-                    <span>Vector Eraser</span>
+                    <Scissors size={14} />
                   </button>
                   <button
                     onClick={() => setTool('lasso')}
                     className={`${styles.toolButton} ${tool === 'lasso' ? styles.toolButtonActive : ''}`}
                     title="Lasso Selection (Draw boundary to move strokes)"
                   >
-                    <MousePointer size={13} />
-                    <span>Lasso Select</span>
+                    <MousePointer size={14} />
                   </button>
 
                   <div className={styles.divider} />
 
                   <label className={styles.imageImportLabel} title="Import image from local computer">
-                    <Upload size={13} />
-                    <span>Import Image</span>
+                    <Upload size={14} />
                     <input
                       type="file"
                       accept="image/*"
@@ -705,104 +697,96 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                     className={`${styles.toolButton} ${tool === 'line' ? styles.toolButtonActive : ''}`}
                     title="Line Tool"
                   >
-                    <Minus size={13} style={{ transform: 'rotate(-45deg)' }} />
-                    <span>Line</span>
+                    <Minus size={14} style={{ transform: 'rotate(-45deg)' }} />
                   </button>
                   <button
                     onClick={() => setTool('arrow')}
                     className={`${styles.toolButton} ${tool === 'arrow' ? styles.toolButtonActive : ''}`}
                     title="Arrow Tool"
                   >
-                    <ArrowRight size={13} style={{ transform: 'rotate(-45deg)' }} />
-                    <span>Arrow</span>
+                    <ArrowRight size={14} style={{ transform: 'rotate(-45deg)' }} />
                   </button>
                   <button
                     onClick={() => setTool('rect')}
                     className={`${styles.toolButton} ${tool === 'rect' ? styles.toolButtonActive : ''}`}
                     title="Rectangle Tool"
                   >
-                    <Square size={13} />
-                    <span>Rect</span>
+                    <Square size={14} />
                   </button>
                   <button
                     onClick={() => setTool('circle')}
                     className={`${styles.toolButton} ${tool === 'circle' ? styles.toolButtonActive : ''}`}
                     title="Circle Tool"
                   >
-                    <Circle size={13} />
-                    <span>Circle</span>
+                    <Circle size={14} />
                   </button>
                   <button
                     onClick={() => setTool('text')}
                     className={`${styles.toolButton} ${tool === 'text' ? styles.toolButtonActive : ''}`}
                     title="Text Tool"
                   >
-                    <Type size={13} />
-                    <span>Text</span>
+                    <Type size={14} />
                   </button>
                 </div>
 
-                {/* Optional Shape Fill Toggle */}
-                {(tool === 'rect' || tool === 'circle') && (
-                  <div className={styles.fillToggleWrapper}>
-                    <label className={styles.fillLabel}>
-                      <input
-                        type="checkbox"
-                        checked={filled}
-                        onChange={(e) => setFilled(e.target.checked)}
-                        className={styles.fillCheckbox}
-                      />
-                      <span>Fill Shape</span>
-                    </label>
-                  </div>
-                )}
+                <div className={styles.toolsContainer}>
+                  {/* Optional Shape Fill Toggle */}
+                  {(tool === 'rect' || tool === 'circle') && (
+                    <div className={styles.fillToggleWrapper}>
+                      <label className={styles.fillLabel}>
+                        <input
+                          type="checkbox"
+                          checked={filled}
+                          onChange={(e) => setFilled(e.target.checked)}
+                          className={styles.fillCheckbox}
+                        />
+                        <span>Fill</span>
+                      </label>
+                    </div>
+                  )}
 
-                {/* Auto-shape Correction Toggle */}
-                <button
-                  onClick={() => setAutoCorrect(prev => !prev)}
-                  className={`${styles.toggleButton} ${autoCorrect ? styles.toggleButtonActive : ''}`}
-                  title="Auto Shape Correction (Smooth wobbly hand-drawn lines, circles, and boxes)"
-                >
-                  <Sparkles size={13} />
-                  <span>Auto-Shape</span>
-                </button>
+                  {/* Auto-shape Correction Toggle */}
+                  <button
+                    onClick={() => setAutoCorrect(prev => !prev)}
+                    className={`${styles.toggleButton} ${autoCorrect ? styles.toggleButtonActive : ''}`}
+                    title="Auto Shape Correction (Smooth wobbly hand-drawn lines, circles, and boxes)"
+                  >
+                    <Sparkles size={13} />
+                    <span>Auto-Shape</span>
+                  </button>
 
-                {/* Coordinate Snap to Grid Toggle */}
-                <button
-                  onClick={() => setSnapToGrid(prev => !prev)}
-                  className={`${styles.toggleButton} ${snapToGrid ? styles.toggleButtonActive : ''}`}
-                  title="Coordinate Snap-to-Grid (Snaps shapes and selections to grid dots)"
-                >
-                  <Grid size={13} />
-                  <span>Grid Snap</span>
-                </button>
+                  {/* Coordinate Snap to Grid Toggle */}
+                  <button
+                    onClick={() => setSnapToGrid(prev => !prev)}
+                    className={`${styles.toggleButton} ${snapToGrid ? styles.toggleButtonActive : ''}`}
+                    title="Coordinate Snap-to-Grid (Snaps shapes and selections to grid dots)"
+                  >
+                    <Grid size={13} />
+                    <span>Grid Snap</span>
+                  </button>
 
-                {/* Guidelines Toggle */}
-                <div className={styles.guidesWrapper}>
-                  <span className={styles.guidesLabel}>Guides</span>
-                  <div className={styles.guidesContainer}>
-                    {(['blank', 'grid', 'dots', 'lines', 'cornell', 'music', 'isometric'] as const).map((pattern) => (
-                      <button
-                        key={pattern}
-                        onClick={() => setGuidePattern(pattern)}
-                        className={`${styles.guideBtn} ${guidePattern === pattern ? styles.guideBtnActive : ''}`}
-                        title={`${pattern.charAt(0).toUpperCase() + pattern.slice(1)} Template`}
-                      >
-                        {pattern === 'blank' 
-                          ? 'None' 
-                          : pattern === 'cornell'
-                            ? 'Cornell'
-                            : pattern === 'music'
-                              ? 'Music'
-                              : pattern === 'isometric'
-                                ? '3D Dots'
-                                : pattern.charAt(0).toUpperCase() + pattern.slice(1)
-                        }
-                      </button>
-                    ))}
+                  <div className={styles.divider} />
+
+                  {/* Guidelines Toggle */}
+                  <div className={styles.guidesWrapper}>
+                    <span className={styles.guidesLabel}>Guides</span>
+                    <select
+                      value={guidePattern}
+                      onChange={(e) => setGuidePattern(e.target.value as any)}
+                      className={styles.guidesSelect}
+                    >
+                      <option value="blank">None</option>
+                      <option value="grid">Grid</option>
+                      <option value="dots">Dots</option>
+                      <option value="lines">Lines</option>
+                      <option value="cornell">Cornell</option>
+                      <option value="music">Music</option>
+                      <option value="isometric">3D Dots</option>
+                    </select>
                   </div>
                 </div>
               </div>
+
 
               {/* Row 2: Brush properties (colors/size) and operations */}
               <div className={styles.toolbarRow}>

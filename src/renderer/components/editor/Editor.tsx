@@ -131,8 +131,9 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
       const dy = String(d.getDate()).padStart(2, '0');
       const dateStr = `${yr}-${mo}-${dy}`;
       
-      const hasJournal = index.notes.some(n => n.section === 'journal' && n.title === dateStr);
-      grid.push({ dateStr, hasJournal });
+      const journalNote = index.notes.find(n => n.section === 'journal' && n.title === dateStr);
+      const wordCount = journalNote ? journalNote.wordCount : 0;
+      grid.push({ dateStr, wordCount });
     }
     return grid;
   };
@@ -437,6 +438,8 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   const lineCount = content.split('\n').filter(Boolean).length;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // 200 wpm
   const goalProgress = goal > 0 ? Math.min(100, Math.round((wordCount / goal) * 100)) : 0;
+  const totalNotes = index.notes.length;
+  const streak = calculateStreak(index.notes);
 
   const formatTimerTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -868,8 +871,14 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
 
       {/* Expanded Statistics Modal */}
       {showStatsModal && (
-        <div className={`${styles.backdrop} animate-fade-in`}>
-          <div className={styles.modal}>
+        <div 
+          onClick={() => setShowStatsModal(false)}
+          className={`${styles.backdrop} animate-fade-in`}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className={styles.modal}
+          >
             
             {/* Close Button */}
             <button
@@ -907,12 +916,12 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
               <div className={styles.chartWrapper}>
                 {getWordCountHistory().map((item, idx) => {
                   const maxWords = Math.max(...getWordCountHistory().map(h => h.words), 100);
-                  const barHeightPercent = Math.max(8, Math.min(100, (item.words / maxWords) * 100));
+                  const barHeightPx = Math.max(8, Math.min(60, (item.words / maxWords) * 60));
                   return (
                     <div key={idx} className={styles.chartCol}>
                       <span className={styles.chartVal}>{item.words}</span>
                       <div 
-                        style={{ height: `${barHeightPercent}px` }} 
+                        style={{ height: `${barHeightPx}px` }} 
                         className={styles.chartBar}
                       />
                       <span className={styles.chartLabel}>{item.label}</span>
@@ -926,13 +935,28 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
             <div>
               <h3 className={styles.sectionHeader}>Journal Activity (Last 12 Weeks)</h3>
               <div className={styles.contribGrid}>
-                {getContributionGridData().map((day, idx) => (
-                  <div
-                    key={idx}
-                    title={`${day.dateStr}${day.hasJournal ? ' (Written)' : ' (No entry)'}`}
-                    className={`${styles.contribSquare} ${day.hasJournal ? styles.active : ''}`}
-                  />
-                ))}
+                {getContributionGridData().map((day, idx) => {
+                  // Heat opacity scale: more words = brighter amber
+                  let opacity = 0;
+                  if (day.wordCount > 0) {
+                    if (day.wordCount <= 50) opacity = 0.25;
+                    else if (day.wordCount <= 150) opacity = 0.5;
+                    else if (day.wordCount <= 300) opacity = 0.75;
+                    else opacity = 1.0;
+                  }
+
+                  return (
+                    <div
+                      key={idx}
+                      title={`${day.dateStr}: ${day.wordCount} words`}
+                      className={styles.contribSquare}
+                      style={day.wordCount > 0 ? { 
+                        backgroundColor: `rgba(232, 164, 75, ${opacity})`,
+                        boxShadow: `0 0 4px rgba(232, 164, 75, ${opacity * 0.4})`
+                      } : undefined}
+                    />
+                  );
+                })}
               </div>
             </div>
 

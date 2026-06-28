@@ -125,15 +125,23 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     for (let i = 83; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      
+      const startOfDay = d.getTime();
+      const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
+
       const yr = d.getFullYear();
       const mo = String(d.getMonth() + 1).padStart(2, '0');
       const dy = String(d.getDate()).padStart(2, '0');
       const dateStr = `${yr}-${mo}-${dy}`;
-      
-      const journalNote = index.notes.find(n => n.section === 'journal' && n.title === dateStr);
-      const wordCount = journalNote ? journalNote.wordCount : 0;
-      grid.push({ dateStr, wordCount });
+
+      // Sum word counts from ALL notes modified on this day (same logic as bar chart)
+      const dayWordCount = index.notes
+        .filter(n => {
+          const modTime = new Date(n.modified).getTime();
+          return modTime >= startOfDay && modTime < endOfDay;
+        })
+        .reduce((sum, n) => sum + n.wordCount, 0);
+
+      grid.push({ dateStr, wordCount: dayWordCount });
     }
     return grid;
   };

@@ -261,10 +261,14 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
 
   ipcMain.handle('folder:rename', async (_event, { path: folderPath, newName }) => {
     try {
-      const parentDir = path.dirname(folderPath);
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) return { success: false, error: 'Vault path not configured' };
+      const absFolderPath = path.isAbsolute(folderPath) ? folderPath : path.join(vaultPath, folderPath);
+      const parentDir = path.dirname(absFolderPath);
       const newFolderPath = path.join(parentDir, sanitizeFilename(newName));
-      await fs.rename(folderPath, newFolderPath);
-      return { success: true, path: newFolderPath };
+      await fs.rename(absFolderPath, newFolderPath);
+      const relativePath = path.relative(vaultPath, newFolderPath).replace(/\\/g, '/');
+      return { success: true, path: relativePath };
     } catch (err) {
       return { success: false, error: String(err) };
     }
@@ -272,7 +276,10 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
 
   ipcMain.handle('folder:delete', async (_event, folderPath) => {
     try {
-      await shell.trashItem(folderPath);
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) return { success: false, error: 'Vault path not configured' };
+      const absFolderPath = path.isAbsolute(folderPath) ? folderPath : path.join(vaultPath, folderPath);
+      await shell.trashItem(absFolderPath);
       return { success: true };
     } catch (err) {
       return { success: false, error: String(err) };

@@ -37,7 +37,11 @@ interface AudioState {
   volume: number; // 0 to 1
 }
 
-export default function AudioManager() {
+interface AudioManagerProps {
+  direction?: 'up' | 'down';
+}
+
+export default function AudioManager({ direction = 'down' }: AudioManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [soundStates, setSoundStates] = useState<Record<string, AudioState>>({});
   const panelRef = useRef<HTMLDivElement>(null);
@@ -177,7 +181,7 @@ export default function AudioManager() {
 
       {/* Floating Sound Mixer Panel Popover */}
       {isOpen && (
-        <div className={`${styles.mixerPanel} animate-fade-in`}>
+        <div className={`${styles.mixerPanel} ${direction === 'up' ? styles.directionUp : ''} animate-fade-in`}>
           {/* Header */}
           <div className={styles.header}>
             <div className={styles.headerTitle}>

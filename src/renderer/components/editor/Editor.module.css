@@ -569,3 +569,208 @@
   border-color: var(--color-red-400);
   background-color: rgba(239, 68, 68, 0.1);
 }
+
+/* Bottom status bar styling */
+.bottomBar {
+  height: 32px;
+  width: 100%;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-pane-tree);
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  user-select: none;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  z-index: 30;
+}
+
+.bottomBarLeft {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.bottomBarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3.5);
+  height: 100%;
+}
+
+.bottomBarItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.bottomBarGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1.5);
+  height: 100%;
+}
+
+.bottomBarBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease-out;
+  outline: none;
+}
+
+.bottomBarBtn:hover {
+  color: var(--color-brand-amber);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.bottomBarBtn.activeBtn {
+  color: var(--color-brand-amber);
+  background-color: rgba(232, 164, 75, 0.1);
+}
+
+.bottomBarBtn.hasGoalBtn {
+  color: var(--color-brand-amber);
+}
+
+.bottomBarBtn.hasReminderBtn {
+  color: var(--color-brand-amber);
+}
+
+.bottomBarBtn.activeTimerBtn {
+  color: var(--color-brand-amber);
+  animation: pulse 2s infinite;
+}
+
+.bottomBarText {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-neutral-400);
+}
+
+.activeTimerText {
+  color: var(--color-brand-amber);
+  font-weight: 600;
+}
+
+.copiedText {
+  color: var(--color-green-400);
+  font-weight: 600;
+  font-size: 10px;
+}
+
+/* Floating bottom popovers */
+.bottomPopover {
+  position: absolute;
+  bottom: 38px; /* sits right above bottom bar (height 32px + 6px margin) */
+  background-color: #0c0c0c;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  width: 240px;
+  padding: var(--space-3);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2.5);
+  font-family: var(--font-ui);
+  animation: popoverFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popoverHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.6875rem;
+  color: var(--color-neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-bottom: var(--space-1.5);
+}
+
+.popoverHeader button {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.popoverHeader button:hover {
+  color: var(--color-white);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.popoverBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.popoverReminderActive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 11px;
+  color: var(--color-neutral-300);
+}
+
+.popoverClearBtn {
+  width: 100%;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--color-red-400);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-ui);
+}
+
+.popoverClearBtn:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-red-300);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}

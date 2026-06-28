@@ -5,7 +5,6 @@ import { markdown } from '@codemirror/lang-markdown';
 import { autocompletion } from '@codemirror/autocomplete';
 
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
-import StatsPill from '../statistics/StatsPill';
 import { hideMarkdownPlugin, hideMarkdownStyles } from './hideMarkdown';
 import { createWikiLinkAutocomplete } from './wikiLinkAutocomplete';
 import { useAutoSave } from './useAutoSave';
@@ -27,7 +26,8 @@ import {
   Copy,
   Shuffle,
   Trash2,
-  Calendar
+  Calendar,
+  Target
 } from 'lucide-react';
 import styles from './Editor.module.css';
 
@@ -55,6 +55,16 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     stats: true,
     actions: true
   });
+
+  // Bottom popover visibility states
+  const [showGoalPopover, setShowGoalPopover] = useState(false);
+  const [showReminderPopover, setShowReminderPopover] = useState(false);
+
+  // Close popovers on note path change
+  useEffect(() => {
+    setShowGoalPopover(false);
+    setShowReminderPopover(false);
+  }, [note.path]);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -349,6 +359,166 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
           className={styles.editorArea}
         />
 
+        {/* Writing Goal Popover */}
+        {showGoalPopover && (
+          <div className={styles.bottomPopover} style={{ right: '144px' }}>
+            <div className={styles.popoverHeader}>
+              <span>Writing Goal</span>
+              <button onClick={() => setShowGoalPopover(false)}><X size={10} /></button>
+            </div>
+            <div className={styles.popoverBody}>
+              <div className={styles.goalInputWrapper}>
+                <input
+                  type="number"
+                  min="0"
+                  value={goal || ''}
+                  placeholder="target words..."
+                  onChange={(e) => handleGoalChange(Math.max(0, parseInt(e.target.value) || 0))}
+                  className={styles.goalInput}
+                  autoFocus
+                />
+                <span className={styles.goalInputLabel}>words</span>
+              </div>
+              {goal > 0 && (
+                <div className={styles.goalProgressWrapper}>
+                  <div className={styles.goalProgressBar}>
+                    <div 
+                      className={styles.goalProgressFill} 
+                      style={{ width: `${goalProgress}%` }} 
+                    />
+                  </div>
+                  <div className={styles.goalProgressText}>
+                    <span>{wordCount} / {goal} words</span>
+                    <span>{goalProgress}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Reminder Popover */}
+        {showReminderPopover && (
+          <div className={styles.bottomPopover} style={{ right: '96px' }}>
+            <div className={styles.popoverHeader}>
+              <span>Set Reminder</span>
+              <button onClick={() => setShowReminderPopover(false)}><X size={10} /></button>
+            </div>
+            <div className={styles.popoverBody}>
+              {reminder ? (
+                <div className={styles.popoverReminderActive}>
+                  <span>Active: {formatReminderDate(reminder)}</span>
+                  <button onClick={() => handleReminderChange(null)} className={styles.popoverClearBtn}>
+                    Clear Reminder
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.reminderPickerWrapper}>
+                  <input
+                    type="datetime-local"
+                    onChange={handleReminderDateChange}
+                    className={styles.reminderInput}
+                  />
+                  <button className={styles.addReminderBtn}>
+                    <Calendar size={12} className={styles.reminderIcon} />
+                    <span>Set reminder</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Status Bar */}
+        <div className={styles.bottomBar}>
+          {/* Left Side: Statistics (Words and Characters) */}
+          <div className={styles.bottomBarLeft}>
+            <span>{wordCount} words {charCount} characters</span>
+          </div>
+
+          {/* Right Side: Quick Action Icons */}
+          <div className={styles.bottomBarRight}>
+            {/* Ambient Sounds */}
+            <div className={styles.bottomBarItem}>
+              <AudioManager direction="up" />
+            </div>
+
+            {/* Random Note */}
+            <div className={styles.bottomBarItem}>
+              <button 
+                onClick={handleRandomNote} 
+                className={styles.bottomBarBtn}
+                title="Random Note"
+              >
+                <Shuffle size={13} />
+              </button>
+            </div>
+
+            {/* Copy Note */}
+            <div className={styles.bottomBarItem}>
+              <button 
+                onClick={handleCopyNote} 
+                className={styles.bottomBarBtn}
+                title="Copy Markdown"
+              >
+                <Copy size={13} />
+              </button>
+            </div>
+
+            {/* Writing Goal */}
+            <div className={styles.bottomBarGroup}>
+              <button 
+                onClick={() => {
+                  setShowGoalPopover(!showGoalPopover);
+                  setShowReminderPopover(false);
+                }} 
+                className={`${styles.bottomBarBtn} ${showGoalPopover ? styles.activeBtn : ''} ${goal > 0 ? styles.hasGoalBtn : ''}`}
+                title="Writing Goal"
+              >
+                <Target size={13} />
+              </button>
+              {goal > 0 && (
+                <span className={styles.bottomBarText}>
+                  {goalProgress}%
+                </span>
+              )}
+            </div>
+
+            {/* Focus Timer */}
+            <div className={styles.bottomBarGroup}>
+              <button 
+                onClick={isTimerActive ? pauseTimer : startTimer}
+                className={`${styles.bottomBarBtn} ${isTimerActive ? styles.activeTimerBtn : ''}`}
+                title={isTimerActive ? "Pause Timer" : "Start Focus Timer"}
+              >
+                {isTimerActive ? <Pause size={13} /> : <Clock size={13} />}
+              </button>
+              <span className={`${styles.bottomBarText} ${isTimerActive ? styles.activeTimerText : ''}`}>
+                {formatTimerTime(timeLeft)}
+              </span>
+            </div>
+
+            {/* Reminder */}
+            <div className={styles.bottomBarGroup}>
+              <button 
+                onClick={() => {
+                  setShowReminderPopover(!showReminderPopover);
+                  setShowGoalPopover(false);
+                }} 
+                className={`${styles.bottomBarBtn} ${showReminderPopover ? styles.activeBtn : ''} ${reminder ? styles.hasReminderBtn : ''}`}
+                title="Reminder"
+              >
+                <Bell size={13} />
+              </button>
+              {reminder && (
+                <span className={styles.bottomBarText}>
+                  {formatReminderDate(reminder).split(',')[0]}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Hover right-edge squeeze toggle button */}
         <div 
           className={`${styles.edgeToggleWrapper} ${showSidebar ? styles.sidebarOpen : ''}`}
@@ -358,11 +528,6 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
             {showSidebar ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
           </button>
         </div>
-
-        {/* Live Statistics Pill Overlay (only visible when sidebar is closed) */}
-        {!showSidebar && (
-          <StatsPill content={content} index={index} />
-        )}
       </div>
 
       {/* Inspector Sidebar Pane */}

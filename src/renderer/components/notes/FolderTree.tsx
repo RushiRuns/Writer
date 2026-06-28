@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
+import { FolderPlus } from 'lucide-react';
 import styles from './FolderTree.module.css';
 
 export interface TreeNode {
@@ -203,47 +204,23 @@ export default function FolderTree({
 
   return (
     <div className={styles.container}>
-      {/* Pane 2 Header */}
+      {/* Pane 2 Header with Add Folder Button */}
       <div className={styles.header}>
-        <span className={`${styles.headerTitle} select-none`}>{getHeaderTitle()}</span>
-        <div className={styles.headerButtons}>
-          {/* New Folder in Root */}
-          <button
-            onClick={() => setCreatingInPath('.')}
-            title="New Folder in Root"
-            className={styles.headerBtn}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            </svg>
-          </button>
-          
-          {/* New Note */}
-          <button
-            onClick={() => onNewNote(activeFolder)}
-            title="New Note in selected folder"
-            className={styles.headerBtn}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
-        </div>
+        <button
+          onClick={() => setCreatingInPath('.')}
+          title="Add Folder"
+          className={styles.addFolderBtn}
+        >
+          <FolderPlus size={14} />
+          <span>Add Folder</span>
+        </button>
       </div>
 
       {/* Folders List Container */}
       <div className={styles.listArea}>
-        {/* Root Node Selector */}
-        <div
-          onClick={() => onFolderSelect('.')}
-          className={`${styles.row} ${activeFolder === '.' ? styles.active : ''}`}
-        >
-          <span className="truncate select-none">Notes Root</span>
-        </div>
-
         {/* Inline Root Folder Creation Input */}
         {creatingInPath === '.' && (
-          <div style={{ paddingLeft: '24px' }} className={styles.inlineInputWrapper}>
+          <div style={{ paddingLeft: '12px' }} className={styles.inlineInputWrapper}>
             <input
               type="text"
               value={newFolderName}

@@ -170,3 +170,27 @@
   margin-right: 0.5rem;
   flex-shrink: 0;
 }
+
+.addFolderBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addFolderBtn:hover {
+  background-color: var(--bg-hover-light);
+  color: var(--text-primary);
+  border-color: var(--color-brand-amber);
+}

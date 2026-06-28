@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import ChecklistContextMenu from '../checklist/ChecklistContextMenu';
-import { Bell } from 'lucide-react';
+import { Bell, FilePlus } from 'lucide-react';
 import styles from './NoteList.module.css';
 
 interface NoteListProps {
@@ -9,13 +9,15 @@ interface NoteListProps {
   activeFolder: string;
   selectedNote: NoteEntry | null;
   onNoteSelect: (note: NoteEntry | null) => void;
+  onNewNote: (folderPath: string) => void;
 }
 
 export default function NoteList({
   index,
   activeFolder,
   selectedNote,
-  onNoteSelect
+  onNoteSelect,
+  onNewNote
 }: NoteListProps) {
   const [renamingNotePath, setRenamingNotePath] = useState<string | null>(null);
   const [renameText, setRenameText] = useState('');
@@ -94,14 +96,16 @@ export default function NoteList({
 
   return (
     <div className={styles.container}>
-      {/* Pane 3 Header */}
+      {/* Pane 3 Header with Add Note Button */}
       <div className={styles.header}>
-        <span className={styles.folderTitle}>
-          {getFolderName()}
-        </span>
-        <span className={styles.countText}>
-          {folderNotes.length} {folderNotes.length === 1 ? 'note' : 'notes'}
-        </span>
+        <button
+          onClick={() => onNewNote(activeFolder)}
+          title="Add Note"
+          className={styles.addNoteBtn}
+        >
+          <FilePlus size={14} />
+          <span>Add Note</span>
+        </button>
       </div>
 
       {/* Note List Scroll Area */}

@@ -261,6 +261,7 @@ export default function NotesView({
       activeFolder={activeFolder}
       selectedNote={selectedNote}
       onNoteSelect={handleNoteSelect}
+      onNewNote={handleNewNote}
     />
   );
 

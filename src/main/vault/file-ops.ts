@@ -65,7 +65,27 @@ export const hotkeysStore = new Store<HotkeyBindings>({
 export async function writeAtomic(filePath: string, content: string): Promise<void> {
   const tmpPath = `${filePath}.tmp`;
   await fs.writeFile(tmpPath, content, 'utf8');
-  await fs.rename(tmpPath, filePath);
+  
+  let attempts = 0;
+  const maxAttempts = 10;
+  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+  
+  while (true) {
+    try {
+      await fs.rename(tmpPath, filePath);
+      break;
+    } catch (err: any) {
+      attempts++;
+      if ((err.code === 'EPERM' || err.code === 'EBUSY') && attempts < maxAttempts) {
+        await delay(attempts * 50); // backoff: 50ms, 100ms, 150ms...
+        continue;
+      }
+      try {
+        await fs.unlink(tmpPath);
+      } catch {}
+      throw err;
+    }
+  }
 }
 
 // Filename sanitization helper

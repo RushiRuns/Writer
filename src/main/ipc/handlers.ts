@@ -253,6 +253,13 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
       const baseDir = parentPath ? (path.isAbsolute(parentPath) ? parentPath : path.join(vaultPath, parentPath)) : vaultPath;
       const newFolderPath = path.join(baseDir, sanitizeFilename(folderName));
       await fs.mkdir(newFolderPath, { recursive: true });
+
+      // Rebuild index and push update to renderer process immediately
+      const newIndex = await buildVaultIndex(vaultPath);
+      setActiveIndex(newIndex);
+      mainWindow.webContents.send('index:update', newIndex);
+      mainWindow.webContents.send('vault:onChange', { event: 'update', noteIndex: newIndex });
+
       return { success: true, path: newFolderPath };
     } catch (err) {
       return { success: false, error: String(err) };
@@ -268,6 +275,13 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
       const newFolderPath = path.join(parentDir, sanitizeFilename(newName));
       await fs.rename(absFolderPath, newFolderPath);
       const relativePath = path.relative(vaultPath, newFolderPath).replace(/\\/g, '/');
+
+      // Rebuild index and push update to renderer process immediately
+      const newIndex = await buildVaultIndex(vaultPath);
+      setActiveIndex(newIndex);
+      mainWindow.webContents.send('index:update', newIndex);
+      mainWindow.webContents.send('vault:onChange', { event: 'update', noteIndex: newIndex });
+
       return { success: true, path: relativePath };
     } catch (err) {
       return { success: false, error: String(err) };
@@ -280,6 +294,13 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
       if (!vaultPath) return { success: false, error: 'Vault path not configured' };
       const absFolderPath = path.isAbsolute(folderPath) ? folderPath : path.join(vaultPath, folderPath);
       await shell.trashItem(absFolderPath);
+
+      // Rebuild index and push update to renderer process immediately
+      const newIndex = await buildVaultIndex(vaultPath);
+      setActiveIndex(newIndex);
+      mainWindow.webContents.send('index:update', newIndex);
+      mainWindow.webContents.send('vault:onChange', { event: 'update', noteIndex: newIndex });
+
       return { success: true };
     } catch (err) {
       return { success: false, error: String(err) };

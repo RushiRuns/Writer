@@ -162,11 +162,11 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
       {/* Checklist list pane */}
       <div className={`${styles.listPane} ${selectedNoteForEdit ? styles.selected : styles.idle}`}>
         
-        {/* Title */}
-        <h1 className={styles.viewTitle}>{getSectionTitle()}</h1>
-
         {/* Notes Items List */}
         <div className={styles.itemsScroll}>
+          {/* Title */}
+          <h1 className={styles.viewTitle}>{getSectionTitle()}</h1>
+
           {sortedNotes.length === 0 ? (
             <div className={`${styles.emptyState} animate-fade-in`}>
               {renderSectionIcon()}

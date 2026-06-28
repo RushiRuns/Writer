@@ -366,14 +366,27 @@
   width: 100%;
 }
 
-.toolsContainer {
+.toolsGroupContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.toolGroup {
   display: flex;
   align-items: center;
   gap: var(--space-1);
   background-color: var(--bg-primary);
-  padding: var(--space-1);
+  padding: 3px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
+}
+
+.settingsGroupContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .toolButton {

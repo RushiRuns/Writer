@@ -622,114 +622,134 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
             <div className={styles.toolbar}>
               {/* Row 1: Tools selection and configurations */}
               <div className={styles.toolbarRow}>
-                <div className={styles.toolsContainer}>
-                  <button
-                    onClick={() => setTool('pen')}
-                    className={`${styles.toolButton} ${tool === 'pen' ? styles.toolButtonActive : ''}`}
-                    title="Fine Pen"
-                  >
-                    <PenTool size={14} />
-                  </button>
-                  <button
-                    onClick={() => setTool('marker')}
-                    className={`${styles.toolButton} ${tool === 'marker' ? styles.toolButtonActive : ''}`}
-                    title="Medium Marker"
-                  >
-                    <Paintbrush size={14} />
-                  </button>
-                  <button
-                    onClick={() => setTool('highlighter')}
-                    className={`${styles.toolButton} ${tool === 'highlighter' ? styles.toolButtonActive : ''}`}
-                    title="Translucent Highlighter"
-                  >
-                    <Highlighter size={14} />
-                  </button>
-                  <button
-                    onClick={() => setTool('eraser')}
-                    className={`${styles.toolButton} ${tool === 'eraser' ? styles.toolButtonActive : ''}`}
-                    title="Eraser"
-                  >
-                    <Eraser size={14} />
-                  </button>
-                  
-                  {/* Hand Tool button */}
-                  <button
-                    onClick={() => setTool('pan')}
-                    className={`${styles.toolButton} ${tool === 'pan' ? styles.toolButtonActive : ''}`}
-                    title="Hand Tool (Pan canvas - hold Spacebar to toggle)"
-                  >
-                    <Hand size={14} />
-                  </button>
+                <div className={styles.toolsGroupContainer}>
+                  {/* Group 1: Pen, Marker, Highlighter, Eraser */}
+                  <div className={styles.toolGroup}>
+                    <button
+                      onClick={() => setTool('pen')}
+                      className={`${styles.toolButton} ${tool === 'pen' ? styles.toolButtonActive : ''}`}
+                      title="Fine Pen"
+                    >
+                      <PenTool size={14} />
+                    </button>
+                    <button
+                      onClick={() => setTool('marker')}
+                      className={`${styles.toolButton} ${tool === 'marker' ? styles.toolButtonActive : ''}`}
+                      title="Medium Marker"
+                    >
+                      <Paintbrush size={14} />
+                    </button>
+                    <button
+                      onClick={() => setTool('highlighter')}
+                      className={`${styles.toolButton} ${tool === 'highlighter' ? styles.toolButtonActive : ''}`}
+                      title="Translucent Highlighter"
+                    >
+                      <Highlighter size={14} />
+                    </button>
+                    <button
+                      onClick={() => setTool('eraser')}
+                      className={`${styles.toolButton} ${tool === 'eraser' ? styles.toolButtonActive : ''}`}
+                      title="Eraser"
+                    >
+                      <Eraser size={14} />
+                    </button>
+                  </div>
 
-                  <div className={styles.divider} />
+                  {/* Group 2: Hand tool, Vector eraser, Lasso selection, Import image */}
+                  <div className={styles.toolGroup}>
+                    <button
+                      onClick={() => setTool('pan')}
+                      className={`${styles.toolButton} ${tool === 'pan' ? styles.toolButtonActive : ''}`}
+                      title="Hand Tool (Pan canvas - hold Spacebar to toggle)"
+                    >
+                      <Hand size={14} />
+                    </button>
+                    <button
+                      onClick={() => setTool('vectorEraser')}
+                      className={`${styles.toolButton} ${tool === 'vectorEraser' ? styles.toolButtonActive : ''}`}
+                      title="Vector Eraser (Tap/drag to delete whole strokes)"
+                    >
+                      <Scissors size={14} />
+                    </button>
+                    <button
+                      onClick={() => setTool('lasso')}
+                      className={`${styles.toolButton} ${tool === 'lasso' ? styles.toolButtonActive : ''}`}
+                      title="Lasso Selection (Draw boundary to move strokes)"
+                    >
+                      <MousePointer size={14} />
+                    </button>
+                    <label className={styles.imageImportLabel} title="Import image from local computer">
+                      <Upload size={14} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageImport}
+                        className={styles.imageImportInput}
+                      />
+                    </label>
+                  </div>
 
-                  <button
-                    onClick={() => setTool('vectorEraser')}
-                    className={`${styles.toolButton} ${tool === 'vectorEraser' ? styles.toolButtonActive : ''}`}
-                    title="Vector Eraser (Tap/drag to delete whole strokes)"
-                  >
-                    <Scissors size={14} />
-                  </button>
-                  <button
-                    onClick={() => setTool('lasso')}
-                    className={`${styles.toolButton} ${tool === 'lasso' ? styles.toolButtonActive : ''}`}
-                    title="Lasso Selection (Draw boundary to move strokes)"
-                  >
-                    <MousePointer size={14} />
-                  </button>
+                  {/* Group 3: Line tool, Arrow tool, Rectangle tool, Circle tool, Text tool */}
+                  <div className={styles.toolGroup}>
+                    <button
+                      onClick={() => setTool('line')}
+                      className={`${styles.toolButton} ${tool === 'line' ? styles.toolButtonActive : ''}`}
+                      title="Line Tool"
+                    >
+                      <Minus size={14} style={{ transform: 'rotate(-45deg)' }} />
+                    </button>
+                    <button
+                      onClick={() => setTool('arrow')}
+                      className={`${styles.toolButton} ${tool === 'arrow' ? styles.toolButtonActive : ''}`}
+                      title="Arrow Tool"
+                    >
+                      <ArrowRight size={14} style={{ transform: 'rotate(-45deg)' }} />
+                    </button>
+                    <button
+                      onClick={() => setTool('rect')}
+                      className={`${styles.toolButton} ${tool === 'rect' ? styles.toolButtonActive : ''}`}
+                      title="Rectangle Tool"
+                    >
+                      <Square size={14} />
+                    </button>
+                    <button
+                      onClick={() => setTool('circle')}
+                      className={`${styles.toolButton} ${tool === 'circle' ? styles.toolButtonActive : ''}`}
+                      title="Circle Tool"
+                    >
+                      <Circle size={14} />
+                    </button>
+                    <button
+                      onClick={() => setTool('text')}
+                      className={`${styles.toolButton} ${tool === 'text' ? styles.toolButtonActive : ''}`}
+                      title="Text Tool"
+                    >
+                      <Type size={14} />
+                    </button>
+                  </div>
 
-                  <div className={styles.divider} />
-
-                  <label className={styles.imageImportLabel} title="Import image from local computer">
-                    <Upload size={14} />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageImport}
-                      className={styles.imageImportInput}
-                    />
-                  </label>
-
-                  <div className={styles.divider} />
-
-                  <button
-                    onClick={() => setTool('line')}
-                    className={`${styles.toolButton} ${tool === 'line' ? styles.toolButtonActive : ''}`}
-                    title="Line Tool"
-                  >
-                    <Minus size={14} style={{ transform: 'rotate(-45deg)' }} />
-                  </button>
-                  <button
-                    onClick={() => setTool('arrow')}
-                    className={`${styles.toolButton} ${tool === 'arrow' ? styles.toolButtonActive : ''}`}
-                    title="Arrow Tool"
-                  >
-                    <ArrowRight size={14} style={{ transform: 'rotate(-45deg)' }} />
-                  </button>
-                  <button
-                    onClick={() => setTool('rect')}
-                    className={`${styles.toolButton} ${tool === 'rect' ? styles.toolButtonActive : ''}`}
-                    title="Rectangle Tool"
-                  >
-                    <Square size={14} />
-                  </button>
-                  <button
-                    onClick={() => setTool('circle')}
-                    className={`${styles.toolButton} ${tool === 'circle' ? styles.toolButtonActive : ''}`}
-                    title="Circle Tool"
-                  >
-                    <Circle size={14} />
-                  </button>
-                  <button
-                    onClick={() => setTool('text')}
-                    className={`${styles.toolButton} ${tool === 'text' ? styles.toolButtonActive : ''}`}
-                    title="Text Tool"
-                  >
-                    <Type size={14} />
-                  </button>
+                  {/* Group 4: Auto shape, Grid snap */}
+                  <div className={styles.toolGroup}>
+                    <button
+                      onClick={() => setAutoCorrect(prev => !prev)}
+                      className={`${styles.toggleButton} ${autoCorrect ? styles.toggleButtonActive : ''}`}
+                      title="Auto Shape Correction (Smooth wobbly hand-drawn lines, circles, and boxes)"
+                    >
+                      <Sparkles size={13} />
+                      <span>Auto-Shape</span>
+                    </button>
+                    <button
+                      onClick={() => setSnapToGrid(prev => !prev)}
+                      className={`${styles.toggleButton} ${snapToGrid ? styles.toggleButtonActive : ''}`}
+                      title="Coordinate Snap-to-Grid (Snaps shapes and selections to grid dots)"
+                    >
+                      <Grid size={13} />
+                      <span>Grid Snap</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className={styles.toolsContainer}>
+                <div className={styles.settingsGroupContainer}>
                   {/* Optional Shape Fill Toggle */}
                   {(tool === 'rect' || tool === 'circle') && (
                     <div className={styles.fillToggleWrapper}>
@@ -744,28 +764,6 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
                       </label>
                     </div>
                   )}
-
-                  {/* Auto-shape Correction Toggle */}
-                  <button
-                    onClick={() => setAutoCorrect(prev => !prev)}
-                    className={`${styles.toggleButton} ${autoCorrect ? styles.toggleButtonActive : ''}`}
-                    title="Auto Shape Correction (Smooth wobbly hand-drawn lines, circles, and boxes)"
-                  >
-                    <Sparkles size={13} />
-                    <span>Auto-Shape</span>
-                  </button>
-
-                  {/* Coordinate Snap to Grid Toggle */}
-                  <button
-                    onClick={() => setSnapToGrid(prev => !prev)}
-                    className={`${styles.toggleButton} ${snapToGrid ? styles.toggleButtonActive : ''}`}
-                    title="Coordinate Snap-to-Grid (Snaps shapes and selections to grid dots)"
-                  >
-                    <Grid size={13} />
-                    <span>Grid Snap</span>
-                  </button>
-
-                  <div className={styles.divider} />
 
                   {/* Guidelines Toggle */}
                   <div className={styles.guidesWrapper}>

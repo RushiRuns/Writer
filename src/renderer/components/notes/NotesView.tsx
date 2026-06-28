@@ -11,6 +11,7 @@ interface NotesViewProps {
   index: VaultIndex;
   _vaultPath: string;
   onBreadcrumbChange?: (path: string) => void;
+  onNoteSelected?: (notePath: string | null) => void;
   targetNotePath?: string | null;
   onClearTargetNotePath?: () => void;
 }
@@ -30,6 +31,7 @@ export default function NotesView({
   index, 
   _vaultPath, 
   onBreadcrumbChange,
+  onNoteSelected,
   targetNotePath,
   onClearTargetNotePath
 }: NotesViewProps) {
@@ -121,7 +123,11 @@ export default function NotesView({
         onBreadcrumbChange(activeFolder === '.' ? 'Notes' : `Notes > ${activeFolder.replace(/[/\\]/g, ' > ')}`);
       }
     }
-  }, [selectedNote, activeFolder, onBreadcrumbChange]);
+    // Report active note path to App-level for export support
+    if (onNoteSelected) {
+      onNoteSelected(selectedNote?.path ?? null);
+    }
+  }, [selectedNote, activeFolder, onBreadcrumbChange, onNoteSelected]);
 
   // Select note from note list
   const handleNoteSelect = (note: NoteEntry | null) => {

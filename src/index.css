@@ -788,3 +788,50 @@ body {
     opacity: 0;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Editor Texture Overlays — react to data-texture on <html>
+   ═══════════════════════════════════════════════════════════ */
+
+/* Grid texture */
+[data-texture="grid"] .cm-editor .cm-scroller,
+[data-texture="grid"] .cm-editor {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+  background-attachment: local !important;
+}
+
+/* Dots texture */
+[data-texture="dots"] .cm-editor .cm-scroller,
+[data-texture="dots"] .cm-editor {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
+  background-attachment: local !important;
+}
+
+/* Ruled texture (horizontal lines only) */
+[data-texture="ruled"] .cm-editor .cm-scroller,
+[data-texture="ruled"] .cm-editor {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px) !important;
+  background-size: 100% 28px !important;
+  background-attachment: local !important;
+}
+
+/* Paper texture (subtle cross-hatch + noise feel) */
+[data-texture="paper"] .cm-editor .cm-scroller,
+[data-texture="paper"] .cm-editor {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.009) 1px, transparent 1px) !important;
+  background-size: 20px 20px, 80px 80px !important;
+  background-attachment: local !important;
+}
+
+/* None — explicit reset */
+[data-texture="none"] .cm-editor .cm-scroller,
+[data-texture="none"] .cm-editor {
+  background-image: none !important;
+}
+

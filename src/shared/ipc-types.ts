@@ -57,19 +57,21 @@ export interface AppConfig {
 
 export interface AppSettings {
   theme: 'dark' | 'light';
-  accentColor: string;      // default: '#9ca3af'
-  font: string;             // default: 'Inter'
-  fontSize: number;         // default: 14
-  texture: 'none' | 'noise' | 'paper' | 'grid';
+  accentColor: string;             // default: '#9ca3af'
+  font: string;                    // legacy, kept for compatibility
+  fontFamily: string;              // editor font family, default: 'Inter'
+  fontSize: number;                // default: 14
+  texture: 'none' | 'grid' | 'dots' | 'ruled' | 'paper';
   tabSize: 2 | 4;
   spellcheck: boolean;
-  autoSaveInterval: number;  // seconds, default: 2
-  lineHeight: number;        // default: 1.6
-  remindersEnabled: boolean;
-  timerFocus: number;        // minutes, default: 25
-  timerShortBreak: number;   // default: 5
-  timerLongBreak: number;    // default: 15
-  timerSessionsBeforeLong: number;  // default: 4
+  autoSaveInterval: number;        // seconds, default: 2
+  lineHeight: number;              // default: 1.6
+  remindersEnabled: boolean;       // note reminders
+  breakRemindersEnabled: boolean;  // pomodoro break reminders
+  timerFocus: number;              // minutes, default: 25
+  timerShortBreak: number;         // default: 5
+  timerLongBreak: number;          // default: 15
+  timerSessionsBeforeLong: number; // default: 4
   sounds: Record<string, { active: boolean; volume: number }>;
 }
 

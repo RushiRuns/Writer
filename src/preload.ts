@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('wrriter', {
   exportNote: (path: string) => ipcRenderer.invoke('export:note', path),
   exportVault: () => ipcRenderer.invoke('export:vault'),
   importFiles: () => ipcRenderer.invoke('import:files'),
+  changeVault: () => ipcRenderer.invoke('settings:change-vault'),
   closeWindow: () => ipcRenderer.invoke('window:close'),
   triggerPaletteAction: (action: string) => ipcRenderer.invoke('palette:action', action),
   toggleFloatingWindow: () => ipcRenderer.invoke('window:toggle-floating'),

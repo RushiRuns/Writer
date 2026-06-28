@@ -17,7 +17,15 @@ import TimerOverlay from './renderer/components/timer/TimerOverlay';
 import AudioManager from './renderer/components/ambient-sounds/AudioManager';
 import SyncthingSettings from './renderer/components/settings/SyncthingSettings';
 import HotkeysSettings from './renderer/components/settings/HotkeysSettings';
-import { Cloud, CloudOff, RefreshCw, SunMoon, X } from 'lucide-react';
+import EditorSettings from './renderer/components/settings/EditorSettings';
+import VaultSettings from './renderer/components/settings/VaultSettings';
+import BreakReminderSettings from './renderer/components/settings/BreakReminderSettings';
+import ImportExportSettings from './renderer/components/settings/ImportExportSettings';
+import NoteReminderSettings from './renderer/components/settings/NoteReminderSettings';
+import {
+  Cloud, CloudOff, RefreshCw, SunMoon, X,
+  Palette, BookOpen, FolderOpen, Timer, Bell, Database, Keyboard, Wifi
+} from 'lucide-react';
 import styles from './App.module.css';
 
 export default function App() {
@@ -34,8 +42,10 @@ function AppContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<string>('inbox');
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [settingsTab, setSettingsTab] = useState<string>('appearance');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [breadcrumb, setBreadcrumb] = useState<string>('Inbox');
+  const [currentNotePath, setCurrentNotePath] = useState<string | null>(null);
   const [index, setIndex] = useState<VaultIndex>({
     notes: [],
     tagMap: {},
@@ -312,7 +322,8 @@ function AppContent() {
           <NotesView 
             index={index} 
             _vaultPath={vaultPath} 
-            onBreadcrumbChange={setBreadcrumb} 
+            onBreadcrumbChange={setBreadcrumb}
+            onNoteSelected={setCurrentNotePath}
             targetNotePath={targetNotePath} 
             onClearTargetNotePath={() => setTargetNotePath(null)} 
           />
@@ -357,96 +368,217 @@ function AppContent() {
       {/* Break overlay block lock portal */}
       <TimerOverlay />
 
-      {/* Settings Modal (Material Design 2 style) */}
+      {/* Settings Modal — left-tab sidebar layout */}
       {showSettings && (
         <div className={styles.modalBackdrop} onClick={() => setShowSettings(false)}>
           <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+
+            {/* Modal Header */}
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>Settings</h2>
               <button className={styles.modalCloseBtn} onClick={() => setShowSettings(false)}>
                 <X size={16} />
               </button>
             </div>
-            
-            <div className={styles.modalContent}>
-              {/* Appearance settings card */}
-              <div className={styles.settingsCard}>
-                <div className={styles.settingsCardHeader}>
-                  <SunMoon size={15} className={styles.appearanceIcon} />
-                  <h3 className={styles.settingsCardTitle}>Appearance</h3>
-                </div>
-                <div className={styles.settingsRow}>
-                  <div className={styles.settingsRowText}>
-                    <span className={styles.settingsLabel}>Application Theme</span>
-                    <span className={styles.settingsDescription}>
-                      Switch between Light and Dark interface styles.
-                    </span>
-                  </div>
-                  <div className={styles.themeToggleGroup}>
-                    <button
-                      onClick={() => handleSetTheme('dark')}
-                      className={`${styles.themeBtn} ${theme === 'dark' ? styles.themeBtnActive : ''}`}
-                    >
-                      Dark
-                    </button>
-                    <button
-                      onClick={() => handleSetTheme('light')}
-                      className={`${styles.themeBtn} ${theme === 'light' ? styles.themeBtnActive : ''}`}
-                    >
-                      Light
-                    </button>
-                  </div>
-                </div>
-              </div>
 
-              {/* Syncthing Link Status card */}
-              <div className={styles.settingsCard}>
-                <div className={styles.settingsCardHeader}>
-                  {syncthingStatus.status === 'disconnected' ? (
-                    <CloudOff size={15} className={styles.statusIconDisconnected} />
-                  ) : (
-                    <Cloud size={15} className={syncthingStatus.status === 'synced' ? styles.statusIconSynced : styles.statusIconSyncing} />
-                  )}
-                  <h3 className={styles.settingsCardTitle}>Syncthing Link Status</h3>
-                </div>
-                <div className={styles.settingsRow}>
-                  <div className={styles.settingsRowText}>
-                    <div className={styles.settingsLabel}>
-                      Status: <span className={
-                        syncthingStatus.status === 'synced' 
-                          ? styles.stateSynced 
-                          : syncthingStatus.status === 'syncing'
-                            ? styles.stateSyncing
-                            : styles.stateDisconnected
-                      }>{syncthingStatus.status}</span>
+            {/* Modal Body: sidebar + panel */}
+            <div className={styles.modalBody}>
+
+              {/* Left sidebar navigation */}
+              <nav className={styles.modalSidebar}>
+                <span className={styles.modalSidebarSection}>Appearance</span>
+                <SidebarTab id="appearance" label="Theme" icon={<SunMoon size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+                <SidebarTab id="editor" label="Editor" icon={<BookOpen size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+
+                <div className={styles.modalSidebarDivider} />
+                <span className={styles.modalSidebarSection}>Workspace</span>
+                <SidebarTab id="vault" label="Vault" icon={<FolderOpen size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+                <SidebarTab id="timer" label="Timer" icon={<Timer size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+                <SidebarTab id="reminders" label="Reminders" icon={<Bell size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+                <SidebarTab id="data" label="Data" icon={<Database size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+
+                <div className={styles.modalSidebarDivider} />
+                <span className={styles.modalSidebarSection}>System</span>
+                <SidebarTab id="shortcuts" label="Shortcuts" icon={<Keyboard size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+                <SidebarTab id="syncthing" label="Syncthing" icon={<Wifi size={13} />}
+                  active={settingsTab} onClick={setSettingsTab} />
+              </nav>
+
+              {/* Right panel content */}
+              <div className={styles.modalPanelScroll}>
+
+                {/* ── Appearance ── */}
+                {settingsTab === 'appearance' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Appearance</p>
+
+                    {/* Theme */}
+                    <div className={styles.settingsCard}>
+                      <div className={styles.settingsCardHeader}>
+                        <SunMoon size={15} className={styles.appearanceIcon} />
+                        <h3 className={styles.settingsCardTitle}>Application Theme</h3>
+                      </div>
+                      <div className={styles.settingsRow}>
+                        <div className={styles.settingsRowText}>
+                          <span className={styles.settingsLabel}>Color Mode</span>
+                          <span className={styles.settingsDescription}>
+                            Switch between Light and Dark interface styles.
+                          </span>
+                        </div>
+                        <div className={styles.themeToggleGroup}>
+                          <button
+                            onClick={() => handleSetTheme('dark')}
+                            className={`${styles.themeBtn} ${theme === 'dark' ? styles.themeBtnActive : ''}`}
+                          >
+                            Dark
+                          </button>
+                          <button
+                            onClick={() => handleSetTheme('light')}
+                            className={`${styles.themeBtn} ${theme === 'light' ? styles.themeBtnActive : ''}`}
+                          >
+                            Light
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    {syncthingStatus.status !== 'disconnected' && (
-                      <span className={styles.settingsDescription}>
-                        Device: {syncthingStatus.deviceName || 'Unknown'} | Connected: {syncthingStatus.connectedDevices} | Version: {syncthingStatus.version || 'N/A'}
-                      </span>
-                    )}
-                    {syncthingStatus.status === 'disconnected' && (
-                      <span className={styles.settingsDescription}>
-                        Daemon offline or configuration error.
-                      </span>
-                    )}
-                  </div>
-                  <button onClick={handleSyncScan} className={styles.themeToggleBtn}>
-                    <RefreshCw size={14} className={syncthingStatus.status === 'syncing' ? 'animate-spin' : ''} />
-                    <span>Scan Now</span>
-                  </button>
-                </div>
-              </div>
 
-              {/* Shortcuts config card */}
-              <HotkeysSettings />
+                    {/* Syncthing Status card */}
+                    <div className={styles.settingsCard} style={{ marginTop: '1rem' }}>
+                      <div className={styles.settingsCardHeader}>
+                        {syncthingStatus.status === 'disconnected' ? (
+                          <CloudOff size={15} className={styles.statusIconDisconnected} />
+                        ) : (
+                          <Cloud size={15} className={syncthingStatus.status === 'synced' ? styles.statusIconSynced : styles.statusIconSyncing} />
+                        )}
+                        <h3 className={styles.settingsCardTitle}>Syncthing Status</h3>
+                      </div>
+                      <div className={styles.settingsRow}>
+                        <div className={styles.settingsRowText}>
+                          <div className={styles.settingsLabel}>
+                            Status: <span className={
+                              syncthingStatus.status === 'synced'
+                                ? styles.stateSynced
+                                : syncthingStatus.status === 'syncing'
+                                  ? styles.stateSyncing
+                                  : styles.stateDisconnected
+                            }>{syncthingStatus.status}</span>
+                          </div>
+                          {syncthingStatus.status !== 'disconnected' && (
+                            <span className={styles.settingsDescription}>
+                              Device: {syncthingStatus.deviceName || 'Unknown'} | Connected: {syncthingStatus.connectedDevices} | Version: {syncthingStatus.version || 'N/A'}
+                            </span>
+                          )}
+                          {syncthingStatus.status === 'disconnected' && (
+                            <span className={styles.settingsDescription}>
+                              Daemon offline or configuration error.
+                            </span>
+                          )}
+                        </div>
+                        <button onClick={handleSyncScan} className={styles.themeToggleBtn}>
+                          <RefreshCw size={14} className={syncthingStatus.status === 'syncing' ? 'animate-spin' : ''} />
+                          <span>Scan Now</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
 
-              {/* Syncthing config panel */}
-              <SyncthingSettings />
-            </div>
-          </div>
+                {/* ── Editor ── */}
+                {settingsTab === 'editor' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Editor & Appearance</p>
+                    <EditorSettings />
+                  </>
+                )}
+
+                {/* ── Vault ── */}
+                {settingsTab === 'vault' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Vault Directory</p>
+                    <VaultSettings />
+                  </>
+                )}
+
+                {/* ── Timer ── */}
+                {settingsTab === 'timer' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Break Reminders</p>
+                    <BreakReminderSettings />
+                  </>
+                )}
+
+                {/* ── Note Reminders ── */}
+                {settingsTab === 'reminders' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Note Reminders</p>
+                    <NoteReminderSettings
+                      index={index}
+                      onNavigateNote={(path) => {
+                        setShowSettings(false);
+                        setActiveSection('notes');
+                        setTargetNotePath(path);
+                      }}
+                    />
+                  </>
+                )}
+
+                {/* ── Import & Export ── */}
+                {settingsTab === 'data' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Import & Export</p>
+                    <ImportExportSettings currentNotePath={currentNotePath} />
+                  </>
+                )}
+
+                {/* ── Shortcuts ── */}
+                {settingsTab === 'shortcuts' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Keyboard Shortcuts</p>
+                    <HotkeysSettings />
+                  </>
+                )}
+
+                {/* ── Syncthing config ── */}
+                {settingsTab === 'syncthing' && (
+                  <>
+                    <p className={styles.modalPanelTitle}>Syncthing Integration</p>
+                    <SyncthingSettings />
+                  </>
+                )}
+
+              </div>{/* end panel */}
+            </div>{/* end body */}
+          </div>{/* end container */}
         </div>
       )}
     </div>
+  );
+}
+
+// ── Sidebar Tab helper ──────────────────────────────────────────────────────
+interface SidebarTabProps {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  active: string;
+  onClick: (id: string) => void;
+}
+
+function SidebarTab({ id, label, icon, active, onClick }: SidebarTabProps) {
+  return (
+    <button
+      className={`${styles.modalSidebarTab} ${active === id ? styles.modalSidebarTabActive : ''}`}
+      onClick={() => onClick(id)}
+    >
+      <span className={styles.modalSidebarTabIcon}>{icon}</span>
+      {label}
+    </button>
   );
 }

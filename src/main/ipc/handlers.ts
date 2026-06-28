@@ -1,6 +1,11 @@
 import { ipcMain, dialog, BrowserWindow, shell } from 'electron';
 import * as fs from 'fs/promises';
+import * as fsCb from 'fs';
 import * as path from 'path';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const archiver = require('archiver') as (format: string, options?: object) => import('archiver').Archiver;
 import { 
   configStore, 
   settingsStore, 
@@ -311,16 +316,118 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
     return await testSyncthingConnection(url, apiKey);
   });
 
-  ipcMain.handle('export:note', (_event, _path) => {
-    return { success: true };
+  // Export a single note as a Markdown file
+  ipcMain.handle('export:note', async (_event, notePath) => {
+    if (!notePath) return { success: false, error: 'No note path provided' };
+    try {
+      const basename = path.basename(notePath);
+      const result = await dialog.showSaveDialog(mainWindow, {
+        title: 'Export Note',
+        defaultPath: basename,
+        filters: [{ name: 'Markdown', extensions: ['md'] }]
+      });
+      if (result.canceled || !result.filePath) return { success: false };
+      await fs.copyFile(notePath, result.filePath);
+      return { success: true, path: result.filePath };
+    } catch (err) {
+      console.error('Failed to export note:', err);
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('export:vault', () => {
-    return { success: true };
+  // Export the entire vault as a ZIP archive
+  ipcMain.handle('export:vault', async () => {
+    const vaultPath = configStore.get('vaultPath');
+    if (!vaultPath) return { success: false, error: 'No vault configured' };
+    try {
+      const result = await dialog.showSaveDialog(mainWindow, {
+        title: 'Export Vault as ZIP',
+        defaultPath: 'wrriter-vault.zip',
+        filters: [{ name: 'ZIP Archive', extensions: ['zip'] }]
+      });
+      if (result.canceled || !result.filePath) return { success: false };
+
+      await new Promise<void>((resolve, reject) => {
+        const output = fsCb.createWriteStream(result.filePath!);
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        output.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(output);
+        archive.directory(vaultPath, false);
+        archive.finalize();
+      });
+
+      return { success: true, path: result.filePath };
+    } catch (err) {
+      console.error('Failed to export vault:', err);
+      return { success: false, error: String(err) };
+    }
   });
 
-  ipcMain.handle('import:files', () => {
-    return { success: true };
+  // Import Markdown files into the vault Inbox
+  ipcMain.handle('import:files', async () => {
+    const vaultPath = configStore.get('vaultPath');
+    if (!vaultPath) return { success: false, error: 'No vault configured' };
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        title: 'Import Markdown Files',
+        properties: ['openFile', 'multiSelections'],
+        filters: [{ name: 'Markdown', extensions: ['md'] }]
+      });
+      if (result.canceled || result.filePaths.length === 0) return { success: false };
+
+      const inboxDir = path.join(vaultPath, 'Inbox');
+      await fs.mkdir(inboxDir, { recursive: true });
+
+      let imported = 0;
+      const errors: string[] = [];
+      for (const srcPath of result.filePaths) {
+        try {
+          const destPath = await resolveConflictPath(path.join(inboxDir, path.basename(srcPath)));
+          await fs.copyFile(srcPath, destPath);
+          imported++;
+        } catch (err) {
+          errors.push(String(err));
+        }
+      }
+
+      return { success: true, imported, errors };
+    } catch (err) {
+      console.error('Failed to import files:', err);
+      return { success: false, error: String(err) };
+    }
+  });
+
+  // Change the vault directory
+  ipcMain.handle('settings:change-vault', async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        title: 'Select New Vault Directory',
+        properties: ['openDirectory']
+      });
+      if (result.canceled || !result.filePaths[0]) return { success: false };
+
+      const newVaultPath = result.filePaths[0];
+      const isValid = await verifyVaultPath(newVaultPath);
+      if (!isValid) return { success: false, error: 'Selected path is not a valid directory.' };
+
+      await bootstrapVaultDirectories(newVaultPath);
+      configStore.set('vaultPath', newVaultPath);
+      setupFileWatcher(newVaultPath, mainWindow);
+
+      try {
+        const idx = await buildVaultIndex(newVaultPath);
+        setActiveIndex(idx);
+        mainWindow.webContents.send('index:update', idx);
+      } catch (err) {
+        console.error('Failed to build vault index after vault change:', err);
+      }
+
+      return { success: true, path: newVaultPath };
+    } catch (err) {
+      console.error('Failed to change vault:', err);
+      return { success: false, error: String(err) };
+    }
   });
 
   ipcMain.handle('window:close', (event) => {

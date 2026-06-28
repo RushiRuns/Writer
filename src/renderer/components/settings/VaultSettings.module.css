@@ -1,0 +1,131 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.sectionIcon {
+  color: var(--color-brand-amber);
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-bright);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sectionDesc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Path display */
+.pathBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: var(--space-4);
+}
+
+.pathIcon {
+  color: var(--color-brand-amber);
+  flex-shrink: 0;
+}
+
+.pathText {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.changeBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.changeBtn:hover:not(:disabled) {
+  border-color: var(--color-brand-amber);
+  color: var(--text-primary);
+}
+
+.changeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Feedback */
+.feedback {
+  font-size: 11px;
+  margin: var(--space-3) 0 0 0;
+  font-family: var(--font-mono);
+}
+
+.feedbackSuccess {
+  color: var(--color-brand-amber);
+}
+
+.feedbackError {
+  color: #f87171;
+}
+
+/* Warning box */
+.warningBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: var(--space-4);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(234, 179, 8, 0.04);
+  border: 1px solid rgba(234, 179, 8, 0.12);
+}
+
+.warningTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #eab308;
+  font-family: var(--font-mono);
+}
+
+.warningText {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}

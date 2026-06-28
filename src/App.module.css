@@ -618,3 +618,138 @@
 .statusIconDisconnected {
   color: #ef4444;
 }
+
+/* ══════════════════════════════════════════════════════════
+   Settings modal — tabbed sidebar layout
+   ══════════════════════════════════════════════════════════ */
+
+.modalContainer {
+  width: 100%;
+  max-width: 58rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  animation: modalScaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.modalSidebar {
+  width: 152px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-subtle);
+  padding: var(--space-3) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-primary);
+  border-bottom-left-radius: var(--radius-lg);
+}
+
+.modalSidebarSection {
+  padding: 2px var(--space-3) 0;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  opacity: 0.5;
+  margin-top: var(--space-2);
+  margin-bottom: 2px;
+}
+
+.modalSidebarSection:first-child {
+  margin-top: 0;
+}
+
+.modalSidebarDivider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: var(--space-2) var(--space-3);
+}
+
+.modalSidebarTab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px 12px 7px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  border-left: 2px solid transparent;
+  transition: all 0.12s ease;
+}
+
+.modalSidebarTab:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.modalSidebarTabActive {
+  color: var(--color-brand-amber);
+  border-left-color: var(--color-brand-amber);
+  background: rgba(156, 163, 175, 0.06);
+}
+
+.modalSidebarTabIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.modalSidebarTabActive .modalSidebarTabIcon {
+  opacity: 1;
+}
+
+.modalPanelScroll {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.modalPanelTitle {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-dim);
+  margin: 0 0 var(--space-4) 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.themeToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.themeToggleBtn:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+

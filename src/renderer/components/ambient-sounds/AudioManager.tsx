@@ -10,23 +10,31 @@ import styles from './AudioManager.module.css';
 interface SoundItem {
   id: string;
   name: string;
-  localUrl: string;
-  fallbackUrl: string;
+  url: string;
 }
 
 const SOUND_LIST: SoundItem[] = [
-  { id: 'rain', name: 'Rainfall', localUrl: './resources/sounds/rain.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2523/2523-84.wav' },
-  { id: 'forest', name: 'Forest Birds', localUrl: './resources/sounds/forest.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/1190/1190-84.wav' },
-  { id: 'ocean', name: 'Ocean Waves', localUrl: './resources/sounds/ocean.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2513/2513-84.wav' },
-  { id: 'cafe', name: 'Coffee Shop', localUrl: './resources/sounds/cafe.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2468/2468-84.wav' },
-  { id: 'fire', name: 'Campfire', localUrl: './resources/sounds/fire.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2438/2438-84.wav' },
-  { id: 'wind', name: 'Soft Wind', localUrl: './resources/sounds/wind.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2544/2544-84.wav' },
-  { id: 'storm', name: 'Thunderstorm', localUrl: './resources/sounds/storm.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2550/2550-84.wav' },
-  { id: 'train', name: 'Train Ride', localUrl: './resources/sounds/train.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2542/2542-84.wav' },
-  { id: 'white', name: 'White Noise', localUrl: './resources/sounds/white.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav' },
-  { id: 'brown', name: 'Brown Noise', localUrl: './resources/sounds/brown.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2569/2569-84.wav' },
-  { id: 'drone', name: 'Focus Drone', localUrl: './resources/sounds/drone.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2560/2560-84.wav' },
-  { id: 'night', name: 'Summer Night', localUrl: './resources/sounds/night.ogg', fallbackUrl: 'https://assets.mixkit.co/active_storage/sfx/2562/2562-84.wav' }
+  { id: 'coffee-shop', name: 'Coffee Shop', url: './sounds/coffee-shop.mp3' },
+  { id: 'airport', name: 'Airport', url: './sounds/airport.mp3' },
+  { id: 'winter-morning', name: 'Winter Morning', url: './sounds/winter-morning.mp3' },
+  { id: 'suburban-street', name: 'Suburban Street', url: './sounds/suburban-street.mp3' },
+  { id: 'rain', name: 'Rain', url: './sounds/rain.mp3' },
+  { id: 'rain-on-leaves', name: 'Rain on Leaves', url: './sounds/rain-on-leaves.mp3' },
+  { id: 'thunder', name: 'Thunder', url: './sounds/thunder.mp3' },
+  { id: 'waves', name: 'Waves', url: './sounds/waves.mp3' },
+  { id: 'fireside', name: 'Fireside', url: './sounds/fireside.mp3' },
+  { id: 'crickets', name: 'Crickets', url: './sounds/crickets.mp3' },
+  { id: 'singing-bowl', name: 'Singing Bowl', url: './sounds/singing-bowl.mp3' },
+  { id: 'train', name: 'Train', url: './sounds/train.mp3' },
+  { id: 'white-noise', name: 'White Noise', url: './sounds/white-noise.mp3' },
+  { id: 'keyboard', name: 'Keyboard', url: './sounds/keyboard.mp3' },
+  { id: 'wind-chimes', name: 'Wind Chimes', url: './sounds/wind-chimes.mp3' },
+  { id: 'clock', name: 'Clock', url: './sounds/clock.mp3' },
+  { id: 'ceiling-fan', name: 'Ceiling Fan', url: './sounds/ceiling-fan.mp3' },
+  { id: 'tuning-radio', name: 'Tuning Radio', url: './sounds/tuning-radio.mp3' },
+  { id: 'fireworks', name: 'Fireworks', url: './sounds/fireworks.mp3' },
+  { id: 'owl', name: 'Owl', url: './sounds/owl.mp3' },
+  { id: 'underwater', name: 'Underwater', url: './sounds/underwater.mp3' }
 ];
 
 // Persistent module-level cache for looping Howl instances
@@ -92,10 +100,11 @@ export default function AudioManager({ direction = 'down' }: AudioManagerProps) 
   const getOrCreateHowl = (sound: SoundItem, volume: number, shouldPlay: boolean) => {
     if (!howlsCache[sound.id]) {
       howlsCache[sound.id] = new Howl({
-        src: [sound.localUrl, sound.fallbackUrl],
+        src: [sound.url],
         loop: true,
         volume: volume,
-        preload: true
+        preload: true,
+        html5: true
       });
     } else {
       howlsCache[sound.id].volume(volume);

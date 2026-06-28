@@ -88,7 +88,8 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   const [tags, setTags] = useState<string[]>([]);
   const [reminder, setReminder] = useState<string | null>(null);
   const [goal, setGoal] = useState<number>(0);
-  const [goalType, setGoalType] = useState<'note' | 'session'>('note');
+  const [goalType, setGoalType] = useState<'note' | 'session' | 'daily'>('note');
+  const [dailyGoal, setDailyGoal] = useState<number>(0);
   const [celebrated, setCelebrated] = useState(false);
   const [confetti, setConfetti] = useState<{ id: number; x: number; y: number; color: string; size: number }[]>([]);
   const initialWordCount = useRef<number | null>(null);
@@ -222,7 +223,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     currentTags: string[], 
     currentReminder: string | null, 
     currentGoal = goal,
-    currentGoalType = goalType
+    currentGoalType: 'note' | 'session' | 'daily' = goalType
   ) => {
     try {
       const lines = text.split('\n');
@@ -297,7 +298,25 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
         setTags(res.frontmatter.tags || []);
         setReminder(res.frontmatter.reminder || null);
         setGoal(res.frontmatter.goal || 0);
-        setGoalType(res.frontmatter.goal_type || 'note');
+
+        let currentDailyGoal = 0;
+        try {
+          const settings = await (window as any).wrriter.getSettings();
+          currentDailyGoal = settings?.dailyGoal || 0;
+          setDailyGoal(currentDailyGoal);
+        } catch (e) {
+          console.error('Failed to load settings:', e);
+        }
+
+        const noteGoal = res.frontmatter.goal || 0;
+        const noteGoalType = res.frontmatter.goal_type || 'note';
+        if (noteGoal > 0) {
+          setGoalType(noteGoalType);
+        } else if (currentDailyGoal > 0) {
+          setGoalType('daily');
+        } else {
+          setGoalType(noteGoalType);
+        }
 
         // Set starting word count for this session
         const startingWords = displayContent.trim() ? displayContent.trim().split(/\s+/).length : 0;
@@ -387,9 +406,20 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     saveNote(content, tags, reminder, newGoal, goalType);
   };
 
-  const handleGoalTypeChange = (newType: 'note' | 'session') => {
+  const handleGoalTypeChange = (newType: 'note' | 'session' | 'daily') => {
     setGoalType(newType);
-    saveNote(content, tags, reminder, goal, newType);
+    if (newType !== 'daily') {
+      saveNote(content, tags, reminder, goal, newType);
+    }
+  };
+
+  const handleDailyGoalChange = async (newGoal: number) => {
+    setDailyGoal(newGoal);
+    try {
+      await (window as any).wrriter.setSettings({ dailyGoal: newGoal });
+    } catch (err) {
+      console.error('Failed to save daily goal setting:', err);
+    }
   };
 
   const handleEditorBlur = () => {
@@ -479,16 +509,38 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   const lineCount = content.split('\n').filter(Boolean).length;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // 200 wpm
   
+  // Calculate daily words written across all notes modified today
+  const getWordsWrittenToday = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startOfDay = today.getTime();
+    const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
+
+    return index.notes
+      .filter(n => {
+        const modTime = new Date(n.modified).getTime();
+        return modTime >= startOfDay && modTime < endOfDay;
+      })
+      .reduce((sum, n) => sum + n.wordCount, 0);
+  };
+
+  const wordsWrittenToday = getWordsWrittenToday();
   const sessionWords = Math.max(0, wordCount - (initialWordCount.current ?? wordCount));
-  const currentGoalProgressValue = goalType === 'session' ? sessionWords : wordCount;
-  const goalProgress = goal > 0 ? Math.min(100, Math.round((currentGoalProgressValue / goal) * 100)) : 0;
+  
+  const currentGoalProgressValue = 
+    goalType === 'daily' ? wordsWrittenToday :
+    goalType === 'session' ? sessionWords : 
+    wordCount;
+
+  const currentGoalValue = goalType === 'daily' ? dailyGoal : goal;
+  const goalProgress = currentGoalValue > 0 ? Math.min(100, Math.round((currentGoalProgressValue / currentGoalValue) * 100)) : 0;
 
   const totalNotes = index.notes.length;
   const streak = calculateStreak(index.notes);
 
   // Trigger celebration on crossing 100% threshold
   useEffect(() => {
-    if (goal > 0 && goalProgress >= 100) {
+    if (currentGoalValue > 0 && goalProgress >= 100) {
       if (!celebrated) {
         setCelebrated(true);
         triggerConfetti();
@@ -496,7 +548,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     } else {
       setCelebrated(false);
     }
-  }, [goalProgress, goal, celebrated]);
+  }, [goalProgress, currentGoalValue, celebrated]);
 
   const formatTimerTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -528,7 +580,7 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
                   onClick={() => handleGoalTypeChange('note')}
                   className={`${styles.goalTypeTab} ${goalType === 'note' ? styles.activeTab : ''}`}
                 >
-                  Document
+                  Doc
                 </button>
                 <button
                   onClick={() => handleGoalTypeChange('session')}
@@ -536,21 +588,34 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
                 >
                   Session
                 </button>
+                <button
+                  onClick={() => handleGoalTypeChange('daily')}
+                  className={`${styles.goalTypeTab} ${goalType === 'daily' ? styles.activeTab : ''}`}
+                >
+                  Daily
+                </button>
               </div>
 
               <div className={styles.goalInputWrapper}>
                 <input
                   type="number"
                   min="0"
-                  value={goal || ''}
+                  value={goalType === 'daily' ? (dailyGoal || '') : (goal || '')}
                   placeholder="target words..."
-                  onChange={(e) => handleGoalChange(Math.max(0, parseInt(e.target.value) || 0))}
+                  onChange={(e) => {
+                    const val = Math.max(0, parseInt(e.target.value) || 0);
+                    if (goalType === 'daily') {
+                      handleDailyGoalChange(val);
+                    } else {
+                      handleGoalChange(val);
+                    }
+                  }}
                   className={styles.goalInput}
                   autoFocus
                 />
                 <span className={styles.goalInputLabel}>words</span>
               </div>
-              {goal > 0 && (
+              {currentGoalValue > 0 && (
                 <div className={styles.goalProgressWrapper}>
                   <div className={styles.goalProgressBar}>
                     <div 
@@ -560,9 +625,11 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
                   </div>
                   <div className={styles.goalProgressText}>
                     <span>
-                      {goalType === 'session' 
-                        ? `${sessionWords} / ${goal} words (session)` 
-                        : `${wordCount} / ${goal} words (total)`
+                      {goalType === 'daily'
+                        ? `${wordsWrittenToday} / ${dailyGoal} words (daily total)`
+                        : goalType === 'session' 
+                          ? `${sessionWords} / ${goal} words (session)` 
+                          : `${wordCount} / ${goal} words (document)`
                       }
                     </span>
                     <span>{goalProgress}%</span>
@@ -670,14 +737,19 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
                   setShowGoalPopover(!showGoalPopover);
                   setShowReminderPopover(false);
                 }} 
-                className={`${styles.bottomBarBtn} ${showGoalPopover ? styles.activeBtn : ''} ${goal > 0 ? styles.hasGoalBtn : ''} ${goalProgress >= 100 ? styles.goalAchieved : ''}`}
+                className={`${styles.bottomBarBtn} ${showGoalPopover ? styles.activeBtn : ''} ${currentGoalValue > 0 ? styles.hasGoalBtn : ''} ${goalProgress >= 100 ? styles.goalAchieved : ''}`}
                 title="Writing Goal"
               >
                 <Target size={13} />
               </button>
-              {goal > 0 && (
+              {currentGoalValue > 0 && (
                 <span className={`${styles.bottomBarText} ${goalProgress >= 100 ? styles.goalAchievedText : ''}`}>
-                  {goalType === 'session' ? `+${goalProgress}%` : `${goalProgress}%`}
+                  {goalType === 'daily'
+                    ? `D:${goalProgress}%`
+                    : goalType === 'session'
+                      ? `+${goalProgress}%`
+                      : `${goalProgress}%`
+                  }
                 </span>
               )}
             </div>

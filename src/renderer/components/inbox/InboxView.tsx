@@ -10,7 +10,6 @@ interface InboxViewProps {
 }
 
 export default function InboxView({ index, vaultPath }: InboxViewProps) {
-  const [selectedNotePath, setSelectedNotePath] = useState<string | null>(null);
   const [animatingOutPath, setAnimatingOutPath] = useState<string | null>(null);
   const [quickCaptureText, setQuickCaptureText] = useState('');
 
@@ -40,23 +39,7 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
   };
 
   const handleActionComplete = () => {
-    setSelectedNotePath(null);
     setAnimatingOutPath(null);
-  };
-
-  const formatTimestamp = (isoString: string) => {
-    try {
-      const date = new Date(isoString);
-      return date.toLocaleDateString(undefined, {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return '';
-    }
   };
 
   return (
@@ -79,7 +62,6 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
         ) : (
           <div className={styles.notesList}>
             {inboxNotes.map((note) => {
-              const isSelected = selectedNotePath === note.path;
               const isAnimatingOut = animatingOutPath === note.path;
 
               return (
@@ -88,19 +70,20 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
                   style={{ transitionProperty: 'max-height, opacity, padding, margin, border' }}
                   className={`${styles.noteCard} ${
                     isAnimatingOut ? styles.animatingOut : styles.normal
-                  } ${isSelected ? styles.selected : ''}`}
+                  }`}
                 >
-                  <div 
-                    onClick={() => {
-                      if (!isAnimatingOut) {
-                        setSelectedNotePath(isSelected ? null : note.path);
-                      }
-                    }}
-                    className="cursor-pointer flex flex-col"
-                  >
+                  <div className="flex flex-col relative h-full">
                     <div className={styles.noteHeader}>
                       <span className={styles.noteTitle}>{note.title}</span>
-                      <span className={styles.noteDate}>{formatTimestamp(note.created)}</span>
+                      <div className={styles.toolbarWrapper} onClick={(e) => e.stopPropagation()}>
+                        <RoutingToolbar
+                          note={note}
+                          index={index}
+                          vaultPath={vaultPath}
+                          onActionStart={() => handleActionStart(note.path)}
+                          onActionComplete={handleActionComplete}
+                        />
+                      </div>
                     </div>
                     {/* Small preview block if exists */}
                     {note.preview && (
@@ -109,17 +92,6 @@ export default function InboxView({ index, vaultPath }: InboxViewProps) {
                       </p>
                     )}
                   </div>
-
-                  {/* Render the Routing Toolbar below if selected */}
-                  {isSelected && !isAnimatingOut && (
-                    <RoutingToolbar
-                      note={note}
-                      index={index}
-                      vaultPath={vaultPath}
-                      onActionStart={() => handleActionStart(note.path)}
-                      onActionComplete={handleActionComplete}
-                    />
-                  )}
                 </div>
               );
             })}

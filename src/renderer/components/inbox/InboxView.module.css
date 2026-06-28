@@ -73,15 +73,16 @@
 
 .noteCard {
   transition: all 0.3s ease-out;
-  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-md);
+  position: relative;
 }
 
 .noteCard.normal {
   max-height: 12rem;
   opacity: 1;
   padding: var(--space-4);
+  overflow: visible; /* Allow folder dropdown to pop out of the card */
 }
 
 .noteCard.animatingOut {
@@ -93,38 +94,32 @@
   margin-bottom: 0;
   border-color: transparent;
   pointer-events: none;
-}
-
-.noteCard.selected {
-  border-color: rgba(156, 163, 175, 0.4);
-  background-color: rgba(23, 23, 23, 0.4);
-  box-shadow: var(--shadow-md), 0 0 15px rgba(156, 163, 175, 0.05);
+  overflow: hidden;
 }
 
 .noteCard:not(.selected) {
   background-color: var(--color-neutral-950);
 }
 
-.noteCard:not(.selected):hover {
+.noteCard:hover {
   background-color: rgba(23, 23, 23, 0.6);
 }
 
 .noteHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  min-height: 32px;
 }
 
 .noteTitle {
   font-weight: 600;
   color: var(--color-neutral-200);
   font-size: 1rem;
-}
-
-.noteDate {
-  font-size: 0.75rem;
-  color: var(--color-neutral-500);
-  font-family: var(--font-mono);
+  max-width: calc(100% - 310px); /* Leave space for toolbar on hover */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .notePreview {
@@ -134,8 +129,25 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 36rem;
+  max-width: calc(100% - 310px); /* Leave space for toolbar on hover */
   font-style: italic;
+}
+
+/* Toolbar Hover Positioning */
+.toolbarWrapper {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 10;
+}
+
+.noteCard:hover .toolbarWrapper {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .quickCaptureContainer {

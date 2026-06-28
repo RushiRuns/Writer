@@ -50,7 +50,8 @@ function AppContent() {
     notes: [],
     tagMap: {},
     drawings: [],
-    reminders: []
+    reminders: [],
+    folders: []
   });
   const [targetNotePath, setTargetNotePath] = useState<string | null>(null);
 

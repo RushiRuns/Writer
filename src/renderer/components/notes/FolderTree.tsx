@@ -16,8 +16,6 @@ interface FolderTreeProps {
   activeFolder: string;
   onFolderSelect: (folderPath: string) => void;
   onNewNote: (folderPath: string) => void;
-  createdFolders: string[];
-  setCreatedFolders: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export function buildFolderTree(notes: NoteEntry[], createdFolders: string[]): TreeNode[] {
@@ -78,9 +76,7 @@ export default function FolderTree({
   index,
   activeFolder,
   onFolderSelect,
-  onNewNote,
-  createdFolders,
-  setCreatedFolders
+  onNewNote
 }: FolderTreeProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     // Keep root expanded by default
@@ -98,7 +94,7 @@ export default function FolderTree({
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameFolderText, setRenameFolderText] = useState('');
 
-  const tree = buildFolderTree(index.notes, createdFolders);
+  const tree = buildFolderTree(index.notes, index.folders);
 
   const toggleExpand = (path: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -111,7 +107,6 @@ export default function FolderTree({
       try {
         const res = await (window as any).wrriter.renameFolder(folderPath, nextName);
         if (res.success && res.path) {
-          setCreatedFolders(prev => prev.map(f => f === folderPath ? res.path : f));
           if (activeFolder === folderPath) {
             onFolderSelect(res.path);
           } else if (activeFolder.startsWith(folderPath + '/')) {
@@ -130,7 +125,6 @@ export default function FolderTree({
       try {
         const res = await (window as any).wrriter.deleteFolder(folderPath);
         if (res.success) {
-          setCreatedFolders(prev => prev.filter(f => f !== folderPath && !f.startsWith(folderPath + '/')));
           if (activeFolder === folderPath || activeFolder.startsWith(folderPath + '/')) {
             onFolderSelect('.');
           }
@@ -152,8 +146,8 @@ export default function FolderTree({
       const parentDir = parentPath === '.' ? '' : parentPath;
       const res = await (window as any).wrriter.createFolder(parentDir, name);
       if (res.success) {
-        const relativeNewPath = parentDir ? `${parentDir}/${name}` : name;
-        setCreatedFolders(prev => [...prev, relativeNewPath]);
+        // Index will be refreshed by chokidar addDir event automatically.
+        // Expand the parent so the new folder is immediately visible.
         setExpanded(prev => ({ ...prev, [parentPath]: true }));
       }
     } catch (err) {

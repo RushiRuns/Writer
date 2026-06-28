@@ -125,7 +125,7 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
   ipcMain.handle('vault:getIndex', async () => {
     const vaultPath = configStore.get('vaultPath');
     if (!vaultPath) {
-      return { notes: [], tagMap: {}, drawings: [], reminders: [] };
+      return { notes: [], tagMap: {}, drawings: [], reminders: [], folders: [] };
     }
     let idx = getActiveIndex();
     if (!idx) {
@@ -134,7 +134,7 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
         setActiveIndex(idx);
       } catch (err) {
         console.error('Failed to retrieve vault index:', err);
-        return { notes: [], tagMap: {}, drawings: [], reminders: [] };
+        return { notes: [], tagMap: {}, drawings: [], reminders: [], folders: [] };
       }
     }
     return idx;

@@ -22,6 +22,38 @@ export async function walkFiles(dir: string): Promise<string[]> {
   return files;
 }
 
+// Helper to recursively collect relative paths of all subdirectories that belong
+// to the notes section (top-level dirs that are NOT reserved section names).
+const RESERVED_SECTION_DIRS = new Set([
+  'inbox', 'later', 'read', 'shop', 'watch', 'tasks', 'journal', 'archive', 'attachments'
+]);
+
+export async function walkNoteFolders(vaultRoot: string): Promise<string[]> {
+  const result: string[] = [];
+
+  async function walk(absDir: string, relDir: string) {
+    let entries: import('fs').Dirent[];
+    try {
+      entries = await fs.readdir(absDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const childRel = relDir ? `${relDir}/${entry.name}` : entry.name;
+      // Skip reserved top-level section directories
+      if (!relDir && RESERVED_SECTION_DIRS.has(entry.name.toLowerCase())) continue;
+      // Skip hidden directories
+      if (entry.name.startsWith('.')) continue;
+      result.push(childRel);
+      await walk(path.join(absDir, entry.name), childRel);
+    }
+  }
+
+  await walk(vaultRoot, '');
+  return result;
+}
+
 // Word count calculation helper (pure logic)
 export function countWords(text: string): number {
   const clean = text.trim();
@@ -115,7 +147,10 @@ export async function processBatch<T, R>(
 
 // Rebuilds the entire vault index in-memory
 export async function buildVaultIndex(vaultRoot: string): Promise<VaultIndex> {
-  const allFiles = await walkFiles(vaultRoot);
+  const [allFiles, noteFolders] = await Promise.all([
+    walkFiles(vaultRoot),
+    walkNoteFolders(vaultRoot)
+  ]);
   
   // Filter markdown notes
   const noteFiles = allFiles.filter(f => f.endsWith('.md'));
@@ -152,6 +187,7 @@ export async function buildVaultIndex(vaultRoot: string): Promise<VaultIndex> {
     notes,
     tagMap,
     drawings,
-    reminders
+    reminders,
+    folders: noteFolders
   };
 }

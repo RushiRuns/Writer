@@ -36,7 +36,6 @@ export default function NotesView({
   onClearTargetNotePath
 }: NotesViewProps) {
   const [activeFolder, setActiveFolder] = useState<string>('.');
-  const [createdFolders, setCreatedFolders] = useState<string[]>([]);
   const [targetSelectedPath, setTargetSelectedPath] = useState<string | null>(null);
 
   // Split tabs/editor panes state
@@ -250,8 +249,6 @@ export default function NotesView({
       activeFolder={activeFolder}
       onFolderSelect={handleFolderSelect}
       onNewNote={handleNewNote}
-      createdFolders={createdFolders}
-      setCreatedFolders={setCreatedFolders}
     />
   );
 

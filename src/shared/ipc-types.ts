@@ -24,6 +24,7 @@ export interface VaultIndex {
   tagMap: Record<string, string[]>;  // tag → [note paths]
   drawings: DrawingEntry[];
   reminders: NoteEntry[];            // subset with non-null reminder
+  folders: string[];                 // relative paths of all note-section subdirs (including empty)
 }
 
 export interface StrokePoint {

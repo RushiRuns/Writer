@@ -280,60 +280,58 @@ export default function NotesView({
               className={`${styles.paneContainer} ${isActivePane ? styles.paneActive : ''}`}
             >
               {/* Tab Bar Header */}
-              {!isZenMode && (
-                <div className={styles.tabBar}>
-                  <div className={styles.tabsList}>
-                    {pane.tabs.map((tab) => {
-                      const isActiveTab = pane.activeTabPath === tab.path;
-                      return (
-                        <div 
-                          key={tab.path}
-                          className={`${styles.tabItem} ${isActiveTab ? styles.tabActive : ''}`}
-                          onClick={() => handleSwitchTab(pane.id, tab.path)}
+              <div className={styles.tabBar}>
+                <div className={styles.tabsList}>
+                  {pane.tabs.map((tab) => {
+                    const isActiveTab = pane.activeTabPath === tab.path;
+                    return (
+                      <div 
+                        key={tab.path}
+                        className={`${styles.tabItem} ${isActiveTab ? styles.tabActive : ''}`}
+                        onClick={() => handleSwitchTab(pane.id, tab.path)}
+                      >
+                        <span className={styles.tabTitle}>{tab.title}</span>
+                        <button 
+                          className={styles.tabCloseBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCloseTab(pane.id, tab.path);
+                          }}
                         >
-                          <span className={styles.tabTitle}>{tab.title}</span>
-                          <button 
-                            className={styles.tabCloseBtn}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCloseTab(pane.id, tab.path);
-                            }}
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Pane Split/Close Controls */}
-                  <div className={styles.paneControls}>
-                    {panes.length === 1 ? (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSplitPane();
-                        }}
-                        className={styles.controlBtn}
-                        title="Split Vertically"
-                      >
-                        <Columns size={14} />
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleClosePane(pane.id);
-                        }}
-                        className={styles.controlBtn}
-                        title="Close Pane"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
+                          <X size={12} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+
+                {/* Pane Split/Close Controls */}
+                <div className={styles.paneControls}>
+                  {panes.length === 1 ? (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSplitPane();
+                      }}
+                      className={styles.controlBtn}
+                      title="Split Vertically"
+                    >
+                      <Columns size={14} />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClosePane(pane.id);
+                      }}
+                      className={styles.controlBtn}
+                      title="Close Pane"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Editor Workspace */}
               <div className={styles.paneContent}>

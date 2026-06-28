@@ -574,7 +574,7 @@ export default function Editor({
   };
 
   return (
-    <div className={`${styles.container} ${isZenMode ? styles.zenMode : ''} animate-fade-in`}>
+    <div className={`${styles.container} animate-fade-in`}>
       <div className={styles.mainWorkspace}>
         {/* CodeMirror Workspace container */}
         <div 
@@ -820,20 +820,18 @@ export default function Editor({
         </div>
 
         {/* Hover right-edge squeeze toggle button */}
-        {!isZenMode && (
-          <div 
-            className={`${styles.edgeToggleWrapper} ${showSidebar ? styles.sidebarOpen : ''}`}
-            onClick={() => setShowSidebar(!showSidebar)}
-          >
-            <button className={styles.edgeToggleBtn} title={showSidebar ? "Close inspector" : "Open inspector"}>
-              {showSidebar ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-            </button>
-          </div>
-        )}
+        <div 
+          className={`${styles.edgeToggleWrapper} ${showSidebar ? styles.sidebarOpen : ''}`}
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          <button className={styles.edgeToggleBtn} title={showSidebar ? "Close inspector" : "Open inspector"}>
+            {showSidebar ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+          </button>
+        </div>
       </div>
 
       {/* Inspector Sidebar Pane */}
-      {!isZenMode && showSidebar && (
+      {showSidebar && (
         <div className={styles.inspectorSidebar}>
           {/* Header */}
           <div className={styles.sidebarHeader}>

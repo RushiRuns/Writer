@@ -35,7 +35,7 @@ export default function NotesView({
   targetNotePath,
   onClearTargetNotePath
 }: NotesViewProps) {
-  const [activeFolder, setActiveFolder] = useState<string>('.');
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [targetSelectedPath, setTargetSelectedPath] = useState<string | null>(null);
 
   // Split tabs/editor panes state
@@ -119,7 +119,7 @@ export default function NotesView({
         parts.push(selectedNote.title);
         onBreadcrumbChange(parts.join(' > '));
       } else {
-        onBreadcrumbChange(activeFolder === '.' ? 'Notes' : `Notes > ${activeFolder.replace(/[/\\]/g, ' > ')}`);
+        onBreadcrumbChange(!activeFolder || activeFolder === '.' ? 'Notes' : `Notes > ${activeFolder.replace(/[/\\]/g, ' > ')}`);
       }
     }
     // Report active note path to App-level for export support
@@ -255,7 +255,7 @@ export default function NotesView({
   const renderPane3 = () => (
     <NoteList
       index={index}
-      activeFolder={activeFolder}
+      activeFolder={activeFolder!}
       selectedNote={selectedNote}
       onNoteSelect={handleNoteSelect}
       onNewNote={handleNewNote}
@@ -355,8 +355,8 @@ export default function NotesView({
     <div className={styles.container}>
       <ResizablePanels
         pane2={renderPane2()}
-        pane3={renderPane3()}
-        pane4={renderPane4()}
+        pane3={activeFolder !== null ? renderPane3() : undefined}
+        pane4={activeFolder !== null ? renderPane4() : undefined}
         pane2Width={pane2Width}
         setPane2Width={setPane2Width}
         pane3Width={pane3Width}

@@ -13,7 +13,7 @@ export interface TreeNode {
 
 interface FolderTreeProps {
   index: VaultIndex;
-  activeFolder: string;
+  activeFolder: string | null;
   onFolderSelect: (folderPath: string) => void;
   onNewNote: (folderPath: string) => void;
 }
@@ -109,7 +109,7 @@ export default function FolderTree({
         if (res.success && res.path) {
           if (activeFolder === folderPath) {
             onFolderSelect(res.path);
-          } else if (activeFolder.startsWith(folderPath + '/')) {
+          } else if (activeFolder && activeFolder.startsWith(folderPath + '/')) {
             onFolderSelect(activeFolder.replace(folderPath, res.path));
           }
         }
@@ -125,7 +125,7 @@ export default function FolderTree({
       try {
         const res = await (window as any).wrriter.deleteFolder(folderPath);
         if (res.success) {
-          if (activeFolder === folderPath || activeFolder.startsWith(folderPath + '/')) {
+          if (activeFolder === folderPath || (activeFolder && activeFolder.startsWith(folderPath + '/'))) {
             onFolderSelect('.');
           }
         }
@@ -282,6 +282,19 @@ export default function FolderTree({
 
       {/* Folders List Container */}
       <div className={styles.listArea}>
+        {/* All Notes (Root) Folder Row */}
+        <div
+          onClick={() => onFolderSelect('.')}
+          className={`group ${styles.row} ${activeFolder === '.' ? styles.active : ''}`}
+          style={{ paddingLeft: '8px' }}
+        >
+          <span style={{ width: '14px', display: 'inline-block' }} />
+          <svg className={styles.folderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          </svg>
+          <span className="truncate flex-grow select-none font-semibold">All Notes (Root)</span>
+        </div>
+
         {/* Inline Root Folder Creation Input */}
         {creatingInPath === '.' && (
           <div style={{ paddingLeft: '12px' }} className={styles.inlineInputWrapper}>

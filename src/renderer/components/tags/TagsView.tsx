@@ -155,8 +155,8 @@ export default function TagsView({ index, vaultPath }: TagsViewProps) {
     <div className={styles.container}>
       <ResizablePanels
         pane2={renderPane2()}
-        pane3={renderPane3()}
-        pane4={renderPane4()}
+        pane3={activeTag !== null ? renderPane3() : undefined}
+        pane4={activeTag !== null ? renderPane4() : undefined}
         pane2Width={pane2Width}
         setPane2Width={setPane2Width}
         pane3Width={pane3Width}

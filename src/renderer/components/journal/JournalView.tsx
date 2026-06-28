@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import Editor from '../editor/Editor';
+import { Plus, Calendar } from 'lucide-react';
 import styles from './JournalView.module.css';
 
 interface JournalViewProps {
@@ -31,28 +32,28 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
     return new Date(dateStr + 'T00:00:00');
   };
 
-  // Auto-create today's note on mount if it doesn't exist
-  useEffect(() => {
+  const handleCreateTodayEntry = async () => {
     const todayStr = getTodayStr();
     const todayExists = journalNotes.some(n => n.title === todayStr);
 
-    if (!todayExists && !isCreatingToday && !targetSelectedPath) {
-      setIsCreatingToday(true);
-      const createToday = async () => {
-        try {
-          const res = await (window as any).wrriter.createNote('Journal', todayStr);
-          if (res.success && res.path) {
-            setTargetSelectedPath(res.path);
-          }
-        } catch (err) {
-          console.error('Failed to auto-create today\'s journal note:', err);
-        } finally {
-          setIsCreatingToday(false);
-        }
-      };
-      createToday();
+    if (todayExists) {
+      const existing = journalNotes.find(n => n.title === todayStr);
+      if (existing) setSelectedNote(existing);
+      return;
     }
-  }, [journalNotes, isCreatingToday, targetSelectedPath]);
+
+    try {
+      setIsCreatingToday(true);
+      const res = await (window as any).wrriter.createNote('Journal', todayStr);
+      if (res.success && res.path) {
+        setTargetSelectedPath(res.path);
+      }
+    } catch (err) {
+      console.error("Failed to create today's journal note:", err);
+    } finally {
+      setIsCreatingToday(false);
+    }
+  };
 
   // Keep selection synchronized with vault index updates
   useEffect(() => {
@@ -146,15 +147,22 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
       {/* Date List Sidebar (Pane 2) */}
       <div className={styles.sidebar}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Journal</h1>
+          <button
+            onClick={handleCreateTodayEntry}
+            disabled={isCreatingToday}
+            className={styles.addTodayBtn}
+            title="Create today's journal entry"
+          >
+            <Plus size={14} />
+            <span>Add Today's Entry</span>
+          </button>
+          
           <button 
             onClick={handleCreateCustomDate} 
-            className={styles.newBtn} 
+            className={styles.customDateBtn} 
             title="Create entry for custom date"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+            <Calendar size={14} />
           </button>
         </div>
 

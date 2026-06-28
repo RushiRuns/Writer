@@ -3,9 +3,9 @@ import * as fs from 'fs/promises';
 import * as fsCb from 'fs';
 import * as path from 'path';
 import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+const cjsRequire = createRequire(__filename);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const archiver = require('archiver') as (format: string, options?: object) => import('archiver').Archiver;
+const archiver = cjsRequire('archiver') as (format: string, options?: object) => import('archiver').Archiver;
 import { 
   configStore, 
   settingsStore, 

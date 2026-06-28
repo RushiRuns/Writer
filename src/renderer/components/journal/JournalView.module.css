@@ -19,34 +19,54 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-glass);
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.newBtn {
-  background: transparent;
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  padding: 0.5rem;
-  cursor: pointer;
+.addTodayBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease-out;
+  gap: var(--space-2);
+  flex-grow: 1;
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.newBtn:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-  background-color: rgba(156, 163, 175, 0.05);
+.addTodayBtn:hover {
+  background-color: var(--bg-hover-light);
+  color: var(--text-primary);
+  border-color: var(--color-brand-amber);
+}
+
+.customDateBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.customDateBtn:hover {
+  background-color: var(--bg-hover-light);
+  color: var(--text-primary);
+  border-color: var(--color-brand-amber);
 }
 
 .scrollArea {

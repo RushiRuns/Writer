@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import Editor from '../editor/Editor';
 import { Plus, Calendar } from 'lucide-react';
@@ -55,8 +55,20 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
     }
   };
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerValue, setDatePickerValue] = useState('');
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCalendarClick = () => {
+    if (dateInputRef.current) {
+      try {
+        dateInputRef.current.showPicker();
+      } catch (err) {
+        // Fallback for older Chromium versions
+        dateInputRef.current.focus();
+        dateInputRef.current.click();
+      }
+    }
+  };
 
   // Keep selection synchronized with vault index updates
   useEffect(() => {
@@ -121,11 +133,13 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
     const selectedDate = e.target.value; // Format is YYYY-MM-DD
     if (!selectedDate) return;
 
+    // Reset value so selecting the same date later still fires onChange
+    setDatePickerValue('');
+
     const dateExists = journalNotes.some(n => n.title === selectedDate);
     if (dateExists) {
       const existing = journalNotes.find(n => n.title === selectedDate);
       if (existing) setSelectedNote(existing);
-      setShowDatePicker(false);
       return;
     }
 
@@ -136,8 +150,6 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
       }
     } catch (err) {
       console.error('Failed to create journal note:', err);
-    } finally {
-      setShowDatePicker(false);
     }
   };
 
@@ -157,35 +169,23 @@ export default function JournalView({ index, vaultPath }: JournalViewProps) {
           </button>
           
           <button 
-            onClick={() => {
-              setShowDatePicker(!showDatePicker);
-              if (!showDatePicker) {
-                setDatePickerValue(getTodayStr());
-              }
-            }} 
+            onClick={handleCalendarClick} 
             className={styles.customDateBtn} 
             title="Create entry for custom date"
           >
             <Calendar size={14} />
           </button>
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={datePickerValue}
+            onChange={handleDatePickerChange}
+            className={styles.hiddenDatePicker}
+          />
         </div>
 
         <div className={styles.scrollArea}>
-          {showDatePicker && (
-            <div className={styles.datePickerWrapper}>
-              <input
-                type="date"
-                value={datePickerValue}
-                onChange={handleDatePickerChange}
-                onBlur={() => setShowDatePicker(false)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') setShowDatePicker(false);
-                }}
-                autoFocus
-                className={styles.datePickerInput}
-              />
-            </div>
-          )}
+
 
           {groupedNotes.length === 0 ? (
             <div className={styles.emptyState}>

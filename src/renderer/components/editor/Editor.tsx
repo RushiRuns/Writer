@@ -88,6 +88,10 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   const [tags, setTags] = useState<string[]>([]);
   const [reminder, setReminder] = useState<string | null>(null);
   const [goal, setGoal] = useState<number>(0);
+  const [goalType, setGoalType] = useState<'note' | 'session'>('note');
+  const [celebrated, setCelebrated] = useState(false);
+  const [confetti, setConfetti] = useState<{ id: number; x: number; y: number; color: string; size: number }[]>([]);
+  const initialWordCount = useRef<number | null>(null);
 
   // Inspector panel UI states
   const [showSidebar, setShowSidebar] = useState(false);
@@ -106,11 +110,28 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   const [showReminderPopover, setShowReminderPopover] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
-  // Close popovers on note path change
+  // Close popovers and reset confetti on note path change
   useEffect(() => {
     setShowGoalPopover(false);
     setShowReminderPopover(false);
+    setCelebrated(false);
+    setConfetti([]);
   }, [note.path]);
+
+  const triggerConfetti = () => {
+    const colors = ['#10b981', '#e8a44b', '#3b82f6', '#ec4899', '#f59e0b'];
+    const newParticles = Array.from({ length: 40 }).map((_, i) => ({
+      id: Date.now() + i,
+      x: 35 + Math.random() * 30, // center around the target icon region (approx 35% - 65% from left)
+      y: 75 + Math.random() * 10,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: 6 + Math.random() * 6
+    }));
+    setConfetti(newParticles);
+    setTimeout(() => {
+      setConfetti([]);
+    }, 2500);
+  };
 
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -200,7 +221,8 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     text: string, 
     currentTags: string[], 
     currentReminder: string | null, 
-    currentGoal = goal
+    currentGoal = goal,
+    currentGoalType = goalType
   ) => {
     try {
       const lines = text.split('\n');
@@ -225,7 +247,8 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
         reminder: currentReminder,
         completed: note.completed,
         completed_at: note.completedAt,
-        goal: currentGoal
+        goal: currentGoal,
+        goal_type: currentGoalType
       };
 
       if (parsedTitle && parsedTitle !== note.title && note.section !== 'journal') {
@@ -249,8 +272,8 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   // Debounced auto-save hook
   const { forceSave } = useAutoSave(
     content,
-    (nextText) => {
-      saveNote(nextText, tags, reminder, goal);
+    async (nextText) => {
+      saveNote(nextText, tags, reminder, goal, goalType);
     },
     2000
   );
@@ -274,6 +297,11 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
         setTags(res.frontmatter.tags || []);
         setReminder(res.frontmatter.reminder || null);
         setGoal(res.frontmatter.goal || 0);
+        setGoalType(res.frontmatter.goal_type || 'note');
+
+        // Set starting word count for this session
+        const startingWords = displayContent.trim() ? displayContent.trim().split(/\s+/).length : 0;
+        initialWordCount.current = startingWords;
 
         if (viewRef.current) {
           viewRef.current.destroy();
@@ -346,17 +374,22 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
 
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
-    saveNote(content, newTags, reminder, goal);
+    saveNote(content, newTags, reminder, goal, goalType);
   };
 
   const handleReminderChange = (newReminder: string | null) => {
     setReminder(newReminder);
-    saveNote(content, tags, newReminder, goal);
+    saveNote(content, tags, newReminder, goal, goalType);
   };
 
   const handleGoalChange = (newGoal: number) => {
     setGoal(newGoal);
-    saveNote(content, tags, reminder, newGoal);
+    saveNote(content, tags, reminder, newGoal, goalType);
+  };
+
+  const handleGoalTypeChange = (newType: 'note' | 'session') => {
+    setGoalType(newType);
+    saveNote(content, tags, reminder, goal, newType);
   };
 
   const handleEditorBlur = () => {
@@ -445,9 +478,25 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
   const charCount = content.length;
   const lineCount = content.split('\n').filter(Boolean).length;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // 200 wpm
-  const goalProgress = goal > 0 ? Math.min(100, Math.round((wordCount / goal) * 100)) : 0;
+  
+  const sessionWords = Math.max(0, wordCount - (initialWordCount.current ?? wordCount));
+  const currentGoalProgressValue = goalType === 'session' ? sessionWords : wordCount;
+  const goalProgress = goal > 0 ? Math.min(100, Math.round((currentGoalProgressValue / goal) * 100)) : 0;
+
   const totalNotes = index.notes.length;
   const streak = calculateStreak(index.notes);
+
+  // Trigger celebration on crossing 100% threshold
+  useEffect(() => {
+    if (goal > 0 && goalProgress >= 100) {
+      if (!celebrated) {
+        setCelebrated(true);
+        triggerConfetti();
+      }
+    } else {
+      setCelebrated(false);
+    }
+  }, [goalProgress, goal, celebrated]);
 
   const formatTimerTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -473,6 +522,22 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
               <button onClick={() => setShowGoalPopover(false)}><X size={10} /></button>
             </div>
             <div className={styles.popoverBody}>
+              {/* Goal Type Toggles */}
+              <div className={styles.goalTypeTabs}>
+                <button
+                  onClick={() => handleGoalTypeChange('note')}
+                  className={`${styles.goalTypeTab} ${goalType === 'note' ? styles.activeTab : ''}`}
+                >
+                  Document
+                </button>
+                <button
+                  onClick={() => handleGoalTypeChange('session')}
+                  className={`${styles.goalTypeTab} ${goalType === 'session' ? styles.activeTab : ''}`}
+                >
+                  Session
+                </button>
+              </div>
+
               <div className={styles.goalInputWrapper}>
                 <input
                   type="number"
@@ -489,12 +554,17 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
                 <div className={styles.goalProgressWrapper}>
                   <div className={styles.goalProgressBar}>
                     <div 
-                      className={styles.goalProgressFill} 
+                      className={`${styles.goalProgressFill} ${goalProgress >= 100 ? styles.success : ''}`} 
                       style={{ width: `${goalProgress}%` }} 
                     />
                   </div>
                   <div className={styles.goalProgressText}>
-                    <span>{wordCount} / {goal} words</span>
+                    <span>
+                      {goalType === 'session' 
+                        ? `${sessionWords} / ${goal} words (session)` 
+                        : `${wordCount} / ${goal} words (total)`
+                      }
+                    </span>
                     <span>{goalProgress}%</span>
                   </div>
                 </div>
@@ -577,20 +647,37 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
             </div>
 
             {/* Writing Goal */}
+            {/* Confetti Explosion Particles */}
+            {confetti.map(p => (
+              <div
+                key={p.id}
+                className={styles.particle}
+                style={{
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  backgroundColor: p.color,
+                  width: `${p.size}px`,
+                  height: `${p.size}px`,
+                  '--dx': `${(Math.random() - 0.5) * 300}px`,
+                  '--dy': `${-100 - Math.random() * 200}px`,
+                } as React.CSSProperties}
+              />
+            ))}
+
             <div className={styles.bottomBarGroup}>
               <button 
                 onClick={() => {
                   setShowGoalPopover(!showGoalPopover);
                   setShowReminderPopover(false);
                 }} 
-                className={`${styles.bottomBarBtn} ${showGoalPopover ? styles.activeBtn : ''} ${goal > 0 ? styles.hasGoalBtn : ''}`}
+                className={`${styles.bottomBarBtn} ${showGoalPopover ? styles.activeBtn : ''} ${goal > 0 ? styles.hasGoalBtn : ''} ${goalProgress >= 100 ? styles.goalAchieved : ''}`}
                 title="Writing Goal"
               >
                 <Target size={13} />
               </button>
               {goal > 0 && (
-                <span className={styles.bottomBarText}>
-                  {goalProgress}%
+                <span className={`${styles.bottomBarText} ${goalProgress >= 100 ? styles.goalAchievedText : ''}`}>
+                  {goalType === 'session' ? `+${goalProgress}%` : `${goalProgress}%`}
                 </span>
               )}
             </div>

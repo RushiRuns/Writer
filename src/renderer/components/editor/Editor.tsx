@@ -3,7 +3,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { autocompletion } from '@codemirror/autocomplete';
-import { MoreHorizontal } from 'lucide-react';
+
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 import MetadataBar from './MetadataBar';
 import StatsPill from '../statistics/StatsPill';
@@ -26,6 +26,8 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
 
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+
+
 
   // Extract inline #tagname tags from content body
   const extractInlineTags = (text: string): string[] => {
@@ -185,39 +187,11 @@ export default function Editor({ note, index, onNoteSelect, onClose }: EditorPro
     forceSave();
   };
 
-  const renderBreadcrumb = () => {
-    const parts = ['Notes'];
-    if (note.folder && note.folder !== '.') {
-      parts.push(...note.folder.split(/[/\\]/));
-    }
-    parts.push(note.title);
 
-    return (
-      <div className={styles.breadcrumb}>
-        {parts.map((part, index) => (
-          <React.Fragment key={index}>
-            {index > 0 && <span className={styles.breadcrumbSeparator}>&gt;</span>}
-            <span className={index === parts.length - 1 ? styles.breadcrumbActive : styles.breadcrumbInactive}>
-              {part}
-            </span>
-          </React.Fragment>
-        ))}
-      </div>
-    );
-  };
 
   return (
     <div className={`${styles.container} animate-fade-in`}>
-      {/* Editor Header Breadcrumbs */}
-      <div className={styles.header}>
-        {renderBreadcrumb()}
-        <div className={styles.actions}>
-          <div className={styles.saveDot} title="All changes auto-saved" />
-          <button className={styles.ellipsisBtn} title="More actions">
-            <MoreHorizontal size={16} />
-          </button>
-        </div>
-      </div>
+
 
       {/* Metadata Bar */}
       <MetadataBar

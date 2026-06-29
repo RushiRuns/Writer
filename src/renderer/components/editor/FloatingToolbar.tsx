@@ -54,20 +54,25 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
         return;
       }
 
-      const toolbar = toolbarRef.current;
+      const container = toolbar?.parentElement || document.querySelector(`.${styles.tiptapEditorContainer}`);
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
       const toolbarWidth = toolbar?.offsetWidth ?? 320;
 
       const TOOLBAR_HEIGHT = 44;
       const MARGIN = 8;
 
-      // Position above the selection, centred. Fall back to below selection if not enough space.
-      const topAbove = rect.top - TOOLBAR_HEIGHT - MARGIN;
-      const topBelow = rect.bottom + MARGIN;
-      const top = topAbove >= 0 ? topAbove : topBelow;
+      // Position relative to the container. Fall back to below selection if not enough space.
+      const topAbove = rect.top - containerRect.top + container.scrollTop - TOOLBAR_HEIGHT - MARGIN;
+      const topBelow = rect.bottom - containerRect.top + container.scrollTop + MARGIN;
+      const top = (rect.top - containerRect.top - TOOLBAR_HEIGHT - MARGIN) >= 0 ? topAbove : topBelow;
 
-      // Clamp horizontally so it doesn't render off-screen
-      const rawLeft = rect.left + rect.width / 2 - toolbarWidth / 2;
-      const left = Math.max(MARGIN, Math.min(rawLeft, window.innerWidth - toolbarWidth - MARGIN));
+      // Clamp horizontally relative to container bounds
+      const rawLeft = rect.left - containerRect.left + container.scrollLeft + rect.width / 2 - toolbarWidth / 2;
+      const minLeft = MARGIN + container.scrollLeft;
+      const maxLeft = containerRect.width - toolbarWidth - MARGIN + container.scrollLeft;
+      const left = Math.max(minLeft, Math.min(rawLeft, maxLeft));
 
       setPosition({ top, left });
       setVisible(true);
@@ -89,7 +94,7 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
       ref={toolbarRef}
       className={styles.bubbleMenu}
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: position.top,
         left: position.left,
         zIndex: 9999,

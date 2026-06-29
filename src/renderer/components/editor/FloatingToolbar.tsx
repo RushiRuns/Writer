@@ -54,6 +54,7 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
         return;
       }
 
+      const toolbar = toolbarRef.current;
       const container = toolbar?.parentElement || document.querySelector(`.${styles.tiptapEditorContainer}`);
       if (!container) return;
 

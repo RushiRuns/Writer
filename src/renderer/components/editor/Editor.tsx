@@ -58,7 +58,10 @@ function TiptapEditorWrapper({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+        underline: false,
+      }),
       Markdown,
       Underline,
       Highlight.configure({
@@ -195,6 +198,21 @@ export function calculateStreak(notes: NoteEntry[]): number {
   return streak;
 }
 
+function toLocalDatetimeString(isoString: string | null): string {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '';
+  
+  const pad = (num: number) => String(num).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 interface EditorProps {
   note: NoteEntry;
   index: VaultIndex;
@@ -239,11 +257,13 @@ export default function Editor({
   const [showGoalPopover, setShowGoalPopover] = useState(false);
   const [showReminderPopover, setShowReminderPopover] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [tempReminder, setTempReminder] = useState<string>('');
 
   // Close popovers and reset confetti on note path change
   useEffect(() => {
     setShowGoalPopover(false);
     setShowReminderPopover(false);
+    setTempReminder('');
     setCelebrated(false);
     setConfetti([]);
   }, [note.path]);
@@ -505,12 +525,6 @@ export default function Editor({
     handleTagsChange(tags.filter(t => t !== tagToRemove));
   };
 
-  // Reminder Date Handlers
-  const handleReminderDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    handleReminderChange(val ? new Date(val).toISOString() : null);
-  };
-
   const formatReminderDate = (isoString: string | null) => {
     if (!isoString) return '';
     try {
@@ -724,7 +738,7 @@ export default function Editor({
               {reminder ? (
                 <div className={styles.popoverReminderActive}>
                   <span>Active: {formatReminderDate(reminder)}</span>
-                  <button onClick={() => handleReminderChange(null)} className={styles.popoverClearBtn}>
+                  <button type="button" onClick={() => handleReminderChange(null)} className={styles.popoverClearBtn}>
                     Clear Reminder
                   </button>
                 </div>
@@ -732,10 +746,21 @@ export default function Editor({
                 <div className={styles.reminderPickerWrapper}>
                   <input
                     type="datetime-local"
-                    onChange={handleReminderDateChange}
+                    value={tempReminder}
+                    onChange={(e) => setTempReminder(e.target.value)}
                     className={styles.reminderInput}
                   />
-                  <button className={styles.addReminderBtn}>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (tempReminder) {
+                        handleReminderChange(new Date(tempReminder).toISOString());
+                        setShowReminderPopover(false);
+                      }
+                    }}
+                    className={styles.addReminderBtn}
+                    disabled={!tempReminder}
+                  >
                     <Calendar size={12} className={styles.reminderIcon} />
                     <span>Set reminder</span>
                   </button>
@@ -847,6 +872,9 @@ export default function Editor({
                 onClick={() => {
                   setShowReminderPopover(!showReminderPopover);
                   setShowGoalPopover(false);
+                  if (!showReminderPopover) {
+                    setTempReminder(toLocalDatetimeString(reminder));
+                  }
                 }} 
                 className={`${styles.bottomBarBtn} ${showReminderPopover ? styles.activeBtn : ''} ${reminder ? styles.hasReminderBtn : ''}`}
                 title="Reminder"
@@ -954,32 +982,6 @@ export default function Editor({
                         </button>
                       )}
                     </div>
-                  </div>
-
-                  {/* Reminder picker */}
-                  <div className={styles.sidebarSectionGroup}>
-                    <label className={styles.sidebarLabel}>Reminder</label>
-                    {reminder ? (
-                      <div className={styles.reminderPill}>
-                        <Bell size={12} className={styles.reminderIcon} />
-                        <span className={styles.reminderText}>{formatReminderDate(reminder)}</span>
-                        <button onClick={() => handleReminderChange(null)} className={styles.clearReminderBtn} title="Clear reminder">
-                          <X size={10} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className={styles.reminderPickerWrapper}>
-                        <input
-                          type="datetime-local"
-                          onChange={handleReminderDateChange}
-                          className={styles.reminderInput}
-                        />
-                        <button className={styles.addReminderBtn}>
-                          <Calendar size={12} className={styles.reminderIcon} />
-                          <span>Set reminder</span>
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

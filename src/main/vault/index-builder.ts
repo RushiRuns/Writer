@@ -120,7 +120,11 @@ export async function processNoteFile(absolutePath: string, vaultRoot: string): 
     folder: path.dirname(relativePath),
     section: getSectionFromPath(relativePath),
     tags: mergedTags,
-    reminder: data.reminder || null,
+    reminder: data.reminder
+      ? (data.reminder instanceof Date
+          ? (!isNaN(data.reminder.getTime()) ? data.reminder.toISOString() : null)
+          : String(data.reminder))
+      : null,
     completed: !!data.completed,
     completedAt: data.completed_at || null,
     preview,

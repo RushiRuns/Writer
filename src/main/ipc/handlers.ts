@@ -26,6 +26,7 @@ import {
   triggerSyncthingScan, 
   testSyncthingConnection 
 } from '../syncthing/client';
+import { updateSchedulerReminders } from '../reminders/scheduler';
 
 export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () => void) {
   // Start file watcher if vault path is configured on startup
@@ -38,6 +39,7 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
         try {
           const idx = await buildVaultIndex(initialVaultPath);
           setActiveIndex(idx);
+          updateSchedulerReminders(idx.reminders);
         } catch (err) {
           console.error('Failed to build initial vault index:', err);
         }
@@ -80,6 +82,7 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
     try {
       const idx = await buildVaultIndex(vaultPath);
       setActiveIndex(idx);
+      updateSchedulerReminders(idx.reminders);
     } catch (err) {
       console.error('Failed to build vault index on open:', err);
     }
@@ -521,6 +524,7 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
         const idx = await buildVaultIndex(newVaultPath);
         setActiveIndex(idx);
         mainWindow.webContents.send('index:update', idx);
+        updateSchedulerReminders(idx.reminders);
       } catch (err) {
         console.error('Failed to build vault index after vault change:', err);
       }

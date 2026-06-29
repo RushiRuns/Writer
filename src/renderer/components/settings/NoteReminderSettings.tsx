@@ -79,7 +79,7 @@ export default function NoteReminderSettings({ index, onNavigateNote }: Props) {
             <span className={styles.rowTitle}>Note Reminders</span>
           </div>
           <p className={styles.rowDesc}>
-            Fire desktop notifications at the time set in a note's <code>reminder:</code> frontmatter field.
+            Fire desktop notifications at the time set using the reminder bell icon in the bottom bar of any note.
           </p>
         </div>
         <button className={styles.toggleBtn} onClick={handleToggle}>
@@ -105,7 +105,7 @@ export default function NoteReminderSettings({ index, onNavigateNote }: Props) {
           <Bell size={24} className={styles.emptyIcon} />
           <p className={styles.emptyText}>No reminders set</p>
           <p className={styles.emptyHint}>
-            Add a <code>reminder: 2026-06-30T09:00:00Z</code> field to any note's frontmatter.
+            Click the bell icon in the bottom bar of any note's editor to schedule a reminder.
           </p>
         </div>
       ) : (

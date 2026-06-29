@@ -227,6 +227,11 @@ function AppContent() {
         } else {
           setActiveSection(targetSection);
         }
+      } else if (action) {
+        // Handle direct note path navigation (e.g. clicked notification)
+        setShowSettings(false);
+        setActiveSection('notes');
+        setTargetNotePath(action);
       }
     });
 

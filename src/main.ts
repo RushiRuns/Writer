@@ -3,6 +3,7 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { setupIpcHandlers } from './main/ipc/handlers';
 import { hotkeysStore } from './main/vault/file-ops';
+import { initializeScheduler } from './main/reminders/scheduler';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -29,7 +30,7 @@ const registerDevToolsShortcut = (win: BrowserWindow) => {
   });
 };
 
-const createWindow = () => {
+const createWindow = async () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -63,6 +64,7 @@ const createWindow = () => {
 
   // Setup main process IPC listener bindings
   setupIpcHandlers(mainWindow, registerGlobalShortcuts);
+  await initializeScheduler(mainWindow);
 
   // Register renderer toggle floating window command
   ipcMain.handle('window:toggle-floating', () => {
@@ -212,8 +214,11 @@ const createTray = () => {
 };
 
 // Start setup when ready
-app.on('ready', () => {
-  createWindow();
+app.on('ready', async () => {
+  if (process.platform === 'win32') {
+    app.setAppUserModelId(app.name);
+  }
+  await createWindow();
   createTray();
 
   // Register global hotkeys

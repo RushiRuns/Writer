@@ -2,6 +2,7 @@ import { watch, FSWatcher } from 'chokidar';
 import { BrowserWindow } from 'electron';
 import { buildVaultIndex } from './index-builder';
 import { VaultIndex } from '../../shared/ipc-types';
+import { updateSchedulerReminders } from '../reminders/scheduler';
 
 let watcher: FSWatcher | null = null;
 let activeIndex: VaultIndex | null = null;
@@ -35,6 +36,7 @@ export function setupFileWatcher(vaultPath: string, mainWindow: BrowserWindow): 
         // Push updated index to renderer process
         mainWindow.webContents.send('index:update', newIndex);
         mainWindow.webContents.send('vault:onChange', { event: 'update', noteIndex: newIndex });
+        updateSchedulerReminders(newIndex.reminders);
       } catch (err) {
         console.error('Failed to rebuild vault index on file watcher trigger:', err);
       }

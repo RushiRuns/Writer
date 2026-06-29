@@ -1,0 +1,241 @@
+.timePicker {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  padding: var(--space-3);
+  width: 240px;
+  font-family: var(--font-ui);
+  user-select: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.timeDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.timeText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-neutral-200);
+}
+
+.ampmText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-neutral-400);
+  margin-left: var(--space-1);
+}
+
+.formatToggle {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.formatToggle:hover {
+  color: var(--color-brand-amber);
+  border-color: rgba(232, 164, 75, 0.4);
+  background-color: rgba(232, 164, 75, 0.1);
+}
+
+.timeSelectors {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  height: 200px;
+}
+
+.timeColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+  position: relative;
+}
+
+.columnLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-neutral-400);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  flex: 1;
+  text-align: center;
+}
+
+.stepBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  position: absolute;
+}
+
+.stepBtn:first-child {
+  left: 0;
+}
+
+.stepBtn:last-child {
+  right: 0;
+}
+
+.stepBtn:hover {
+  color: var(--color-brand-amber);
+  background-color: rgba(232, 164, 75, 0.1);
+}
+
+.timeSeparator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-neutral-400);
+  margin-top: 40px; /* Account for column header height */
+  height: 32px;
+}
+
+.scrollContainer {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-600) transparent;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 20%,
+    black 80%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 20%,
+    black 80%,
+    transparent 100%
+  );
+}
+
+.scrollContainer::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-600);
+  border-radius: 2px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-500);
+}
+
+.scrollPadding {
+  height: 96px; /* 3 * 32px */
+  flex-shrink: 0;
+}
+
+.timeOption {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  width: 100%;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.timeOption:hover {
+  color: var(--color-white);
+  background-color: var(--bg-hover-light);
+}
+
+.timeOption.selected {
+  color: var(--color-brand-amber);
+  background-color: rgba(232, 164, 75, 0.15);
+  font-weight: 600;
+  transform: scale(1.05);
+}
+
+.timeValue {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.optionAmPm {
+  font-size: 0.625rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--space-2);
+}
+
+.footerBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-brand-amber);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.footerBtn:hover {
+  color: var(--color-brand-amber);
+  background-color: rgba(232, 164, 75, 0.1);
+}
+
+.footerBtn:active {
+  transform: translateY(1px);
+}

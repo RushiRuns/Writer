@@ -151,6 +151,8 @@ import {
   Minimize2
 } from 'lucide-react';
 import ConfirmationModal from '../ui/ConfirmationModal';
+import DatePicker from '../ui/DatePicker';
+import TimePicker from '../ui/TimePicker';
 import styles from './Editor.module.css';
 
 export function calculateStreak(notes: NoteEntry[]): number {
@@ -198,21 +200,6 @@ export function calculateStreak(notes: NoteEntry[]): number {
   return streak;
 }
 
-function toLocalDatetimeString(isoString: string | null): string {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return '';
-  
-  const pad = (num: number) => String(num).padStart(2, '0');
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
 interface EditorProps {
   note: NoteEntry;
   index: VaultIndex;
@@ -256,14 +243,20 @@ export default function Editor({
   // Bottom popover visibility states
   const [showGoalPopover, setShowGoalPopover] = useState(false);
   const [showReminderPopover, setShowReminderPopover] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
-  const [tempReminder, setTempReminder] = useState<string>('');
+  const [tempReminderDate, setTempReminderDate] = useState<string>('');
+  const [tempReminderTime, setTempReminderTime] = useState<string>('');
 
   // Close popovers and reset confetti on note path change
   useEffect(() => {
     setShowGoalPopover(false);
     setShowReminderPopover(false);
-    setTempReminder('');
+    setShowDatePicker(false);
+    setShowTimePicker(false);
+    setTempReminderDate('');
+    setTempReminderTime('');
     setCelebrated(false);
     setConfetti([]);
   }, [note.path]);
@@ -744,29 +737,89 @@ export default function Editor({
                 </div>
               ) : (
                 <div className={styles.reminderPickerWrapper}>
-                  <input
-                    type="datetime-local"
-                    value={tempReminder}
-                    onChange={(e) => setTempReminder(e.target.value)}
-                    className={styles.reminderInput}
-                  />
+                  <div className={styles.pickerButtons}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDatePicker(true);
+                        setShowTimePicker(false);
+                      }}
+                      className={`${styles.pickerBtn} ${tempReminderDate ? styles.hasValue : ''}`}
+                    >
+                      <Calendar size={12} />
+                      <span>{tempReminderDate || 'Select Date'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTimePicker(true);
+                        setShowDatePicker(false);
+                      }}
+                      className={`${styles.pickerBtn} ${tempReminderTime ? styles.hasValue : ''}`}
+                    >
+                      <Clock size={12} />
+                      <span>{tempReminderTime || 'Select Time'}</span>
+                    </button>
+                  </div>
+                  
                   <button 
                     type="button"
                     onClick={() => {
-                      if (tempReminder) {
-                        handleReminderChange(new Date(tempReminder).toISOString());
+                      if (tempReminderDate && tempReminderTime) {
+                        const combinedDateTime = `${tempReminderDate}T${tempReminderTime}`;
+                        handleReminderChange(new Date(combinedDateTime).toISOString());
                         setShowReminderPopover(false);
                       }
                     }}
                     className={styles.addReminderBtn}
-                    disabled={!tempReminder}
+                    disabled={!tempReminderDate || !tempReminderTime}
                   >
-                    <Calendar size={12} className={styles.reminderIcon} />
+                    <Bell size={12} className={styles.reminderIcon} />
                     <span>Set reminder</span>
                   </button>
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Custom Date Picker */}
+        {showDatePicker && (
+          <div 
+            className={styles.pickerOverlay}
+            style={{ 
+              right: '96px',
+              bottom: showReminderPopover ? '200px' : '38px'
+            }}
+          >
+            <DatePicker
+              value={tempReminderDate}
+              onChange={(date) => {
+                setTempReminderDate(date);
+                setShowDatePicker(false);
+              }}
+              onClose={() => setShowDatePicker(false)}
+            />
+          </div>
+        )}
+
+        {/* Custom Time Picker */}
+        {showTimePicker && (
+          <div 
+            className={styles.pickerOverlay}
+            style={{ 
+              right: '96px',
+              bottom: showReminderPopover ? '200px' : '38px'
+            }}
+          >
+            <TimePicker
+              value={tempReminderTime}
+              onChange={(time) => {
+                setTempReminderTime(time);
+                setShowTimePicker(false);
+              }}
+              onClose={() => setShowTimePicker(false)}
+            />
           </div>
         )}
 
@@ -872,8 +925,22 @@ export default function Editor({
                 onClick={() => {
                   setShowReminderPopover(!showReminderPopover);
                   setShowGoalPopover(false);
-                  if (!showReminderPopover) {
-                    setTempReminder(toLocalDatetimeString(reminder));
+                  setShowDatePicker(false);
+                  setShowTimePicker(false);
+                  if (!showReminderPopover && reminder) {
+                    // Split existing reminder into date and time components
+                    const reminderDate = new Date(reminder);
+                    const dateStr = reminderDate.toISOString().split('T')[0];
+                    const timeStr = reminderDate.toTimeString().slice(0, 5);
+                    setTempReminderDate(dateStr);
+                    setTempReminderTime(timeStr);
+                  } else if (!showReminderPopover && !reminder) {
+                    // Initialize with current date and time
+                    const now = new Date();
+                    const dateStr = now.toISOString().split('T')[0];
+                    const timeStr = now.toTimeString().slice(0, 5);
+                    setTempReminderDate(dateStr);
+                    setTempReminderTime(timeStr);
                   }
                 }} 
                 className={`${styles.bottomBarBtn} ${showReminderPopover ? styles.activeBtn : ''} ${reminder ? styles.hasReminderBtn : ''}`}

@@ -1,0 +1,197 @@
+.datePicker {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  padding: var(--space-3);
+  width: 280px;
+  font-family: var(--font-ui);
+  user-select: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.monthYear {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  justify-content: space-between;
+}
+
+.monthYearBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.monthYearBtn:hover {
+  color: var(--color-brand-amber);
+  background-color: rgba(232, 164, 75, 0.1);
+}
+
+.monthYearDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  justify-content: center;
+}
+
+.monthName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-200);
+  min-width: 120px;
+  text-align: center;
+}
+
+.yearControls {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.yearBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  font-size: 10px;
+  width: 16px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.yearBtn:hover {
+  color: var(--color-brand-amber);
+  background-color: rgba(232, 164, 75, 0.1);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: var(--space-2);
+}
+
+.weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-neutral-500);
+  padding: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: var(--space-3);
+}
+
+.day {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-300);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  height: 32px;
+  width: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.day:hover {
+  color: var(--color-white);
+  background-color: var(--bg-hover-light);
+}
+
+.day.otherMonth {
+  color: var(--color-neutral-600);
+  font-weight: 400;
+}
+
+.day.otherMonth:hover {
+  color: var(--color-neutral-400);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.day.today {
+  background-color: rgba(232, 164, 75, 0.2);
+  color: var(--color-brand-amber);
+  font-weight: 600;
+  border: 1px solid rgba(232, 164, 75, 0.4);
+}
+
+.day.today:hover {
+  background-color: rgba(232, 164, 75, 0.3);
+  color: var(--color-brand-amber);
+}
+
+.day.selected {
+  background-color: var(--color-brand-amber);
+  color: #1a1a1a;
+  font-weight: 700;
+  transform: scale(1.05);
+}
+
+.day.selected:hover {
+  background-color: var(--color-brand-amber);
+  color: #1a1a1a;
+  transform: scale(1.05);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footerBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-brand-amber);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.footerBtn:hover {
+  color: var(--color-brand-amber);
+  background-color: rgba(232, 164, 75, 0.1);
+}
+
+.footerBtn:active {
+  transform: translateY(1px);
+}

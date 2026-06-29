@@ -170,6 +170,7 @@ export default function ArchiveView({ index, vaultPath }: ArchiveViewProps) {
             </div>
             <div className="flex-grow overflow-hidden">
               <Editor
+                key={selectedNote.path}
                 note={selectedNote}
                 index={index}
                 onNoteSelect={setSelectedNote}

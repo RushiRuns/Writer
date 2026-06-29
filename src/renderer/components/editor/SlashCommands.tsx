@@ -150,6 +150,9 @@ export const SlashCommands = Extension.create({
             },
           ].filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
         },
+        command: ({ editor, range, props }: any) => {
+          props.command({ editor, range });
+        },
         render: () => {
           let component: any;
           let popup: any;

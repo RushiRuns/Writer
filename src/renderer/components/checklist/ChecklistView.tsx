@@ -275,6 +275,7 @@ export default function ChecklistView({ sectionId, index, _vaultPath }: Checklis
       {selectedNoteForEdit && (
         <div className={`${styles.editorCol} animate-fade-in`}>
           <Editor
+            key={selectedNoteForEdit.path}
             note={selectedNoteForEdit}
             index={index}
             onNoteSelect={setSelectedNoteForEdit}

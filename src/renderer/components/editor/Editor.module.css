@@ -1081,7 +1081,8 @@
 
 /* Paragraph spacing */
 .editorAreaInner :global(.ProseMirror p) {
-  margin-bottom: 1rem;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 /* Code block styling */

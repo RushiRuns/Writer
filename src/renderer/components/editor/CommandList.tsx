@@ -57,6 +57,7 @@ export const CommandList = forwardRef<any, CommandListProps>((props, ref) => {
         <button
           key={index}
           className={`${styles.slashMenuItem} ${index === selectedIndex ? styles.slashMenuItemActive : ''}`}
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => selectItem(index)}
         >
           <div className={styles.slashMenuItemTitle}>{item.title}</div>

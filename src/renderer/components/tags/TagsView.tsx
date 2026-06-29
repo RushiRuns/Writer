@@ -144,6 +144,7 @@ export default function TagsView({ index, vaultPath }: TagsViewProps) {
     }
     return (
       <Editor
+        key={selectedNote.path}
         note={selectedNote}
         index={index}
         onNoteSelect={setSelectedNote}

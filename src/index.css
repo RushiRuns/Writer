@@ -794,6 +794,7 @@ body {
    ═══════════════════════════════════════════════════════════ */
 
 /* Grid texture */
+[data-texture="grid"] .ProseMirror,
 [data-texture="grid"] .cm-editor .cm-scroller,
 [data-texture="grid"] .cm-editor {
   background-image:
@@ -804,6 +805,7 @@ body {
 }
 
 /* Dots texture */
+[data-texture="dots"] .ProseMirror,
 [data-texture="dots"] .cm-editor .cm-scroller,
 [data-texture="dots"] .cm-editor {
   background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px) !important;
@@ -812,6 +814,7 @@ body {
 }
 
 /* Ruled texture (horizontal lines only) */
+[data-texture="ruled"] .ProseMirror,
 [data-texture="ruled"] .cm-editor .cm-scroller,
 [data-texture="ruled"] .cm-editor {
   background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px) !important;
@@ -820,6 +823,7 @@ body {
 }
 
 /* Paper texture (subtle cross-hatch + noise feel) */
+[data-texture="paper"] .ProseMirror,
 [data-texture="paper"] .cm-editor .cm-scroller,
 [data-texture="paper"] .cm-editor {
   background-image:
@@ -830,6 +834,7 @@ body {
 }
 
 /* None — explicit reset */
+[data-texture="none"] .ProseMirror,
 [data-texture="none"] .cm-editor .cm-scroller,
 [data-texture="none"] .cm-editor {
   background-image: none !important;

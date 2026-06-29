@@ -17,48 +17,10 @@ import FloatingToolbar from './FloatingToolbar';
 
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 
-// Headless editor instance for Markdown <-> HTML boundary conversions.
-// Lives outside React so it is created once and reused across note switches.
-let headlessEditorInstance: TiptapEditor | null = null;
-function getHeadlessEditor(): TiptapEditor {
-  if (!headlessEditorInstance) {
-    headlessEditorInstance = new TiptapEditorClass({
-      extensions: [
-        StarterKit,
-        Markdown,
-        WikiLink,
-        Underline,
-        Highlight,
-        TextStyle,
-        Color,
-        TextAlign.configure({
-          types: ['heading', 'paragraph'],
-        }),
-        Link,
-      ],
-      content: '',
-    });
-  }
-  return headlessEditorInstance;
-}
-
-export function markdownToHtml(markdown: string): string {
-  const h = getHeadlessEditor();
-  h.commands.setContent(markdown, { emitUpdate: false });
-  return h.getHTML();
-}
-
-export function htmlToMarkdown(html: string): string {
-  const h = getHeadlessEditor();
-  h.commands.setContent(html, { emitUpdate: false });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (h.storage.markdown as any).getMarkdown() as string;
-}
-
 interface TiptapEditorWrapperProps {
   note: NoteEntry;
   index: VaultIndex;
-  onContentChange: (content: string) => void;
+  onContentChange: (content: string, isInitial?: boolean) => void;
   onNoteSelect: (note: NoteEntry | null) => void;
   onBlur: () => void;
 }
@@ -82,9 +44,8 @@ function TiptapEditorWrapper({
         if (!displayContent.trim().startsWith('# ')) {
           displayContent = `# ${note.title}\n\n${displayContent.trim()}`;
         }
-        const htmlContent = markdownToHtml(displayContent);
-        setInitialContent(htmlContent);
-        onContentChange(displayContent);
+        setInitialContent(displayContent);
+        onContentChange(displayContent, true);
       } catch (err) {
         console.error('Failed to load note content in wrapper:', err);
       }
@@ -98,6 +59,7 @@ function TiptapEditorWrapper({
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Markdown,
       Underline,
       Highlight.configure({
         multicolor: true,
@@ -127,14 +89,14 @@ function TiptapEditorWrapper({
     ],
     content: '',
     onUpdate: ({ editor }) => {
-      onContentChange(htmlToMarkdown(editor.getHTML()));
+      onContentChange(editor.getMarkdown());
     },
     onBlur,
   });
 
   useEffect(() => {
     if (editor && initialContent !== null) {
-      editor.commands.setContent(initialContent, { emitUpdate: false });
+      editor.commands.setContent(initialContent, { emitUpdate: false, contentType: 'markdown' });
       editor.commands.focus('end');
     }
   }, [editor, initialContent]);
@@ -437,13 +399,20 @@ export default function Editor({
   };
 
   // Debounced auto-save hook
-  const { forceSave } = useAutoSave(
+  const { forceSave, resetSavedRef } = useAutoSave(
     content,
     async (nextText) => {
       saveNote(nextText, tags, reminder, goal, goalType);
     },
     2000
   );
+
+  const handleContentChange = (nextContent: string, isInitial = false) => {
+    setContent(nextContent);
+    if (isInitial) {
+      resetSavedRef(nextContent);
+    }
+  };
 
   // Load settings on note path change
   useEffect(() => {
@@ -664,7 +633,7 @@ export default function Editor({
             key={note.path}
             note={note}
             index={index}
-            onContentChange={setContent}
+            onContentChange={handleContentChange}
             onNoteSelect={onNoteSelect}
             onBlur={handleEditorBlur}
           />

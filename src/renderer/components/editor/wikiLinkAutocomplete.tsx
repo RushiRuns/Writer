@@ -53,6 +53,9 @@ export const WikiLinkAutocomplete = Extension.create({
               },
             }));
         },
+        command: ({ editor, range, props }: any) => {
+          props.command({ editor, range });
+        },
         render: () => {
           let component: any;
           let popup: any;

@@ -236,6 +236,7 @@ export default function JournalView({ index, vaultPath, isZenMode = false, onTog
       <div className={styles.editorPane} style={isZenMode ? { flexGrow: 1 } : undefined}>
         {selectedNote ? (
           <Editor
+            key={selectedNote.path}
             note={selectedNote}
             index={index}
             onNoteSelect={setSelectedNote}

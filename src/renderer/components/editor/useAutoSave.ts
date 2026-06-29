@@ -8,11 +8,27 @@ export function useAutoSave(
   const savedContentRef = useRef(content);
   const onSaveRef = useRef(onSave);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const contentRef = useRef(content);
 
   // Sync references to avoid breaking useEffect dependencies
   useEffect(() => {
     onSaveRef.current = onSave;
   }, [onSave]);
+
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (contentRef.current !== savedContentRef.current) {
+        onSaveRef.current(contentRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Keep reference updated when parent updates selection or resets content

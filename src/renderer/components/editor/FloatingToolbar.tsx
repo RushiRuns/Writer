@@ -1,6 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Editor } from '@tiptap/react';
-import { Bold, Italic, Strikethrough, Code } from 'lucide-react';
+import { 
+  Bold, 
+  Italic, 
+  Underline as UnderlineIcon, 
+  Strikethrough, 
+  Code, 
+  Highlighter, 
+  Palette, 
+  AlignLeft, 
+  AlignCenter, 
+  AlignRight 
+} from 'lucide-react';
 import styles from './Editor.module.css';
 
 interface FloatingToolbarProps {
@@ -44,7 +55,7 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
       }
 
       const toolbar = toolbarRef.current;
-      const toolbarWidth = toolbar?.offsetWidth ?? 160;
+      const toolbarWidth = toolbar?.offsetWidth ?? 320;
 
       // Position above the selection, centred
       const top = rect.top + window.scrollY - 44;
@@ -79,6 +90,7 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
       // Prevent mousedown from collapsing the selection
       onMouseDown={(e) => e.preventDefault()}
     >
+      {/* Inline styles */}
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
         className={`${styles.bubbleMenuBtn}${editor.isActive('bold') ? ` ${styles.active}` : ''}`}
@@ -94,6 +106,13 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
         <Italic size={14} />
       </button>
       <button
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        className={`${styles.bubbleMenuBtn}${editor.isActive('underline') ? ` ${styles.active}` : ''}`}
+        title="Underline"
+      >
+        <UnderlineIcon size={14} />
+      </button>
+      <button
         onClick={() => editor.chain().focus().toggleStrike().run()}
         className={`${styles.bubbleMenuBtn}${editor.isActive('strike') ? ` ${styles.active}` : ''}`}
         title="Strikethrough"
@@ -106,6 +125,55 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
         title="Inline Code"
       >
         <Code size={14} />
+      </button>
+
+      <span className={styles.toolbarDivider} />
+
+      {/* Highlighter and Text Color */}
+      <button
+        onClick={() => editor.chain().focus().toggleHighlight({ color: '#e8a44b' }).run()}
+        className={`${styles.bubbleMenuBtn}${editor.isActive('highlight', { color: '#e8a44b' }) ? ` ${styles.active}` : ''}`}
+        title="Highlight"
+      >
+        <Highlighter size={14} />
+      </button>
+      <button
+        onClick={() => {
+          if (editor.isActive('textStyle', { color: '#e8a44b' })) {
+            editor.chain().focus().unsetColor().run();
+          } else {
+            editor.chain().focus().setColor('#e8a44b').run();
+          }
+        }}
+        className={`${styles.bubbleMenuBtn}${editor.isActive('textStyle', { color: '#e8a44b' }) ? ` ${styles.active}` : ''}`}
+        title="Text Color"
+      >
+        <Palette size={14} />
+      </button>
+
+      <span className={styles.toolbarDivider} />
+
+      {/* Text Alignment */}
+      <button
+        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        className={`${styles.bubbleMenuBtn}${editor.isActive({ textAlign: 'left' }) ? ` ${styles.active}` : ''}`}
+        title="Align Left"
+      >
+        <AlignLeft size={14} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        className={`${styles.bubbleMenuBtn}${editor.isActive({ textAlign: 'center' }) ? ` ${styles.active}` : ''}`}
+        title="Align Center"
+      >
+        <AlignCenter size={14} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        className={`${styles.bubbleMenuBtn}${editor.isActive({ textAlign: 'right' }) ? ` ${styles.active}` : ''}`}
+        title="Align Right"
+      >
+        <AlignRight size={14} />
       </button>
     </div>
   );

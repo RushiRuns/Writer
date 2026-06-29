@@ -1200,5 +1200,12 @@
   color: var(--text-primary);
 }
 
+.toolbarDivider {
+  width: 1px;
+  background-color: var(--border-subtle);
+  margin: 4px 2px;
+  align-self: stretch;
+}
+
 
 

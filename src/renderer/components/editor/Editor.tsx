@@ -1,13 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import type { Editor as TiptapEditor } from '@tiptap/core';
+import { Editor as TiptapEditorClass } from '@tiptap/core';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
+import Underline from '@tiptap/extension-underline';
+import Highlight from '@tiptap/extension-highlight';
+import TextAlign from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import Link from '@tiptap/extension-link';
 import { WikiLink } from './WikiLink';
 import { SlashCommands } from './SlashCommands';
 import { WikiLinkAutocomplete } from './wikiLinkAutocomplete';
 import FloatingToolbar from './FloatingToolbar';
 
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
+
+// Headless editor instance for Markdown <-> HTML boundary conversions.
+// Lives outside React so it is created once and reused across note switches.
+let headlessEditorInstance: TiptapEditor | null = null;
+function getHeadlessEditor(): TiptapEditor {
+  if (!headlessEditorInstance) {
+    headlessEditorInstance = new TiptapEditorClass({
+      extensions: [
+        StarterKit,
+        Markdown,
+        WikiLink,
+        Underline,
+        Highlight,
+        TextStyle,
+        Color,
+        TextAlign.configure({
+          types: ['heading', 'paragraph'],
+        }),
+        Link,
+      ],
+      content: '',
+    });
+  }
+  return headlessEditorInstance;
+}
+
+export function markdownToHtml(markdown: string): string {
+  const h = getHeadlessEditor();
+  h.commands.setContent(markdown, { emitUpdate: false });
+  return h.getHTML();
+}
+
+export function htmlToMarkdown(html: string): string {
+  const h = getHeadlessEditor();
+  h.commands.setContent(html, { emitUpdate: false });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (h.storage.markdown as any).getMarkdown() as string;
+}
 
 interface TiptapEditorWrapperProps {
   note: NoteEntry;
@@ -36,7 +82,8 @@ function TiptapEditorWrapper({
         if (!displayContent.trim().startsWith('# ')) {
           displayContent = `# ${note.title}\n\n${displayContent.trim()}`;
         }
-        setInitialContent(displayContent);
+        const htmlContent = markdownToHtml(displayContent);
+        setInitialContent(htmlContent);
         onContentChange(displayContent);
       } catch (err) {
         console.error('Failed to load note content in wrapper:', err);
@@ -51,7 +98,18 @@ function TiptapEditorWrapper({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Markdown,
+      Underline,
+      Highlight.configure({
+        multicolor: true,
+      }),
+      TextStyle as any,
+      Color,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Link.configure({
+        openOnClick: false,
+      }),
       WikiLink.configure({
         onClick: (title) => {
           const targetNote = index.notes.find(
@@ -69,7 +127,7 @@ function TiptapEditorWrapper({
     ],
     content: '',
     onUpdate: ({ editor }) => {
-      onContentChange(editor.getMarkdown());
+      onContentChange(htmlToMarkdown(editor.getHTML()));
     },
     onBlur,
   });

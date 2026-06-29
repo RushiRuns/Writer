@@ -55,11 +55,13 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
       }
 
       const toolbar = toolbarRef.current;
-      const container = toolbar?.parentElement || document.querySelector(`.${styles.tiptapEditorContainer}`);
+      if (!toolbar) return;
+      
+      const container = toolbar.parentElement;
       if (!container) return;
 
       const containerRect = container.getBoundingClientRect();
-      const toolbarWidth = toolbar?.offsetWidth ?? 320;
+      const toolbarWidth = toolbar.offsetWidth || 320;
 
       const TOOLBAR_HEIGHT = 44;
       const MARGIN = 8;
@@ -67,6 +69,18 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
       // Position relative to the container. Fall back to below selection if not enough space.
       const topAbove = rect.top - containerRect.top + container.scrollTop - TOOLBAR_HEIGHT - MARGIN;
       const topBelow = rect.bottom - containerRect.top + container.scrollTop + MARGIN;
+
+      // Determine if selection is visible within the container's viewport bounds
+      const isSelectionVisible = (
+        rect.bottom >= containerRect.top &&
+        rect.top <= containerRect.bottom
+      );
+
+      if (!isSelectionVisible) {
+        setVisible(false);
+        return;
+      }
+
       const top = (rect.top - containerRect.top - TOOLBAR_HEIGHT - MARGIN) >= 0 ? topAbove : topBelow;
 
       // Clamp horizontally relative to container bounds
@@ -82,13 +96,19 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
     editor.on('selectionUpdate', update);
     editor.on('transaction', update);
 
+    const container = toolbarRef.current?.parentElement;
+    if (container) {
+      container.addEventListener('scroll', update, { passive: true });
+    }
+
     return () => {
       editor.off('selectionUpdate', update);
       editor.off('transaction', update);
+      if (container) {
+        container.removeEventListener('scroll', update);
+      }
     };
   }, [editor]);
-
-  if (!visible) return null;
 
   return (
     <div
@@ -99,7 +119,10 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
         top: position.top,
         left: position.left,
         zIndex: 9999,
-        pointerEvents: 'auto',
+        pointerEvents: visible ? 'auto' : 'none',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(4px)',
+        transition: 'opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
       // Prevent mousedown from collapsing the selection
       onMouseDown={(e) => e.preventDefault()}

@@ -16,7 +16,7 @@ import { WikiLinkAutocomplete } from './wikiLinkAutocomplete';
 import FloatingToolbar from './FloatingToolbar';
 
 // New extensions for advanced text tools
-import Table from '@tiptap/extension-table';
+import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
@@ -85,7 +85,6 @@ function TiptapEditorWrapper({
         codeBlock: false,  // Use CodeBlockLowlight
       }),
       Markdown.configure({
-        html: true,
         markedOptions: {
           gfm: true,
         },

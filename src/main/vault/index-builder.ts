@@ -132,8 +132,8 @@ export async function processNoteFile(absolutePath: string, vaultRoot: string): 
     section: getSectionFromPath(relativePath),
     tags: mergedTags,
     reminder: data.reminder
-      ? (data.reminder instanceof Date
-          ? (!isNaN(data.reminder.getTime()) ? data.reminder.toISOString() : null)
+      ? ((data.reminder as any) instanceof Date
+          ? (!isNaN((data.reminder as any).getTime()) ? (data.reminder as any).toISOString() : null)
           : String(data.reminder))
       : null,
     completed: !!data.completed,

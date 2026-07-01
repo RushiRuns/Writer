@@ -152,10 +152,10 @@
 
 /* Accordion sections */
 .accordionSection {
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  background-color: rgba(10, 10, 10, 0.2);
-  overflow: hidden;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: transparent;
+  overflow: visible;
 }
 
 .accordionHeader {
@@ -163,17 +163,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2-5) var(--space-3.5);
+  padding: 12px 0;
   background: transparent;
   border: none;
-  color: var(--color-neutral-300);
+  color: var(--color-neutral-400, #a3a3a3);
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .accordionHeader:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: transparent;
   color: var(--color-white);
 }
 
@@ -186,12 +186,12 @@
 }
 
 .accordionBody {
-  padding: var(--space-3.5);
-  border-top: 1px solid var(--border-subtle);
+  padding: 8px 0 12px 0;
+  border-top: none;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3.5);
-  background-color: rgba(0, 0, 0, 0.15);
+  gap: var(--space-2);
+  background-color: transparent;
 }
 
 /* Sub-group layout */
@@ -227,12 +227,12 @@
 .tagPill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-sm);
-  background-color: rgba(156, 163, 175, 0.06);
-  border: 1px solid rgba(156, 163, 175, 0.12);
-  color: var(--color-brand-amber);
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  background-color: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--color-neutral-200, #e5e5e5);
   font-size: 0.75rem;
   font-family: var(--font-ui);
 }
@@ -259,27 +259,24 @@
 .addTagBtn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: 2px var(--space-2);
+  gap: 4px;
+  padding: 2px 4px;
   border-radius: var(--radius-sm);
-  border: 1px dashed var(--border-subtle);
+  border: none;
   background: transparent;
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-500, #737373);
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .addTagBtn:hover {
-  color: var(--color-brand-amber);
-  border-color: var(--color-brand-amber);
-  background-color: rgba(232, 164, 75, 0.05);
+  color: var(--color-white);
 }
 
 .newTagInput {
-  background-color: var(--bg-input-dark);
-  border: 1px solid var(--color-brand-amber);
-  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
   color: var(--text-primary);
   font-size: 0.75rem;
   padding: 2px 6px;
@@ -1703,14 +1700,13 @@
   font-weight: bold;
 }
 
-/* Sidebar Overhaul Styles */
 .sidebarEmptyState {
   font-family: var(--font-ui, sans-serif);
-  font-size: 0.75rem;
-  color: var(--color-neutral-500, #737373);
-  font-style: italic;
-  text-align: center;
-  padding: var(--space-4) 0;
+  font-size: 0.8125rem;
+  color: #4b5f70;
+  text-align: left;
+  padding: var(--space-2) 0;
+  font-style: normal;
 }
 
 /* Outline styling */
@@ -1940,13 +1936,13 @@
 
 /* Tags Box Container matching mock image */
 .tagsBoxContainer {
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md, 6px);
-  padding: var(--space-2);
+  padding: 6px 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1.5);
+  gap: 6px;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.15);
   width: 100%;
 }

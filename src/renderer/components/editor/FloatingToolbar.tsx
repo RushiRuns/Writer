@@ -20,8 +20,8 @@ import {
   ChevronRight,
   Minus,
   Trash2,
-  MergeCells,
-  Split,
+  TableCellsMerge,
+  TableCellsSplit,
   Table as TableIcon,
   Image as ImageIcon
 } from 'lucide-react';
@@ -387,14 +387,14 @@ export default function FloatingToolbar({ editor }: FloatingToolbarProps) {
                 className={styles.bubbleMenuBtn}
                 title="Merge Cells"
               >
-                <MergeCells size={14} />
+                <TableCellsMerge size={14} />
               </button>
               <button
                 onClick={() => editor.chain().focus().splitCell().run()}
                 className={styles.bubbleMenuBtn}
                 title="Split Cell"
               >
-                <Split size={14} />
+                <TableCellsSplit size={14} />
               </button>
 
               <span className={styles.toolbarDivider} />

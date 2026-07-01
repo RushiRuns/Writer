@@ -35,6 +35,8 @@ export const wikiLinkTokenizer = {
 export const WikiLink = Mark.create<WikiLinkOptions>({
   name: 'wikiLink',
 
+  markdownTokenizer: wikiLinkTokenizer,
+
   addOptions() {
     return {
       onClick: undefined,
@@ -68,12 +70,6 @@ export const WikiLink = Mark.create<WikiLinkOptions>({
 
   renderHTML({ HTMLAttributes }) {
     return ['span', { ...this.options.HTMLAttributes, ...HTMLAttributes }, 0];
-  },
-
-  addStorage() {
-    return {
-      markdownTokenizer: wikiLinkTokenizer,
-    };
   },
 
   parseMarkdown(token: any, helpers: any) {

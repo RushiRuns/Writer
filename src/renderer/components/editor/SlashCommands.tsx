@@ -13,25 +13,6 @@ export const SlashCommands = Extension.create({
       suggestion: {
         char: '/',
         startOfLine: true,
-        findSuggestionMatch: ({ $position }: any) => {
-          const textBefore = $position.parent.textBetween(
-            0,
-            $position.parentOffset,
-            null,
-            '\0'
-          );
-          const match = /^\/([^\s]*)$/.exec(textBefore);
-          if (match) {
-            const from = $position.pos - match[0].length;
-            const to = $position.pos;
-            return {
-              range: { from, to },
-              query: match[1],
-              text: match[0],
-            };
-          }
-          return null;
-        },
         items: ({ query }: { query: string }) => {
           return [
             {
@@ -335,10 +316,7 @@ export const SlashCommands = Extension.create({
             },
           ].filter(item => {
             const search = (query || '').toLowerCase();
-            return (
-              item.title.toLowerCase().includes(search) || 
-              (item.group && item.group.toLowerCase().includes(search))
-            );
+            return item.title.toLowerCase().startsWith(search);
           });
         },
         command: ({ editor, range, props }: any) => {

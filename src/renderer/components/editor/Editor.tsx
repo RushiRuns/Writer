@@ -315,6 +315,8 @@ export default function Editor({
   const [copied, setCopied] = useState(false);
   const [newTagText, setNewTagText] = useState('');
   const [showAddTag, setShowAddTag] = useState(false);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'outline' | 'meta'>('outline');
   const [activeHeadingPos, setActiveHeadingPos] = useState<number>(-1);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -593,15 +595,63 @@ export default function Editor({
     forceSave();
   };
 
+  // Tag suggestions calculation
+  useEffect(() => {
+    if (!newTagText.trim()) {
+      setTagSuggestions([]);
+      return;
+    }
+    const query = newTagText.trim().toLowerCase().replace(/#/g, '');
+    const allTags = Object.keys(index.tagMap || {});
+    const filtered = allTags.filter(t => t.startsWith(query) && !tags.includes(t));
+    setTagSuggestions(filtered);
+    setSelectedSuggestionIndex(0);
+  }, [newTagText, index.tagMap, tags]);
+
+  const handleSelectSuggestion = (tag: string) => {
+    if (tag && !tags.includes(tag)) {
+      handleTagsChange([...tags, tag]);
+    }
+    setNewTagText('');
+    setShowAddTag(false);
+    setTagSuggestions([]);
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (tagSuggestions.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => (prev + 1) % tagSuggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => (prev - 1 + tagSuggestions.length) % tagSuggestions.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const selected = tagSuggestions[selectedSuggestionIndex];
+      if (selected) {
+        handleSelectSuggestion(selected);
+      }
+    } else if (e.key === 'Escape') {
+      setShowAddTag(false);
+    }
+  };
+
   // Tag Management Handlers
   const handleAddTag = (e: React.FormEvent) => {
     e.preventDefault();
+    if (tagSuggestions.length > 0 && selectedSuggestionIndex < tagSuggestions.length) {
+      const selected = tagSuggestions[selectedSuggestionIndex];
+      handleSelectSuggestion(selected);
+      return;
+    }
     const cleanTag = newTagText.trim().toLowerCase().replace(/#/g, '');
     if (cleanTag && !tags.includes(cleanTag)) {
       handleTagsChange([...tags, cleanTag]);
-      setNewTagText('');
-      setShowAddTag(false);
     }
+    setNewTagText('');
+    setShowAddTag(false);
+    setTagSuggestions([]);
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
@@ -1176,9 +1226,7 @@ export default function Editor({
         <div className={styles.inspectorSidebar}>
           {/* Header */}
           <div className={styles.sidebarHeader}>
-            <div className={styles.headerLeftPlaceholder}>
-              <AudioManager />
-            </div>
+            <div className={styles.headerLeftPlaceholder} />
             
             {/* Tab Toggle Group */}
             <div className={styles.tabToggleGroup}>
@@ -1252,16 +1300,31 @@ export default function Editor({
                         ))}
 
                         {showAddTag ? (
-                          <form onSubmit={handleAddTag} className={styles.addTagForm}>
+                          <form onSubmit={handleAddTag} className={styles.addTagForm} style={{ position: 'relative' }}>
                             <input
                               type="text"
                               value={newTagText}
                               onChange={(e) => setNewTagText(e.target.value)}
                               placeholder="new tag..."
                               autoFocus
-                              onBlur={() => setShowAddTag(false)}
+                              onBlur={() => setTimeout(() => setShowAddTag(false), 200)}
                               className={styles.newTagInput}
+                              onKeyDown={handleTagInputKeyDown}
                             />
+                            {tagSuggestions.length > 0 && (
+                              <div className={styles.tagSuggestionsDropdown}>
+                                {tagSuggestions.map((sug, idx) => (
+                                  <div
+                                    key={sug}
+                                    className={`${styles.tagSuggestionItem} ${idx === selectedSuggestionIndex ? styles.tagSuggestionItemActive : ''}`}
+                                    onClick={() => handleSelectSuggestion(sug)}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                  >
+                                    #{sug}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </form>
                         ) : (
                           <button onClick={() => setShowAddTag(true)} className={styles.addTagBtn} title="Add Tag">

@@ -43,6 +43,10 @@ export const CustomBlockquote = Blockquote.extend({
           } else {
             // Remove the [!NOTE] prefix token from paragraph content array
             content[0].content.shift();
+            // If the next token is a softbreak, remove it too to prevent leading newlines
+            if (content[0].content[0] && content[0].content[0].type === 'softbreak') {
+              content[0].content.shift();
+            }
           }
         }
       }
@@ -57,15 +61,31 @@ export const CustomBlockquote = Blockquote.extend({
 
   // Custom markdown rendering
   renderMarkdown: (node: any, helpers: any) => {
-    const type = node.attrs.type;
-    const innerContent = helpers.renderChildren(node);
-    
-    if (type) {
-      const prefix = `[!${type.toUpperCase()}]`;
-      // Prepend [!TYPE] to the markdown blockquote content
-      return `> ${prefix}\n${innerContent.split('\n').map((line: string) => `> ${line}`).join('\n')}\n\n`;
+    if (!node.content) {
+      return "";
     }
+    const type = node.attrs.type;
+    const prefix = ">";
+    const result: string[] = [];
     
-    return `> ${innerContent.split('\n').map((line: string) => `> ${line}`).join('\n')}\n\n`;
+    node.content.forEach((child: any, index: number) => {
+      let childContent = helpers.renderChild?.(child, index) ?? helpers.renderChildren([child]);
+      
+      // If this is the first child and we have a callout type, prepend [!TYPE]
+      if (index === 0 && type) {
+        childContent = `[!${type.toUpperCase()}]\n${childContent}`;
+      }
+      
+      const lines = childContent.split("\n");
+      const linesWithPrefix = lines.map((line: string) => {
+        if (line.trim() === "") {
+          return prefix;
+        }
+        return `${prefix} ${line}`;
+      });
+      result.push(linesWithPrefix.join("\n"));
+    });
+    
+    return result.join(`\n${prefix}\n`);
   }
 } as any);

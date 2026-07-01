@@ -21,7 +21,7 @@ export const wikiLinkTokenizer = {
   level: 'inline' as const,
   start: (src: string) => src.match(/\[\[/)?.index,
   tokenize(src: string) {
-    const match = src.match(/^\[\[([a-zA-Z0-9_\-\s]+)\]\]/);
+    const match = src.match(/^\[\[([^\]\n]+)\]\]/);
     if (match) {
       return {
         type: 'wikiLink',
@@ -78,11 +78,16 @@ export const WikiLink = Mark.create<WikiLinkOptions>({
 
   parseMarkdown(token: any, helpers: any) {
     return {
-      type: 'wikiLink',
+      mark: 'wikiLink',
       attrs: {
         title: token.text,
       },
-      content: helpers.parseInline(token.tokens || []),
+      content: [
+        {
+          type: 'text',
+          text: token.text,
+        },
+      ],
     };
   },
 

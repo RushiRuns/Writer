@@ -11,7 +11,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import Link from '@tiptap/extension-link';
 import { WikiLink } from './WikiLink';
-import { SlashCommands } from './SlashCommands';
+import { SlashCommands, setSlashCommandsAllowed } from './SlashCommands';
 import { WikiLinkAutocomplete } from './wikiLinkAutocomplete';
 import FloatingToolbar from './FloatingToolbar';
 
@@ -154,8 +154,16 @@ function TiptapEditorWrapper({
 
   useEffect(() => {
     if (editor && initialContent !== null) {
+      // Block the slash command popup from triggering while we load note content.
+      setSlashCommandsAllowed(false);
       editor.commands.setContent(initialContent, { emitUpdate: false, contentType: 'markdown' });
-      editor.commands.focus('end');
+      requestAnimationFrame(() => {
+        if (editor && !editor.isDestroyed) {
+          editor.commands.focus('end', { scrollIntoView: false });
+        }
+        // Re-enable slash commands after focus is placed.
+        setSlashCommandsAllowed(true);
+      });
     }
   }, [editor, initialContent]);
 

@@ -19,7 +19,7 @@ declare module '@tiptap/core' {
 export const wikiLinkTokenizer = {
   name: 'wikiLink',
   level: 'inline' as const,
-  start: (src: string) => src.match(/\[\[/)?.index,
+  start: (src: string) => src.indexOf('[['),
   tokenize(src: string) {
     const match = src.match(/^\[\[([^\]\n]+)\]\]/);
     if (match) {

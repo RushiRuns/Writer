@@ -67,7 +67,8 @@ export const WikiLinkAutocomplete = Extension.create({
                 editor: props.editor,
               });
 
-              if (!props.clientRect) {
+              const rect = props.clientRect?.();
+              if (!rect || (rect.top === 0 && rect.left === 0 && rect.width === 0 && rect.height === 0)) {
                 return;
               }
 
@@ -85,10 +86,29 @@ export const WikiLinkAutocomplete = Extension.create({
             onUpdate(props: any) {
               component.updateProps(props);
 
-              if (popup && popup[0]) {
+              const rect = props.clientRect?.();
+              if (!rect || (rect.top === 0 && rect.left === 0 && rect.width === 0 && rect.height === 0)) {
+                if (popup && popup[0]) {
+                  popup[0].hide();
+                }
+                return;
+              }
+
+              if (!popup) {
+                popup = tippy('body', {
+                  getReferenceClientRect: props.clientRect,
+                  appendTo: () => document.body,
+                  content: component.element,
+                  showOnCreate: true,
+                  interactive: true,
+                  trigger: 'manual',
+                  placement: 'bottom-start',
+                });
+              } else if (popup[0]) {
                 popup[0].setProps({
                   getReferenceClientRect: props.clientRect,
                 });
+                popup[0].show();
               }
             },
 
@@ -106,8 +126,11 @@ export const WikiLinkAutocomplete = Extension.create({
             onExit() {
               if (popup && popup[0]) {
                 popup[0].destroy();
+                popup = null;
               }
-              component.destroy();
+              if (component) {
+                component.destroy();
+              }
             },
           };
         },

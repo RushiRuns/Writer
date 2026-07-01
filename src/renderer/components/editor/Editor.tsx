@@ -227,7 +227,9 @@ import {
   Calendar,
   Target,
   Maximize2,
-  Minimize2
+  Minimize2,
+  List,
+  Tag
 } from 'lucide-react';
 import ConfirmationModal from '../ui/ConfirmationModal';
 import DatePicker from '../ui/DatePicker';
@@ -309,6 +311,7 @@ export default function Editor({
 
   // Inspector panel UI states
   const [editorInstance, setEditorInstance] = useState<TiptapEditor | null>(null);
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'outline' | 'meta'>('outline');
   const [showSidebar, setShowSidebar] = useState(false);
   const [copied, setCopied] = useState(false);
   const [newTagText, setNewTagText] = useState('');
@@ -1144,189 +1147,198 @@ export default function Editor({
         <div className={styles.inspectorSidebar}>
           {/* Header */}
           <div className={styles.sidebarHeader}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <span className={styles.sidebarTitle}>Inspector</span>
+            <div className={styles.headerLeft}>
               <AudioManager />
+            </div>
+            <div className={styles.tabContainer}>
+              <button 
+                onClick={() => setActiveSidebarTab('outline')}
+                className={`${styles.tabBtn} ${activeSidebarTab === 'outline' ? styles.activeTabBtn : ''}`}
+                title="Document Outline"
+              >
+                <List size={16} />
+              </button>
+              <button 
+                onClick={() => setActiveSidebarTab('meta')}
+                className={`${styles.tabBtn} ${activeSidebarTab === 'meta' ? styles.activeTabBtn : ''}`}
+                title="Tags, Backlinks, Links & Footnotes"
+              >
+                <Tag size={16} />
+              </button>
             </div>
             <button 
               onClick={() => setShowSidebar(false)} 
               className={styles.sidebarCloseBtn}
               title="Close inspector"
             >
-              <X size={14} />
+              <X size={16} />
             </button>
           </div>
 
           <div className={styles.sidebarContent}>
-            {/* ACCORDION 1: TAGS */}
-            <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('tags')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Tags</span>
-                {openSections.tags ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
-
-              {openSections.tags && (
-                <div className={styles.accordionBody}>
-                  <div className={styles.tagsContainer}>
-                    {tags.map(tag => (
-                      <span key={tag} className={styles.tagPill}>
-                        #{tag}
-                        <button onClick={() => handleRemoveTag(tag)} className={styles.removeTagBtn} title="Remove tag">
-                          <X size={10} />
-                        </button>
-                      </span>
-                    ))}
-
-                    {showAddTag ? (
-                      <form onSubmit={handleAddTag} className={styles.addTagForm}>
-                        <input
-                          type="text"
-                          value={newTagText}
-                          onChange={(e) => setNewTagText(e.target.value)}
-                          placeholder="new tag..."
-                          autoFocus
-                          onBlur={() => setShowAddTag(false)}
-                          className={styles.newTagInput}
-                        />
-                      </form>
-                    ) : (
-                      <button onClick={() => setShowAddTag(true)} className={styles.addTagBtn} title="Add Tag">
-                        <Plus size={10} />
-                        <span>Add Tag</span>
-                      </button>
-                    )}
-                  </div>
+            {activeSidebarTab === 'outline' ? (
+              /* Flat list Outline view */
+              outline.length === 0 ? (
+                <div className={styles.sidebarEmptyState}>No headings found</div>
+              ) : (
+                <div className={styles.flatOutlineList}>
+                  {outline.map((h, i) => (
+                    <button
+                      key={i}
+                      onClick={() => scrollToHeading(h.pos)}
+                      className={`${styles.flatOutlineItem} ${styles[`flatOutlineLevel${h.level}`]}`}
+                      title={`Scroll to: ${h.text}`}
+                    >
+                      {h.text}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
+              )
+            ) : (
+              /* Accordion views for Metadata */
+              <>
+                {/* ACCORDION 1: TAGS */}
+                <div className={styles.accordionSection}>
+                  <button onClick={() => toggleSection('tags')} className={styles.accordionHeader}>
+                    <span className={styles.accordionTitle}>Tags</span>
+                    {openSections.tags ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
 
-            {/* ACCORDION 2: OUTLINE */}
-            <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('outline')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Outline</span>
-                {openSections.outline ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
+                  {openSections.tags && (
+                    <div className={styles.accordionBody}>
+                      <div className={styles.tagsContainer}>
+                        {tags.map(tag => (
+                          <span key={tag} className={styles.tagPill}>
+                            #{tag}
+                            <button onClick={() => handleRemoveTag(tag)} className={styles.removeTagBtn} title="Remove tag">
+                              <X size={10} />
+                            </button>
+                          </span>
+                        ))}
 
-              {openSections.outline && (
-                <div className={styles.accordionBody}>
-                  {outline.length === 0 ? (
-                    <div className={styles.sidebarEmptyState}>No headings found</div>
-                  ) : (
-                    <div className={styles.outlineList}>
-                      {outline.map((h, i) => (
-                        <button
-                          key={i}
-                          onClick={() => scrollToHeading(h.pos)}
-                          className={`${styles.outlineItem} ${styles[`outlineLevel${h.level}`]}`}
-                          title={`Scroll to: ${h.text}`}
-                        >
-                          {h.text}
-                        </button>
-                      ))}
+                        {showAddTag ? (
+                          <form onSubmit={handleAddTag} className={styles.addTagForm}>
+                            <input
+                              type="text"
+                              value={newTagText}
+                              onChange={(e) => setNewTagText(e.target.value)}
+                              placeholder="new tag..."
+                              autoFocus
+                              onBlur={() => setShowAddTag(false)}
+                              className={styles.newTagInput}
+                            />
+                          </form>
+                        ) : (
+                          <button onClick={() => setShowAddTag(true)} className={styles.addTagBtn} title="Add Tag">
+                            <Plus size={10} />
+                            <span>Add Tag</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* ACCORDION 3: BACKLINKS */}
-            <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('backlinks')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Backlinks</span>
-                {openSections.backlinks ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
+                {/* ACCORDION 2: BACKLINKS */}
+                <div className={styles.accordionSection}>
+                  <button onClick={() => toggleSection('backlinks')} className={styles.accordionHeader}>
+                    <span className={styles.accordionTitle}>Backlinks</span>
+                    {openSections.backlinks ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
 
-              {openSections.backlinks && (
-                <div className={styles.accordionBody}>
-                  {backlinks.length === 0 ? (
-                    <div className={styles.sidebarEmptyState}>No backlinks found</div>
-                  ) : (
-                    <div className={styles.backlinksList}>
-                      {backlinks.map((bl, i) => (
-                        <div
-                          key={i}
-                          onClick={() => onNoteSelect(bl)}
-                          className={styles.backlinkItem}
-                          title={`Open: ${bl.title}`}
-                        >
-                          <div className={styles.backlinkTitle}>
-                            <span className={styles.backlinkIcon}>📝</span>
-                            <span>{bl.title}</span>
-                          </div>
-                          {bl.preview && (
-                            <div className={styles.backlinkPreview}>
-                              {bl.preview}
+                  {openSections.backlinks && (
+                    <div className={styles.accordionBody}>
+                      {backlinks.length === 0 ? (
+                        <div className={styles.sidebarEmptyState}>No backlinks found</div>
+                      ) : (
+                        <div className={styles.backlinksList}>
+                          {backlinks.map((bl, i) => (
+                            <div
+                              key={i}
+                              onClick={() => onNoteSelect(bl)}
+                              className={styles.backlinkItem}
+                              title={`Open: ${bl.title}`}
+                            >
+                              <div className={styles.backlinkTitle}>
+                                <span className={styles.backlinkIcon}>📝</span>
+                                <span>{bl.title}</span>
+                              </div>
+                              {bl.preview && (
+                                <div className={styles.backlinkPreview}>
+                                  {bl.preview}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* ACCORDION 4: LINKS */}
-            <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('links')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Links</span>
-                {openSections.links ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
+                {/* ACCORDION 3: LINKS */}
+                <div className={styles.accordionSection}>
+                  <button onClick={() => toggleSection('links')} className={styles.accordionHeader}>
+                    <span className={styles.accordionTitle}>Links</span>
+                    {openSections.links ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
 
-              {openSections.links && (
-                <div className={styles.accordionBody}>
-                  {outgoingLinks.length === 0 ? (
-                    <div className={styles.sidebarEmptyState}>No links found</div>
-                  ) : (
-                    <div className={styles.linksList}>
-                      {outgoingLinks.map((linkName, i) => {
-                        const targetNote = index.notes.find(
-                          n => n.title.toLowerCase() === linkName.toLowerCase()
-                        );
-                        const exists = !!targetNote;
-                        return (
-                          <div
-                            key={i}
-                            onClick={() => targetNote ? onNoteSelect(targetNote) : null}
-                            className={`${styles.outgoingLinkItem} ${exists ? styles.linkExists : styles.linkMissing}`}
-                            title={exists ? `Open: ${linkName}` : `Note "${linkName}" does not exist yet`}
-                          >
-                            <span className={styles.outgoingLinkIcon}>🔗</span>
-                            <span className={styles.outgoingLinkName}>{linkName}</span>
-                            {!exists && <span className={styles.newBadge}>new</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* ACCORDION 5: FOOTNOTES */}
-            <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('footnotes')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Footnotes</span>
-                {openSections.footnotes ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
-
-              {openSections.footnotes && (
-                <div className={styles.accordionBody}>
-                  {footnotes.length === 0 ? (
-                    <div className={styles.sidebarEmptyState}>No footnotes found</div>
-                  ) : (
-                    <div className={styles.footnotesList}>
-                      {footnotes.map((fn, i) => (
-                        <div key={i} className={styles.footnoteItem}>
-                          <span className={styles.footnoteMarker}>[{fn.id}]</span>
-                          <span className={styles.footnoteContent}>{fn.content}</span>
+                  {openSections.links && (
+                    <div className={styles.accordionBody}>
+                      {outgoingLinks.length === 0 ? (
+                        <div className={styles.sidebarEmptyState}>No links found</div>
+                      ) : (
+                        <div className={styles.linksList}>
+                          {outgoingLinks.map((linkName, i) => {
+                            const targetNote = index.notes.find(
+                              n => n.title.toLowerCase() === linkName.toLowerCase()
+                            );
+                            const exists = !!targetNote;
+                            return (
+                              <div
+                                key={i}
+                                onClick={() => targetNote ? onNoteSelect(targetNote) : null}
+                                className={`${styles.outgoingLinkItem} ${exists ? styles.linkExists : styles.linkMissing}`}
+                                title={exists ? `Open: ${linkName}` : `Note "${linkName}" does not exist yet`}
+                              >
+                                <span className={styles.outgoingLinkIcon}>🔗</span>
+                                <span className={styles.outgoingLinkName}>{linkName}</span>
+                                {!exists && <span className={styles.newBadge}>new</span>}
+                              </div>
+                            );
+                          })}
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+
+                {/* ACCORDION 4: FOOTNOTES */}
+                <div className={styles.accordionSection}>
+                  <button onClick={() => toggleSection('footnotes')} className={styles.accordionHeader}>
+                    <span className={styles.accordionTitle}>Footnotes</span>
+                    {openSections.footnotes ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+
+                  {openSections.footnotes && (
+                    <div className={styles.accordionBody}>
+                      {footnotes.length === 0 ? (
+                        <div className={styles.sidebarEmptyState}>No footnotes found</div>
+                      ) : (
+                        <div className={styles.footnotesList}>
+                          {footnotes.map((fn, i) => (
+                            <div key={i} className={styles.footnoteItem}>
+                              <span className={styles.footnoteMarker}>[{fn.id}]</span>
+                              <span className={styles.footnoteContent}>{fn.content}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

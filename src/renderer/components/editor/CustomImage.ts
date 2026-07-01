@@ -6,18 +6,18 @@ export const CustomImage = Image.extend({
       ...this.parent?.(),
       width: {
         default: null,
-        parseHTML: (element) => element.getAttribute('width') || element.style.width || null,
-        renderHTML: (attributes) => {
+        parseHTML: (element: HTMLElement) => element.getAttribute('width') || element.style.width || null,
+        renderHTML: (attributes: Record<string, any>) => {
           if (!attributes.width) return {};
           return { width: attributes.width };
         },
       },
       align: {
         default: null,
-        parseHTML: (element) => {
+        parseHTML: (element: HTMLElement) => {
           return element.getAttribute('align') || element.style.textAlign || null;
         },
-        renderHTML: (attributes) => {
+        renderHTML: (attributes: Record<string, any>) => {
           if (!attributes.align) return {};
           return { align: attributes.align };
         },
@@ -25,7 +25,7 @@ export const CustomImage = Image.extend({
     };
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, any> }) {
     const { align, width } = HTMLAttributes;
     let style = '';
     
@@ -44,7 +44,7 @@ export const CustomImage = Image.extend({
     return ['img', { ...HTMLAttributes, style: style || undefined }];
   },
 
-  renderMarkdown: (node) => {
+  renderMarkdown: (node: any) => {
     const { src, alt, title, width, align } = node.attrs;
     
     if (width || align) {

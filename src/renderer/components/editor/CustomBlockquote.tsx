@@ -8,11 +8,11 @@ export const CustomBlockquote = Blockquote.extend({
       ...this.parent?.(),
       type: {
         default: null,
-        parseHTML: (element) => {
+        parseHTML: (element: HTMLElement) => {
           const match = element.className?.match(/callout-(\w+)/);
           return match ? match[1] : null;
         },
-        renderHTML: (attributes) => {
+        renderHTML: (attributes: Record<string, any>) => {
           if (!attributes.type) return {};
           return { class: `callout-block callout-${attributes.type}` };
         },

@@ -311,11 +311,12 @@ export default function Editor({
 
   // Inspector panel UI states
   const [editorInstance, setEditorInstance] = useState<TiptapEditor | null>(null);
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'outline' | 'meta'>('outline');
   const [showSidebar, setShowSidebar] = useState(false);
   const [copied, setCopied] = useState(false);
   const [newTagText, setNewTagText] = useState('');
   const [showAddTag, setShowAddTag] = useState(false);
+  const [activeTab, setActiveTab] = useState<'outline' | 'meta'>('outline');
+  const [activeHeadingPos, setActiveHeadingPos] = useState<number>(-1);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     tags: true,
     outline: true,
@@ -773,6 +774,34 @@ export default function Editor({
   const totalNotes = index.notes.length;
   const streak = calculateStreak(index.notes);
 
+  // Synchronize active heading position on selection or update
+  useEffect(() => {
+    if (!editorInstance) return;
+
+    const updateActiveHeading = () => {
+      const { from } = editorInstance.state.selection;
+      let closestHeadingPos = -1;
+      editorInstance.state.doc.descendants((node, pos) => {
+        if (node.type.name === 'heading') {
+          if (from >= pos) {
+            closestHeadingPos = pos;
+          }
+        }
+      });
+      setActiveHeadingPos(closestHeadingPos);
+    };
+
+    updateActiveHeading();
+
+    editorInstance.on('update', updateActiveHeading);
+    editorInstance.on('selectionUpdate', updateActiveHeading);
+
+    return () => {
+      editorInstance.off('update', updateActiveHeading);
+      editorInstance.off('selectionUpdate', updateActiveHeading);
+    };
+  }, [editorInstance, content]);
+
   // Trigger celebration on crossing 100% threshold
   useEffect(() => {
     if (currentGoalValue > 0 && goalProgress >= 100) {
@@ -1147,56 +1176,62 @@ export default function Editor({
         <div className={styles.inspectorSidebar}>
           {/* Header */}
           <div className={styles.sidebarHeader}>
-            <div className={styles.headerLeft}>
+            <div className={styles.headerLeftPlaceholder}>
               <AudioManager />
             </div>
-            <div className={styles.tabContainer}>
+            
+            {/* Tab Toggle Group */}
+            <div className={styles.tabToggleGroup}>
               <button 
-                onClick={() => setActiveSidebarTab('outline')}
-                className={`${styles.tabBtn} ${activeSidebarTab === 'outline' ? styles.activeTabBtn : ''}`}
+                onClick={() => setActiveTab('outline')}
+                className={`${styles.tabToggleBtn} ${activeTab === 'outline' ? styles.activeTabToggle : ''}`}
                 title="Document Outline"
               >
-                <List size={16} />
+                <List size={14} />
               </button>
               <button 
-                onClick={() => setActiveSidebarTab('meta')}
-                className={`${styles.tabBtn} ${activeSidebarTab === 'meta' ? styles.activeTabBtn : ''}`}
-                title="Tags, Backlinks, Links & Footnotes"
+                onClick={() => setActiveTab('meta')}
+                className={`${styles.tabToggleBtn} ${activeTab === 'meta' ? styles.activeTabToggle : ''}`}
+                title="Metadata & Connections"
               >
-                <Tag size={16} />
+                <Tag size={14} />
               </button>
             </div>
+
             <button 
               onClick={() => setShowSidebar(false)} 
               className={styles.sidebarCloseBtn}
               title="Close inspector"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
           </div>
 
           <div className={styles.sidebarContent}>
-            {activeSidebarTab === 'outline' ? (
-              /* Flat list Outline view */
-              outline.length === 0 ? (
-                <div className={styles.sidebarEmptyState}>No headings found</div>
-              ) : (
-                <div className={styles.flatOutlineList}>
-                  {outline.map((h, i) => (
-                    <button
-                      key={i}
-                      onClick={() => scrollToHeading(h.pos)}
-                      className={`${styles.flatOutlineItem} ${styles[`flatOutlineLevel${h.level}`]}`}
-                      title={`Scroll to: ${h.text}`}
-                    >
-                      {h.text}
-                    </button>
-                  ))}
-                </div>
-              )
+            {activeTab === 'outline' ? (
+              <div className={styles.outlineTabContent}>
+                {outline.length === 0 ? (
+                  <div className={styles.sidebarEmptyState}>No headings found</div>
+                ) : (
+                  <div className={styles.outlineList}>
+                    {outline.map((h, i) => {
+                      const isActive = activeHeadingPos === h.pos;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => scrollToHeading(h.pos)}
+                          className={`${styles.outlineItem} ${styles[`outlineLevel${h.level}`]} ${isActive ? styles.activeOutlineItem : ''}`}
+                          title={`Scroll to: ${h.text}`}
+                        >
+                          {h.text}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             ) : (
-              /* Accordion views for Metadata */
-              <>
+              <div className={styles.metaTabContent}>
                 {/* ACCORDION 1: TAGS */}
                 <div className={styles.accordionSection}>
                   <button onClick={() => toggleSection('tags')} className={styles.accordionHeader}>
@@ -1206,7 +1241,7 @@ export default function Editor({
 
                   {openSections.tags && (
                     <div className={styles.accordionBody}>
-                      <div className={styles.tagsContainer}>
+                      <div className={styles.tagsBoxContainer}>
                         {tags.map(tag => (
                           <span key={tag} className={styles.tagPill}>
                             #{tag}
@@ -1337,7 +1372,7 @@ export default function Editor({
                     </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>

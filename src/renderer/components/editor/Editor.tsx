@@ -99,7 +99,7 @@ function TiptapEditorWrapper({
         types: ['heading', 'paragraph'],
       }),
       Link.configure({
-        openOnClick: false,
+        openOnClick: true,
         autolink: false,
         linkOnPaste: false,
       }),

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, protocol, net } from 'electron';
+import { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, protocol, net, shell } from 'electron';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import started from 'electron-squirrel-startup';
@@ -55,6 +55,21 @@ const createWindow = async () => {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+
+  // Intercept links and open in system default browser
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
   });
 
   registerDevToolsShortcut(mainWindow);

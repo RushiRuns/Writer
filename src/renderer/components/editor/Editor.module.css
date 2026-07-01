@@ -1549,29 +1549,38 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .editorAreaInner ul[data-type="taskList"] li > label {
   flex-shrink: 0;
   user-select: none;
-  margin-top: 3px;
+  margin: 0;
+  padding: 0;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 24px; /* Centered with first line line-height */
 }
 
 .editorAreaInner ul[data-type="taskList"] li > label input[type="checkbox"] {
   appearance: none;
-  width: 15px;
-  height: 15px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-neutral-400, #7a7a7a); /* Clear high-contrast border in both themes */
+  border-radius: var(--radius-sm, 4px);
   outline: none;
-  background-color: var(--bg-pane-editor);
+  background-color: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
+  margin: 0;
+}
+
+.editorAreaInner ul[data-type="taskList"] li > label input[type="checkbox"]:hover {
+  border-color: var(--color-brand-amber, #e8a44b);
 }
 
 .editorAreaInner ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
@@ -1582,17 +1591,50 @@
 .editorAreaInner ul[data-type="taskList"] li > label input[type="checkbox"]:checked:after {
   content: "✓";
   color: #000;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
 }
 
 .editorAreaInner ul[data-type="taskList"] li > div {
   flex: 1;
+  min-height: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.editorAreaInner ul[data-type="taskList"] li > div > p {
+  margin: 0;
+  line-height: 24px;
 }
 
 .editorAreaInner ul[data-type="taskList"] li[data-checked="true"] > div {
   text-decoration: line-through;
   color: var(--text-muted);
+}
+
+/* Hyperlinks inside editor area */
+.editorAreaInner a {
+  color: #5e97bf; /* Sleek light blue color from the image */
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.editorAreaInner a:hover {
+  color: #79b3e3;
+  text-decoration: none;
+}
+
+.editorAreaInner a::after {
+  content: "↗";
+  font-size: 0.85em;
+  margin-left: 2px;
+  opacity: 0.85;
+  display: inline-block;
+  line-height: 1;
 }
 
 /* Code block syntax highlighting styling */

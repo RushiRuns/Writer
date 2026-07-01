@@ -608,4 +608,14 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
       return { success: false, error: String(err) };
     }
   });
+
+  ipcMain.handle('link:open', async (_event, url: string) => {
+    try {
+      await shell.openExternal(url);
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to open external link:', err);
+      return { success: false, error: String(err) };
+    }
+  });
 }

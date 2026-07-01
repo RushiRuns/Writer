@@ -37,6 +37,7 @@ interface TiptapEditorWrapperProps {
   onContentChange: (content: string, isInitial?: boolean) => void;
   onNoteSelect: (note: NoteEntry | null) => void;
   onBlur: () => void;
+  onEditorInit?: (editor: TiptapEditor | null) => void;
 }
 
 function TiptapEditorWrapper({
@@ -45,6 +46,7 @@ function TiptapEditorWrapper({
   onContentChange,
   onNoteSelect,
   onBlur,
+  onEditorInit,
 }: TiptapEditorWrapperProps) {
   const [initialContent, setInitialContent] = useState<string | null>(null);
 
@@ -140,6 +142,15 @@ function TiptapEditorWrapper({
     },
     onBlur,
   });
+
+  useEffect(() => {
+    if (editor && !editor.isDestroyed) {
+      onEditorInit?.(editor);
+    }
+    return () => {
+      onEditorInit?.(null);
+    };
+  }, [editor, onEditorInit]);
 
   useEffect(() => {
     if (editor && initialContent !== null) {
@@ -297,15 +308,17 @@ export default function Editor({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Inspector panel UI states
+  const [editorInstance, setEditorInstance] = useState<TiptapEditor | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [copied, setCopied] = useState(false);
   const [newTagText, setNewTagText] = useState('');
   const [showAddTag, setShowAddTag] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    metadata: true,
-    session: true,
-    stats: true,
-    actions: true
+    tags: true,
+    outline: true,
+    backlinks: false,
+    links: false,
+    footnotes: false
   });
 
   // Bottom popover visibility states
@@ -683,6 +696,77 @@ export default function Editor({
   const currentGoalValue = goalType === 'daily' ? dailyGoal : goal;
   const goalProgress = currentGoalValue > 0 ? Math.min(100, Math.round((currentGoalProgressValue / currentGoalValue) * 100)) : 0;
 
+  // 1. Reactive Outline Extraction
+  const outline = React.useMemo(() => {
+    if (!editorInstance) return [];
+    const headings: { text: string; level: number; pos: number }[] = [];
+    editorInstance.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'heading') {
+        headings.push({
+          text: node.textContent,
+          level: node.attrs.level,
+          pos,
+        });
+      }
+    });
+    return headings;
+  }, [editorInstance, content]);
+
+  // Smooth scroll to heading position in editor
+  const scrollToHeading = (pos: number) => {
+    if (!editorInstance) return;
+    editorInstance.commands.focus();
+    try {
+      const dom = editorInstance.view.nodeDOM(pos) as HTMLElement;
+      if (dom) {
+        dom.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        editorInstance.commands.setTextSelection(pos);
+      }
+    } catch (err) {
+      console.warn('Failed to scroll using nodeDOM, using coordsAtPos:', err);
+      const coords = editorInstance.view.coordsAtPos(pos);
+      const editorDom = editorInstance.view.dom;
+      const editorContainer = editorDom.parentElement;
+      if (editorContainer) {
+        const top = coords.top - editorContainer.getBoundingClientRect().top + editorContainer.scrollTop - 40;
+        editorContainer.scrollTo({ top, behavior: 'smooth' });
+      }
+    }
+  };
+
+  // 2. Reactive Outgoing Links Extraction from content body
+  const outgoingLinks = React.useMemo(() => {
+    const matches = content.matchAll(/\[\[([^\]]+)\]\]/g);
+    const links = new Set<string>();
+    for (const match of matches) {
+      links.add(match[1].trim());
+    }
+    return Array.from(links);
+  }, [content]);
+
+  // 3. Backlinks filtering from Vault Index
+  const backlinks = React.useMemo(() => {
+    const currentTitle = note.title.toLowerCase();
+    return index.notes.filter(n => {
+      if (n.path === note.path) return false;
+      const links = n.links || [];
+      return links.some(l => l.toLowerCase() === currentTitle);
+    });
+  }, [index.notes, note.title, note.path]);
+
+  // 4. Reactive Footnotes Extraction from content body
+  const footnotes = React.useMemo(() => {
+    const matches = content.matchAll(/^\[\^([a-zA-Z0-9_-]+)\]:\s+(.+)$/gm);
+    const result = [];
+    for (const match of matches) {
+      result.push({
+        id: match[1],
+        content: match[2].trim(),
+      });
+    }
+    return result;
+  }, [content]);
+
   const totalNotes = index.notes.length;
   const streak = calculateStreak(index.notes);
 
@@ -716,6 +800,7 @@ export default function Editor({
             onContentChange={handleContentChange}
             onNoteSelect={onNoteSelect}
             onBlur={handleEditorBlur}
+            onEditorInit={setEditorInstance}
           />
         </div>
 
@@ -1073,190 +1158,172 @@ export default function Editor({
           </div>
 
           <div className={styles.sidebarContent}>
-            {/* ACCORDION 1: METADATA (TAGS & REMINDERS) */}
+            {/* ACCORDION 1: TAGS */}
             <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('metadata')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Note Info</span>
-                {openSections.metadata ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              <button onClick={() => toggleSection('tags')} className={styles.accordionHeader}>
+                <span className={styles.accordionTitle}>Tags</span>
+                {openSections.tags ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
 
-              {openSections.metadata && (
+              {openSections.tags && (
                 <div className={styles.accordionBody}>
-                  {/* Note Folder Info */}
-                  <div className={styles.sidebarSectionGroup}>
-                    <label className={styles.sidebarLabel}>Folder</label>
-                    <span className={styles.folderNameText}>
-                      {note.folder === '.' ? 'Notes Root' : note.folder}
-                    </span>
-                  </div>
-
-                  {/* Tags Manager */}
-                  <div className={styles.sidebarSectionGroup}>
-                    <label className={styles.sidebarLabel}>Tags</label>
-                    <div className={styles.tagsContainer}>
-                      {tags.map(tag => (
-                        <span key={tag} className={styles.tagPill}>
-                          #{tag}
-                          <button onClick={() => handleRemoveTag(tag)} className={styles.removeTagBtn} title="Remove tag">
-                            <X size={10} />
-                          </button>
-                        </span>
-                      ))}
-
-                      {showAddTag ? (
-                        <form onSubmit={handleAddTag} className={styles.addTagForm}>
-                          <input
-                            type="text"
-                            value={newTagText}
-                            onChange={(e) => setNewTagText(e.target.value)}
-                            placeholder="new tag..."
-                            autoFocus
-                            onBlur={() => setShowAddTag(false)}
-                            className={styles.newTagInput}
-                          />
-                        </form>
-                      ) : (
-                        <button onClick={() => setShowAddTag(true)} className={styles.addTagBtn} title="Add Tag">
-                          <Plus size={10} />
-                          <span>Add Tag</span>
+                  <div className={styles.tagsContainer}>
+                    {tags.map(tag => (
+                      <span key={tag} className={styles.tagPill}>
+                        #{tag}
+                        <button onClick={() => handleRemoveTag(tag)} className={styles.removeTagBtn} title="Remove tag">
+                          <X size={10} />
                         </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* ACCORDION 2: SESSION TOOLS (GOAL, TIMER) */}
-            <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('session')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Session Tools</span>
-                {openSections.session ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
-
-              {openSections.session && (
-                <div className={styles.accordionBody}>
-                  {/* Focus Timer */}
-                  <div className={styles.sidebarSectionGroup}>
-                    <div className={styles.timerHeader}>
-                      <label className={styles.sidebarLabel}>Focus Timer</label>
-                      <span className={styles.sessionCount}>
-                        {timerMode === 'focus' ? 'Writing' : 'Break'} (#{sessionsCompleted + 1})
                       </span>
-                    </div>
+                    ))}
 
-                    <div className={styles.timerDisplay}>
-                      <span className={`${styles.timeText} ${isTimerActive ? styles.timeActive : ''}`}>
-                        {formatTimerTime(timeLeft)}
-                      </span>
-                      <div className={styles.timerControls}>
-                        {isTimerActive ? (
-                          <button onClick={pauseTimer} className={styles.timerBtn} title="Pause timer">
-                            <Pause size={13} />
-                          </button>
-                        ) : (
-                          <button onClick={startTimer} className={`${styles.timerBtn} ${styles.timerBtnPrimary}`} title="Start timer">
-                            <Play size={13} />
-                          </button>
-                        )}
-                        <button onClick={resetTimer} className={styles.timerBtn} title="Reset session">
-                          <RotateCcw size={13} />
-                        </button>
-                        <button onClick={skipTimer} className={styles.timerBtn} title="Skip session">
-                          <SkipForward size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Writing Goal */}
-                  <div className={styles.sidebarSectionGroup}>
-                    <label className={styles.sidebarLabel}>Word Goal</label>
-                    <div className={styles.goalInputWrapper}>
-                      <input
-                        type="number"
-                        min="0"
-                        value={goal || ''}
-                        placeholder="words target..."
-                        onChange={(e) => handleGoalChange(Math.max(0, parseInt(e.target.value) || 0))}
-                        className={styles.goalInput}
-                      />
-                      <span className={styles.goalInputLabel}>words</span>
-                    </div>
-
-                    {goal > 0 && (
-                      <div className={styles.goalProgressWrapper}>
-                        <div className={styles.goalProgressBar}>
-                          <div 
-                            className={styles.goalProgressFill} 
-                            style={{ width: `${goalProgress}%` }} 
-                          />
-                        </div>
-                        <div className={styles.goalProgressText}>
-                          <span>{wordCount} / {goal} words</span>
-                          <span>{goalProgress}%</span>
-                        </div>
-                      </div>
+                    {showAddTag ? (
+                      <form onSubmit={handleAddTag} className={styles.addTagForm}>
+                        <input
+                          type="text"
+                          value={newTagText}
+                          onChange={(e) => setNewTagText(e.target.value)}
+                          placeholder="new tag..."
+                          autoFocus
+                          onBlur={() => setShowAddTag(false)}
+                          className={styles.newTagInput}
+                        />
+                      </form>
+                    ) : (
+                      <button onClick={() => setShowAddTag(true)} className={styles.addTagBtn} title="Add Tag">
+                        <Plus size={10} />
+                        <span>Add Tag</span>
+                      </button>
                     )}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* ACCORDION 3: STATISTICS */}
+            {/* ACCORDION 2: OUTLINE */}
             <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('stats')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Statistics</span>
-                {openSections.stats ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              <button onClick={() => toggleSection('outline')} className={styles.accordionHeader}>
+                <span className={styles.accordionTitle}>Outline</span>
+                {openSections.outline ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
 
-              {openSections.stats && (
+              {openSections.outline && (
                 <div className={styles.accordionBody}>
-                  <div className={styles.statsList}>
-                    <div className={styles.statsRow}>
-                      <span className={styles.statsLabel}>Words</span>
-                      <span className={styles.statsValue}>{wordCount}</span>
+                  {outline.length === 0 ? (
+                    <div className={styles.sidebarEmptyState}>No headings found</div>
+                  ) : (
+                    <div className={styles.outlineList}>
+                      {outline.map((h, i) => (
+                        <button
+                          key={i}
+                          onClick={() => scrollToHeading(h.pos)}
+                          className={`${styles.outlineItem} ${styles[`outlineLevel${h.level}`]}`}
+                          title={`Scroll to: ${h.text}`}
+                        >
+                          {h.text}
+                        </button>
+                      ))}
                     </div>
-                    <div className={styles.statsRow}>
-                      <span className={styles.statsLabel}>Characters</span>
-                      <span className={styles.statsValue}>{charCount}</span>
-                    </div>
-                    <div className={styles.statsRow}>
-                      <span className={styles.statsLabel}>Lines</span>
-                      <span className={styles.statsValue}>{lineCount}</span>
-                    </div>
-                    <div className={styles.statsRow}>
-                      <span className={styles.statsLabel}>Reading Time</span>
-                      <span className={styles.statsValue}>{readingTime} min</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* ACCORDION 4: ACTIONS */}
+            {/* ACCORDION 3: BACKLINKS */}
             <div className={styles.accordionSection}>
-              <button onClick={() => toggleSection('actions')} className={styles.accordionHeader}>
-                <span className={styles.accordionTitle}>Actions</span>
-                {openSections.actions ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              <button onClick={() => toggleSection('backlinks')} className={styles.accordionHeader}>
+                <span className={styles.accordionTitle}>Backlinks</span>
+                {openSections.backlinks ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
 
-              {openSections.actions && (
+              {openSections.backlinks && (
                 <div className={styles.accordionBody}>
-                  <div className={styles.actionsList}>
-                    <button onClick={handleCopyNote} className={styles.actionBtn}>
-                      <Copy size={13} />
-                      <span>{copied ? 'Copied!' : 'Copy Markdown'}</span>
-                    </button>
-                    <button onClick={handleRandomNote} className={styles.actionBtn}>
-                      <Shuffle size={13} />
-                      <span>Random Note</span>
-                    </button>
-                    <button onClick={handleDeleteNote} className={`${styles.actionBtn} ${styles.actionBtnDanger}`}>
-                      <Trash2 size={13} />
-                      <span>Delete Note</span>
-                    </button>
-                  </div>
+                  {backlinks.length === 0 ? (
+                    <div className={styles.sidebarEmptyState}>No backlinks found</div>
+                  ) : (
+                    <div className={styles.backlinksList}>
+                      {backlinks.map((bl, i) => (
+                        <div
+                          key={i}
+                          onClick={() => onNoteSelect(bl)}
+                          className={styles.backlinkItem}
+                          title={`Open: ${bl.title}`}
+                        >
+                          <div className={styles.backlinkTitle}>
+                            <span className={styles.backlinkIcon}>📝</span>
+                            <span>{bl.title}</span>
+                          </div>
+                          {bl.preview && (
+                            <div className={styles.backlinkPreview}>
+                              {bl.preview}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* ACCORDION 4: LINKS */}
+            <div className={styles.accordionSection}>
+              <button onClick={() => toggleSection('links')} className={styles.accordionHeader}>
+                <span className={styles.accordionTitle}>Links</span>
+                {openSections.links ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {openSections.links && (
+                <div className={styles.accordionBody}>
+                  {outgoingLinks.length === 0 ? (
+                    <div className={styles.sidebarEmptyState}>No links found</div>
+                  ) : (
+                    <div className={styles.linksList}>
+                      {outgoingLinks.map((linkName, i) => {
+                        const targetNote = index.notes.find(
+                          n => n.title.toLowerCase() === linkName.toLowerCase()
+                        );
+                        const exists = !!targetNote;
+                        return (
+                          <div
+                            key={i}
+                            onClick={() => targetNote ? onNoteSelect(targetNote) : null}
+                            className={`${styles.outgoingLinkItem} ${exists ? styles.linkExists : styles.linkMissing}`}
+                            title={exists ? `Open: ${linkName}` : `Note "${linkName}" does not exist yet`}
+                          >
+                            <span className={styles.outgoingLinkIcon}>🔗</span>
+                            <span className={styles.outgoingLinkName}>{linkName}</span>
+                            {!exists && <span className={styles.newBadge}>new</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* ACCORDION 5: FOOTNOTES */}
+            <div className={styles.accordionSection}>
+              <button onClick={() => toggleSection('footnotes')} className={styles.accordionHeader}>
+                <span className={styles.accordionTitle}>Footnotes</span>
+                {openSections.footnotes ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {openSections.footnotes && (
+                <div className={styles.accordionBody}>
+                  {footnotes.length === 0 ? (
+                    <div className={styles.sidebarEmptyState}>No footnotes found</div>
+                  ) : (
+                    <div className={styles.footnotesList}>
+                      {footnotes.map((fn, i) => (
+                        <div key={i} className={styles.footnoteItem}>
+                          <span className={styles.footnoteMarker}>[{fn.id}]</span>
+                          <span className={styles.footnoteContent}>{fn.content}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -11,6 +11,7 @@ export interface NoteEntry {
   created: string;        // ISO 8601
   modified: string;       // ISO 8601 (file mtime)
   wordCount: number;
+  links: string[];
 }
 
 export interface DrawingEntry {

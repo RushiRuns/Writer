@@ -1702,3 +1702,179 @@
 .editorAreaInner .hljs-strong {
   font-weight: bold;
 }
+
+/* Sidebar Overhaul Styles */
+.sidebarEmptyState {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.75rem;
+  color: var(--color-neutral-500, #737373);
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+/* Outline styling */
+.outlineList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.outlineItem {
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.8125rem;
+  color: var(--color-neutral-400, #a3a3a3);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm, 4px);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+.outlineItem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-white, #ffffff);
+}
+.outlineLevel1 {
+  font-weight: 600;
+  color: var(--color-neutral-200, #e5e5e5);
+}
+.outlineLevel2 {
+  padding-left: 14px;
+}
+.outlineLevel3 {
+  padding-left: 24px;
+  font-size: 0.75rem;
+}
+.outlineLevel4 {
+  padding-left: 34px;
+  font-size: 0.75rem;
+}
+.outlineLevel5 {
+  padding-left: 44px;
+  font-size: 0.75rem;
+}
+.outlineLevel6 {
+  padding-left: 54px;
+  font-size: 0.75rem;
+}
+
+/* Backlinks styling */
+.backlinksList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.backlinkItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-2.5) var(--space-3);
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.05));
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.backlinkItem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.backlinkTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-neutral-200, #e5e5e5);
+}
+.backlinkIcon {
+  font-size: 0.9em;
+}
+.backlinkPreview {
+  font-size: 0.75rem;
+  color: var(--text-muted, #737373);
+  font-family: var(--font-ui, sans-serif);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 18px;
+}
+
+/* Outgoing links styling */
+.linksList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.outgoingLinkItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 4px);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.8125rem;
+  transition: all 0.15s ease;
+}
+.linkExists {
+  color: #5e97bf;
+  cursor: pointer;
+}
+.linkExists:hover {
+  background-color: rgba(94, 151, 191, 0.08);
+}
+.linkMissing {
+  color: var(--color-neutral-500, #737373);
+  border: 1px dashed rgba(255, 255, 255, 0.06);
+}
+.outgoingLinkIcon {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+.outgoingLinkName {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.newBadge {
+  font-size: 9px;
+  text-transform: uppercase;
+  background-color: rgba(232, 164, 75, 0.15);
+  color: var(--color-brand-amber, #e8a44b);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Footnotes styling */
+.footnotesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.footnoteItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-neutral-400, #a3a3a3);
+}
+.footnoteMarker {
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  color: var(--color-brand-amber, #e8a44b);
+  flex-shrink: 0;
+}
+.footnoteContent {
+  word-break: break-word;
+}

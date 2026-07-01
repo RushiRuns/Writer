@@ -72,6 +72,16 @@ export function extractInlineTags(text: string): string[] {
   return Array.from(tags);
 }
 
+// Outgoing wiki links extraction helper (pure logic)
+export function extractWikiLinks(text: string): string[] {
+  const matches = text.matchAll(/\[\[([^\]]+)\]\]/g);
+  const links = new Set<string>();
+  for (const match of matches) {
+    links.add(match[1].trim());
+  }
+  return Array.from(links);
+}
+
 // Maps relative vault path to its logical section
 export function getSectionFromPath(vaultRelativePath: string): NoteEntry['section'] {
   const parts = vaultRelativePath.replace(/\\/g, '/').split('/');
@@ -103,17 +113,18 @@ export async function processNoteFile(absolutePath: string, vaultRoot: string): 
 
   const title = data.title || path.parse(absolutePath).name;
   const wordCount = countWords(content);
+  const wikiLinks = extractWikiLinks(content);
   
   // Format dates cleanly
   const modified = stats.mtime.toISOString();
   const created = data.created || stats.birthtime.toISOString();
-
+ 
   // Preview content (strip styling/newlines)
   const preview = content
     .replace(/[\n\r]+/g, ' ')
     .trim()
     .slice(0, 120);
-
+ 
   return {
     path: absolutePath,
     title,
@@ -130,7 +141,8 @@ export async function processNoteFile(absolutePath: string, vaultRoot: string): 
     preview,
     created,
     modified,
-    wordCount
+    wordCount,
+    links: wikiLinks
   };
 }
 

@@ -1,9 +1,24 @@
-import { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain } from 'electron';
+import { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, protocol, net } from 'electron';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import started from 'electron-squirrel-startup';
 import { setupIpcHandlers } from './main/ipc/handlers';
-import { hotkeysStore } from './main/vault/file-ops';
+import { hotkeysStore, configStore } from './main/vault/file-ops';
 import { initializeScheduler } from './main/reminders/scheduler';
+
+// Register custom protocol before ready
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'wrriter-file',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+      bypassCSP: true,
+    },
+  },
+]);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -223,6 +238,37 @@ app.on('ready', async () => {
 
   // Register global hotkeys
   registerGlobalShortcuts();
+
+  // Handle wrriter-file custom protocol
+  protocol.handle('wrriter-file', (request) => {
+    try {
+      const filePath = request.url.slice('wrriter-file://'.length);
+      const vaultPath = configStore.get('vaultPath') as string;
+      if (!vaultPath) {
+        return new Response('Vault path not configured', { status: 400 });
+      }
+      // Decode URL to handle spaces and special characters in file names
+      const decodedPath = decodeURIComponent(filePath);
+      const absolutePath = path.isAbsolute(decodedPath)
+        ? decodedPath
+        : path.join(vaultPath, decodedPath);
+
+      // Verify that the requested file path lies within the vault path to prevent path traversal
+      const relative = path.relative(vaultPath, absolutePath);
+      const isSafe = !relative.startsWith('..') && !path.isAbsolute(relative);
+      
+      if (!isSafe) {
+        return new Response('Forbidden', { status: 403 });
+      }
+
+      return net.fetch(pathToFileURL(absolutePath).toString(), {
+        bypassCustomProtocolHandlers: true
+      });
+    } catch (err) {
+      console.error('Failed to resolve wrriter-file protocol:', err);
+      return new Response('Internal Server Error', { status: 500 });
+    }
+  });
 });
 
 // Helper to register dynamic global hotkeys loaded from settings store

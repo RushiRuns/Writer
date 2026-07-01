@@ -15,6 +15,20 @@ import { SlashCommands } from './SlashCommands';
 import { WikiLinkAutocomplete } from './wikiLinkAutocomplete';
 import FloatingToolbar from './FloatingToolbar';
 
+// New extensions for advanced text tools
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight';
+import { CustomImage } from './CustomImage';
+import { CustomBlockquote } from './CustomBlockquote';
+
+const lowlight = createLowlight(common);
+
 import { NoteEntry, VaultIndex } from '../../../shared/ipc-types';
 
 interface TiptapEditorWrapperProps {
@@ -44,8 +58,14 @@ function TiptapEditorWrapper({
         if (!displayContent.trim().startsWith('# ')) {
           displayContent = `# ${note.title}\n\n${displayContent.trim()}`;
         }
-        setInitialContent(displayContent);
-        onContentChange(displayContent, true);
+        
+        // Translate relative Attachment paths to wrriter-file:// protocol
+        const translatedContent = displayContent
+          .replace(/(!\[.*?\]\()Attachments\/([^)]+)\)/g, '$1wrriter-file://Attachments/$2)')
+          .replace(/(<img\s+[^>]*src=")Attachments\/([^"]+)("[^>]*>)/g, '$1wrriter-file://Attachments/$2$3');
+
+        setInitialContent(translatedContent);
+        onContentChange(translatedContent, true);
       } catch (err) {
         console.error('Failed to load note content in wrapper:', err);
       }
@@ -61,8 +81,15 @@ function TiptapEditorWrapper({
       StarterKit.configure({
         link: false,
         underline: false,
+        blockquote: false, // Use CustomBlockquote
+        codeBlock: false,  // Use CodeBlockLowlight
       }),
-      Markdown,
+      Markdown.configure({
+        html: true,
+        markedOptions: {
+          gfm: true,
+        },
+      }),
       Underline,
       Highlight.configure({
         multicolor: true,
@@ -74,6 +101,8 @@ function TiptapEditorWrapper({
       }),
       Link.configure({
         openOnClick: false,
+        autolink: false,
+        linkOnPaste: false,
       }),
       WikiLink.configure({
         onClick: (title) => {
@@ -88,6 +117,22 @@ function TiptapEditorWrapper({
       SlashCommands,
       WikiLinkAutocomplete.configure({
         notes: index.notes,
+      }),
+      // Custom and new extensions
+      CustomImage,
+      CustomBlockquote,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
       }),
     ],
     content: '',
@@ -393,9 +438,14 @@ export default function Editor({
         goal_type: currentGoalType
       };
 
+      // Translate wrriter-file:// protocol back to relative Attachment paths before writing to disk
+      const cleanBodyText = bodyText
+        .replace(/(!\[.*?\]\()wrriter-file:\/\/Attachments\/([^)]+)\)/g, '$1Attachments/$2)')
+        .replace(/(<img\s+[^>]*src=")wrriter-file:\/\/Attachments\/([^"]+)("[^>]*>)/g, '$1Attachments/$2$3');
+
       if (parsedTitle && parsedTitle !== note.title && note.section !== 'journal') {
         // Trigger rename
-        const res = await (window as any).wrriter.writeNote(note.path, bodyText, nextFrontmatter, parsedTitle);
+        const res = await (window as any).wrriter.writeNote(note.path, cleanBodyText, nextFrontmatter, parsedTitle);
         if (res.success) {
           // Keep selection synchronized with new path
           const fresh = index.notes.find(n => n.path === res.path);
@@ -404,7 +454,7 @@ export default function Editor({
           }
         }
       } else {
-        await (window as any).wrriter.writeNote(note.path, bodyText, nextFrontmatter);
+        await (window as any).wrriter.writeNote(note.path, cleanBodyText, nextFrontmatter);
       }
     } catch (err) {
       console.error('Failed to auto-save note:', err);

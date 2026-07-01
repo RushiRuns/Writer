@@ -556,4 +556,56 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
     }
     return { success: true };
   });
+
+  ipcMain.handle('image:upload', async () => {
+    try {
+      const vaultPath = configStore.get('vaultPath');
+      if (!vaultPath) {
+        return { success: false, error: 'Vault path not configured' };
+      }
+      
+      const result = await dialog.showOpenDialog(mainWindow, {
+        title: 'Select Image to Upload',
+        filters: [
+          { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'] }
+        ],
+        properties: ['openFile']
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false };
+      }
+
+      const sourcePath = result.filePaths[0];
+      const filename = path.basename(sourcePath);
+      const sanitizedFilename = sanitizeFilename(filename);
+
+      const attachmentsDir = path.join(vaultPath, 'Attachments');
+      await fs.mkdir(attachmentsDir, { recursive: true });
+
+      // Generate a unique name if a file with the same name already exists
+      const ext = path.extname(sanitizedFilename);
+      const base = path.basename(sanitizedFilename, ext);
+      let destFilename = sanitizedFilename;
+      let destPath = path.join(attachmentsDir, destFilename);
+      let counter = 1;
+
+      while (await fs.access(destPath).then(() => true).catch(() => false)) {
+        destFilename = `${base}_${counter}${ext}`;
+        destPath = path.join(attachmentsDir, destFilename);
+        counter++;
+      }
+
+      await fs.copyFile(sourcePath, destPath);
+
+      // Return the relative path for serialization
+      return { 
+        success: true, 
+        path: `Attachments/${destFilename}`
+      };
+    } catch (err) {
+      console.error('Failed to upload image:', err);
+      return { success: false, error: String(err) };
+    }
+  });
 }

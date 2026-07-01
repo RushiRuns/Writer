@@ -1,18 +1,13 @@
 import React from 'react';
-import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
+import { NodeViewWrapper, NodeViewContent, ReactNodeViewProps } from '@tiptap/react';
 import { Info, AlertTriangle, AlertCircle, Sparkles, LucideIcon } from 'lucide-react';
 import styles from './Editor.module.css';
 
-interface CalloutViewProps {
-  node: {
-    attrs: {
-      type: 'note' | 'warning' | 'tip' | 'important' | 'caution' | null;
-    };
-  };
-}
+type CalloutType = 'note' | 'warning' | 'tip' | 'important' | 'caution' | null;
 
-export const CalloutView: React.FC<CalloutViewProps> = ({ node }) => {
-  const type = node.attrs.type;
+const CalloutView: React.FC<ReactNodeViewProps> = ({ node }) => {
+  const type = node.attrs.type as CalloutType;
+
 
   // Render a standard blockquote if no callout type is specified
   if (!type) {

@@ -1,6 +1,7 @@
+// Custom Blockquote Extension for Callout blocks
 import { Blockquote } from '@tiptap/extension-blockquote';
 import { ReactNodeViewRenderer } from '@tiptap/react';
-import { CalloutView } from './CalloutView';
+import CalloutView from './CalloutView';
 
 export const CustomBlockquote = Blockquote.extend({
   addAttributes() {

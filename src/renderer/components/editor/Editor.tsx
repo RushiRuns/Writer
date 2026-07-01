@@ -99,7 +99,7 @@ function TiptapEditorWrapper({
         types: ['heading', 'paragraph'],
       }),
       Link.configure({
-        openOnClick: true,
+        openOnClick: false,
         autolink: false,
         linkOnPaste: false,
       }),
@@ -159,12 +159,36 @@ function TiptapEditorWrapper({
     }
   }, [index.notes, editor]);
 
+  const handleEditorClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    const anchor = target.closest('a');
+    if (anchor) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const href = anchor.getAttribute('href');
+      if (href) {
+        let targetUrl = href.trim();
+        // If the URL doesn't have a protocol, prepend https://
+        if (!/^[a-z]+:\/\//i.test(targetUrl)) {
+          targetUrl = `https://${targetUrl}`;
+        }
+        
+        if ((window as any).wrriter?.openLink) {
+          (window as any).wrriter.openLink(targetUrl);
+        } else {
+          window.open(targetUrl, '_blank');
+        }
+      }
+    }
+  };
+
   if (initialContent === null) {
     return <div className={styles.loadingSpinner}>Loading...</div>;
   }
 
   return (
-    <div className={styles.tiptapEditorContainer}>
+    <div className={styles.tiptapEditorContainer} onClick={handleEditorClick}>
       {editor && <FloatingToolbar editor={editor} />}
       <EditorContent editor={editor} className={styles.editorAreaInner} />
     </div>

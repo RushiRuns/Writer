@@ -3,7 +3,7 @@ import {
   Heading1, Heading2, Heading3, Type, List, ListOrdered, Quote, 
   Bold, Italic, Underline, Strikethrough, Code, Highlighter, Palette, 
   AlignLeft, AlignCenter, AlignRight, Table, Image, CheckSquare, 
-  AlertCircle, FileCode, Calendar, Clock
+  AlertCircle, FileCode, Calendar, Clock, StickyNote
 } from 'lucide-react';
 import styles from './Editor.module.css';
 
@@ -46,6 +46,7 @@ const iconMap: Record<string, any> = {
   'date': Calendar,
   'time': Clock,
   'datetime': Clock,
+  'footnote': StickyNote,
 };
 
 export const CommandList = forwardRef<any, CommandListProps>((props, ref) => {

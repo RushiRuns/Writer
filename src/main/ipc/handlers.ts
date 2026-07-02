@@ -2,10 +2,7 @@ import { ipcMain, dialog, BrowserWindow, shell } from 'electron';
 import * as fs from 'fs/promises';
 import * as fsCb from 'fs';
 import * as path from 'path';
-import { createRequire } from 'module';
-const cjsRequire = createRequire(__filename);
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const archiver = cjsRequire('archiver') as (format: string, options?: object) => import('archiver').Archiver;
+import { ZipArchive } from 'archiver';
 import { 
   configStore, 
   settingsStore, 
@@ -454,7 +451,7 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
 
       await new Promise<void>((resolve, reject) => {
         const output = fsCb.createWriteStream(result.filePath!);
-        const archive = archiver('zip', { zlib: { level: 9 } });
+        const archive = new ZipArchive({ zlib: { level: 9 } });
         output.on('close', resolve);
         archive.on('error', reject);
         archive.pipe(output);

@@ -320,6 +320,43 @@ export const SlashCommands = Extension.create({
                 editor.chain().focus().deleteRange(range).insertContent(dtStr).run();
               },
             },
+            {
+              title: 'Footnote',
+              description: 'Insert a footnote marker and append a definition at the bottom',
+              group: 'Utilities',
+              iconName: 'footnote',
+              command: ({ editor, range }: any) => {
+                // Delete the slash trigger text
+                editor.chain().focus().deleteRange(range).run();
+
+                // Extract all existing numeric footnotes to find the highest number
+                const docMarkdown = editor.getMarkdown();
+                const matches = [...docMarkdown.matchAll(/\[\^([0-9]+)\]/g)];
+                let nextNum = 1;
+                if (matches.length > 0) {
+                  const nums = matches
+                    .map(m => parseInt(m[1], 10))
+                    .filter(num => !isNaN(num));
+                  if (nums.length > 0) {
+                    nextNum = Math.max(...nums) + 1;
+                  }
+                }
+
+                const marker = `[^${nextNum}]`;
+                const definition = `\n\n[^${nextNum}]: `;
+
+                // 1. Insert the footnote marker at the current position
+                editor.chain().focus().insertContent(marker).run();
+
+                // 2. Append the definition to the very end of the document
+                const size = editor.state.doc.content.size;
+                editor.chain().insertContentAt(size, definition).run();
+
+                // 3. Place selection and cursor focus at the end of the new definition
+                const newSize = editor.state.doc.content.size;
+                editor.chain().setTextSelection(newSize).focus().run();
+              },
+            },
           ].filter(item => {
             const search = (query || '').toLowerCase();
             return item.title.toLowerCase().startsWith(search);

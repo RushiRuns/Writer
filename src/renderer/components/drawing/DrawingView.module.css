@@ -184,6 +184,7 @@
   flex-direction: column;
   overflow: hidden;
   height: 100%;
+  min-height: 0;
 }
 
 .editorHeader {
@@ -296,8 +297,7 @@
 
 .excalidrawContainer {
   flex: 1;
-  height: 100%;
+  min-height: 0;
   position: relative;
   overflow: hidden;
-  background-color: #121212;
 }

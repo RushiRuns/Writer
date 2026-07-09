@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Excalidraw, exportToBlob } from '@excalidraw/excalidraw';
+import '@excalidraw/excalidraw/index.css';
 import { VaultIndex, DrawingEntry } from '../../../shared/ipc-types';
 import DrawingContextMenu from './DrawingContextMenu';
 import ConfirmationModal from '../ui/ConfirmationModal';
@@ -155,7 +156,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
             setDrawingName(selectedDrawing.name);
             
             let loadedElements = res.elements || [];
-            let loadedAppState = res.appState || {};
+            let loadedAppState = { ...res.appState } || {};
             let loadedFiles = res.files || {};
             
             if (res.isOldStrokes) {
@@ -163,6 +164,11 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
               loadedElements = [];
               loadedAppState = {};
               loadedFiles = {};
+            }
+            
+            // Delete collaborators which gets serialized as plain object {} and crashes Excalidraw
+            if (loadedAppState.collaborators) {
+              delete loadedAppState.collaborators;
             }
             
             currentSceneRef.current = {
@@ -251,10 +257,15 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     try {
       setSaveStatus({ type: 'saving', message: 'Saving...' });
       
+      const cleanAppState = { ...appState };
+      if (cleanAppState.collaborators) {
+        delete cleanAppState.collaborators;
+      }
+      
       const blob = await exportToBlob({
         elements: elements.filter(el => !el.isDeleted),
         appState: {
-          ...appState,
+          ...cleanAppState,
           exportWithDarkMode: true
         },
         files,
@@ -264,7 +275,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const pngBase64 = reader.result as string;
-        const res = await (window as any).wrriter.saveDrawing(nameToSave, elements, appState, files, pngBase64);
+        const res = await (window as any).wrriter.saveDrawing(nameToSave, elements, cleanAppState, files, pngBase64);
         if (res.success) {
           lastSavedElementsRef.current = elementsStr;
           lastSavedNameRef.current = nameToSave;

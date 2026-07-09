@@ -61,6 +61,11 @@ export const hotkeysStore = new Store<HotkeyBindings>({
   }
 });
 
+export const libraryStore = new Store<{ items: any[] }>({
+  name: 'excalidraw-libraries',
+  defaults: { items: [] }
+});
+
 // Atomic write helper
 export async function writeAtomic(filePath: string, content: string): Promise<void> {
   const tmpPath = `${filePath}.tmp`;
@@ -155,7 +160,7 @@ export async function setNoteCompletedState(filePath: string, completed: boolean
 export async function saveDrawingFiles(
   vaultPath: string,
   name: string,
-  strokes: any[],
+  data: any,
   pngBase64: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -176,7 +181,7 @@ export async function saveDrawingFiles(
     await fs.rename(tmpPngPath, pngPath);
 
     // Write JSON atomically
-    const jsonContent = JSON.stringify(strokes, null, 2);
+    const jsonContent = JSON.stringify(data, null, 2);
     await writeAtomic(jsonPath, jsonContent);
 
     return { success: true };

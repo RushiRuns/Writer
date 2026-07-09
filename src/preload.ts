@@ -19,13 +19,15 @@ contextBridge.exposeInMainWorld('wrriter', {
   renameFolder: (path: string, newName: string) => 
     ipcRenderer.invoke('folder:rename', { path, newName }),
   deleteFolder: (path: string) => ipcRenderer.invoke('folder:delete', path),
-  saveDrawing: (name: string, strokes: any[], pngBase64: string) => 
-    ipcRenderer.invoke('drawing:save', { name, strokes, pngBase64 }),
+  saveDrawing: (name: string, elements: any[], appState: any, files: any, pngBase64: string) => 
+    ipcRenderer.invoke('drawing:save', { name, elements, appState, files, pngBase64 }),
   loadDrawing: (name: string) => ipcRenderer.invoke('drawing:load', name),
   deleteDrawing: (name: string) => ipcRenderer.invoke('drawing:delete', name),
   renameDrawing: (oldName: string, newName: string) => 
     ipcRenderer.invoke('drawing:rename', { oldName, newName }),
   duplicateDrawing: (name: string) => ipcRenderer.invoke('drawing:duplicate', name),
+  getLibraries: () => ipcRenderer.invoke('drawing:getLibraries'),
+  saveLibraries: (items: any[]) => ipcRenderer.invoke('drawing:saveLibraries', items),
   getSyncthingStatus: () => ipcRenderer.invoke('syncthing:getStatus'),
   triggerSyncthingScan: () => ipcRenderer.invoke('syncthing:scan'),
   testSyncthingConnection: (url: string, apiKey: string) => 

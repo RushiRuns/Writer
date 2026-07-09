@@ -49,7 +49,9 @@
           onIndexUpdate: (callback) => {
             console.log('Mock onIndexUpdate registered');
             return () => {};
-          }
+          },
+          getLibraries: async () => [],
+          saveLibraries: async (items) => console.log('Mock saveLibraries:', items)
         };
       }
     </script>

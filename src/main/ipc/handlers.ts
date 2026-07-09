@@ -7,6 +7,7 @@ import {
   configStore, 
   settingsStore, 
   hotkeysStore, 
+  libraryStore,
   bootstrapVaultDirectories, 
   verifyVaultPath, 
   writeAtomic, 
@@ -307,29 +308,41 @@ export function setupIpcHandlers(mainWindow: BrowserWindow, onHotkeyChange?: () 
     }
   });
 
-  ipcMain.handle('drawing:save', async (_event, { name, strokes, pngBase64 }) => {
+  ipcMain.handle('drawing:save', async (_event, { name, elements, appState, files, pngBase64 }) => {
     const vaultPath = configStore.get('vaultPath');
     if (!vaultPath) {
       return { success: false, error: 'Vault path not configured' };
     }
-    return await saveDrawingFiles(vaultPath, name, strokes, pngBase64);
+    return await saveDrawingFiles(vaultPath, name, { elements, appState, files }, pngBase64);
   });
 
   ipcMain.handle('drawing:load', async (_event, name) => {
     try {
       const vaultPath = configStore.get('vaultPath');
       if (!vaultPath) {
-        return { strokes: [] };
+        return { elements: [], appState: {}, files: {} };
       }
       const sanitized = sanitizeFilename(name);
       const jsonPath = path.join(vaultPath, 'Attachments', `${sanitized}.json`);
       const content = await fs.readFile(jsonPath, 'utf8');
-      const strokes = JSON.parse(content);
-      return { strokes };
+      const data = JSON.parse(content);
+      if (Array.isArray(data)) {
+        return { elements: [], appState: {}, files: {}, isOldStrokes: true };
+      }
+      return data;
     } catch (err) {
       console.error(`Failed to load drawing ${name}:`, err);
-      return { strokes: [] };
+      return { elements: [], appState: {}, files: {} };
     }
+  });
+
+  ipcMain.handle('drawing:getLibraries', async () => {
+    return libraryStore.get('items');
+  });
+
+  ipcMain.handle('drawing:saveLibraries', async (_event, items: any[]) => {
+    libraryStore.set('items', items);
+    return { success: true };
   });
 
   ipcMain.handle('drawing:delete', async (_event, name) => {

@@ -1,41 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VaultIndex, DrawingEntry, Stroke } from '../../../shared/ipc-types';
-import { useCanvas } from '../../hooks/useCanvas';
-import CanvasReplayer from './CanvasReplayer';
+import { Excalidraw, exportToBlob } from '@excalidraw/excalidraw';
+import { VaultIndex, DrawingEntry } from '../../../shared/ipc-types';
 import DrawingContextMenu from './DrawingContextMenu';
 import ConfirmationModal from '../ui/ConfirmationModal';
 import styles from './DrawingView.module.css';
 import { 
-  PenTool, 
-  Paintbrush, 
-  Highlighter, 
-  Eraser, 
-  Undo2, 
-  Redo2, 
-  RotateCcw, 
-  Play, 
-  Save, 
   Plus, 
   Search, 
   Image as ImageIcon,
   CheckCircle2,
   AlertCircle,
-  Type,
-  Minus,
-  ArrowRight,
-  Square,
-  Circle,
-  Scissors,
-  MousePointer,
-  Trash2,
-  X,
-  Upload,
-  Hand,
-  Sparkles,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Grid
+  Save,
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 
 interface DrawingViewProps {
@@ -47,64 +24,16 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
   const [selectedDrawing, setSelectedDrawing] = useState<DrawingEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [drawingName, setDrawingName] = useState('');
-  
-  // Replay animation state
-  const [replayingStrokes, setReplayingStrokes] = useState<Stroke[] | null>(null);
+  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
+  const [initialData, setInitialData] = useState<any>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showOldStrokesWarning, setShowOldStrokesWarning] = useState(false);
 
   // Context Menu and Rename/Delete states
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; drawing: DrawingEntry } | null>(null);
   const [renamingDrawing, setRenamingDrawing] = useState<string | null>(null);
   const [renameText, setRenameText] = useState('');
   const [drawingToDelete, setDrawingToDelete] = useState<DrawingEntry | null>(null);
-  
-  // Guideline pattern state
-  const [guidePattern, setGuidePattern] = useState<'blank' | 'grid' | 'dots' | 'lines' | 'cornell' | 'music' | 'isometric'>('blank');
-  
-  // Inline text input positioning state
-  const [textInputPos, setTextInputPos] = useState<{ x: number; y: number } | null>(null);
-  const [textValue, setTextValue] = useState('');
-
-  // Canvas configuration
-  const width = 1200;
-  const height = 600;
-  
-  const {
-    canvasRef,
-    strokes,
-    setStrokes,
-    undo,
-    redo,
-    clearCanvas,
-    undoClear,
-    showClearUndoBanner,
-    canUndo,
-    canRedo,
-    tool,
-    setTool,
-    color,
-    setColor,
-    brushWidth,
-    setBrushWidth,
-    filled,
-    setFilled,
-    startDrawing,
-    draw,
-    endDrawing,
-    addTextStroke,
-    addImageStroke,
-    selectedIndices,
-    deleteSelectedStrokes,
-    clearSelection,
-    startResizingSelection,
-    zoom,
-    setZoom,
-    pan,
-    setPan,
-    snapToGrid,
-    setSnapToGrid,
-    autoCorrect,
-    setAutoCorrect
-  } = useCanvas({ width, height });
 
   // Save feedback state
   const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error' | 'saving' | null; message: string }>({
@@ -112,275 +41,270 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     message: ''
   });
 
-  const lastSavedStrokesRef = useRef<string>('[]');
-  const prevToolRef = useRef<'pen' | 'marker' | 'highlighter' | 'eraser' | 'line' | 'rect' | 'circle' | 'arrow' | 'text' | 'image' | 'vectorEraser' | 'lasso' | 'pan'>('pen');
+  const lastSavedElementsRef = useRef<string>('');
+  const lastSavedNameRef = useRef<string>('');
+  const currentSceneRef = useRef<{ elements: any[]; appState: any; files: any }>({ elements: [], appState: {}, files: {} });
+  const autoSaveTimerRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Spacebar Panning Keyboard Listener
+  // Helper to serialize key properties of elements for structural change detection
+  const serializeElements = (elements: readonly any[]) => {
+    if (!elements) return '';
+    return JSON.stringify(
+      elements
+        .filter(el => !el.isDeleted)
+        .map(el => ({
+          id: el.id,
+          version: el.version,
+          type: el.type,
+          x: el.x,
+          y: el.y,
+          width: el.width,
+          height: el.height,
+          angle: el.angle,
+          strokeColor: el.strokeColor,
+          backgroundColor: el.backgroundColor,
+          fillStyle: el.fillStyle,
+          strokeWidth: el.strokeWidth,
+          strokeStyle: el.strokeStyle,
+          roughness: el.roughness,
+          opacity: el.opacity,
+          text: el.text,
+          fontSize: el.fontSize,
+          fontFamily: el.fontFamily,
+          textAlign: el.textAlign,
+          verticalAlign: el.verticalAlign,
+          points: el.points
+        }))
+    );
+  };
+
+  // Load custom libraries on startup/API initialization
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA' ||
-        document.activeElement?.getAttribute('contenteditable') === 'true'
-      ) {
-        return;
-      }
-
-      if (e.key === ' ' && tool !== 'pan') {
-        e.preventDefault();
-        prevToolRef.current = tool;
-        setTool('pan');
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === ' ' && tool === 'pan') {
-        e.preventDefault();
-        setTool(prevToolRef.current);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [tool, setTool]);
-
-  // Keyboard Shortcuts: Ctrl+Z for undo, Ctrl+Y for redo
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA' ||
-        document.activeElement?.getAttribute('contenteditable') === 'true'
-      ) {
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        if (e.key.toLowerCase() === 'z') {
-          e.preventDefault();
-          undo();
-        } else if (e.key.toLowerCase() === 'y') {
-          e.preventDefault();
-          redo();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [undo, redo]);
-
-  // Auto-save effect
-  useEffect(() => {
-    const strokesStr = JSON.stringify(strokes);
-    if (strokesStr === lastSavedStrokesRef.current) return;
-
-    const timer = setTimeout(async () => {
-      const nameToSave = drawingName.trim() || 'Untitled Sketch';
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
+    if (!excalidrawAPI) return;
+    const loadLibraries = async () => {
       try {
-        setSaveStatus({ type: 'saving', message: 'Saving...' });
-        const pngBase64 = canvas.toDataURL('image/png');
-        const res = await (window as any).wrriter.saveDrawing(nameToSave, strokes, pngBase64);
+        const libs = await (window as any).wrriter.getLibraries();
+        if (libs && libs.length > 0) {
+          excalidrawAPI.updateLibrary({
+            libraryItems: libs,
+            merge: true
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load Excalidraw libraries:', err);
+      }
+    };
+    loadLibraries();
+  }, [excalidrawAPI]);
+
+  // Handle library changes in Excalidraw
+  const handleLibraryChange = async (items: any[]) => {
+    try {
+      await (window as any).wrriter.saveLibraries(items);
+    } catch (err) {
+      console.error('Failed to persist library items:', err);
+    }
+  };
+
+  // Trigger library file import dialog
+  const handleLibraryImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Import community libraries from file
+  const handleLibraryFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target.result as string);
+        const libraryItems = json.library || json.libraryItems || json;
+        if (Array.isArray(libraryItems) && excalidrawAPI) {
+          excalidrawAPI.updateLibrary({
+            libraryItems,
+            merge: true,
+            prompt: true
+          });
+        } else {
+          alert('Invalid Excalidraw library format.');
+        }
+      } catch (err) {
+        console.error('Failed to parse Excalidraw library:', err);
+        alert('Failed to parse the library file. Ensure it is a valid .excalidrawlib JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset input
+  };
+
+  // Handle selected drawing changes - load elements from JSON file
+  useEffect(() => {
+    if (selectedDrawing) {
+      const loadDrawingData = async () => {
+        try {
+          setIsLoaded(false);
+          setShowOldStrokesWarning(false);
+          setSaveStatus({ type: 'saving', message: 'Loading drawing...' });
+          const res = await (window as any).wrriter.loadDrawing(selectedDrawing.name);
+          setSaveStatus({ type: null, message: '' });
+          
+          if (res) {
+            setDrawingName(selectedDrawing.name);
+            
+            let loadedElements = res.elements || [];
+            let loadedAppState = res.appState || {};
+            let loadedFiles = res.files || {};
+            
+            if (res.isOldStrokes) {
+              setShowOldStrokesWarning(true);
+              loadedElements = [];
+              loadedAppState = {};
+              loadedFiles = {};
+            }
+            
+            currentSceneRef.current = {
+              elements: loadedElements,
+              appState: loadedAppState,
+              files: loadedFiles
+            };
+            
+            const elementsStr = serializeElements(loadedElements);
+            lastSavedElementsRef.current = elementsStr;
+            lastSavedNameRef.current = selectedDrawing.name;
+            
+            setInitialData({
+              elements: loadedElements,
+              appState: {
+                ...loadedAppState,
+                theme: 'dark'
+              },
+              files: loadedFiles
+            });
+          } else {
+            setDrawingName(selectedDrawing.name);
+            currentSceneRef.current = { elements: [], appState: {}, files: {} };
+            lastSavedElementsRef.current = '';
+            lastSavedNameRef.current = selectedDrawing.name;
+            setInitialData({ elements: [], appState: { theme: 'dark' }, files: {} });
+          }
+          setIsLoaded(true);
+        } catch (err) {
+          console.error('Failed to load drawing:', err);
+          setSaveStatus({ type: 'error', message: 'Failed to load drawing data' });
+          setDrawingName(selectedDrawing.name);
+          setInitialData({ elements: [], appState: { theme: 'dark' }, files: {} });
+          setIsLoaded(true);
+        }
+      };
+      loadDrawingData();
+    } else {
+      setDrawingName('');
+      currentSceneRef.current = { elements: [], appState: {}, files: {} };
+      lastSavedElementsRef.current = '';
+      lastSavedNameRef.current = '';
+      setInitialData({ elements: [], appState: { theme: 'dark' }, files: {} });
+      setIsLoaded(true);
+      setShowOldStrokesWarning(false);
+    }
+  }, [selectedDrawing]);
+
+  // Excalidraw change handler
+  const handleSceneChange = (elements: readonly any[], appState: any, files: any) => {
+    currentSceneRef.current = {
+      elements: [...elements],
+      appState,
+      files
+    };
+    triggerAutoSave();
+  };
+
+  // Debounced auto-save triggering
+  const triggerAutoSave = () => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSave();
+    }, 2000);
+  };
+
+  // Auto-save logic
+  const autoSave = async () => {
+    const scene = currentSceneRef.current;
+    if (!scene || !scene.elements) return;
+    
+    const elementsStr = serializeElements(scene.elements);
+    const nameToSave = drawingName.trim() || 'Untitled Sketch';
+    
+    if (elementsStr === lastSavedElementsRef.current && nameToSave === lastSavedNameRef.current) {
+      return;
+    }
+    
+    await saveDrawing(nameToSave, scene.elements, scene.appState, scene.files, elementsStr);
+  };
+
+  // Core drawing saving routine (saves PNG + JSON toAttachments)
+  const saveDrawing = async (nameToSave: string, elements: any[], appState: any, files: any, elementsStr: string) => {
+    try {
+      setSaveStatus({ type: 'saving', message: 'Saving...' });
+      
+      const blob = await exportToBlob({
+        elements: elements.filter(el => !el.isDeleted),
+        appState: {
+          ...appState,
+          exportWithDarkMode: true
+        },
+        files,
+        mimeType: 'image/png'
+      });
+      
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const pngBase64 = reader.result as string;
+        const res = await (window as any).wrriter.saveDrawing(nameToSave, elements, appState, files, pngBase64);
         if (res.success) {
-          lastSavedStrokesRef.current = strokesStr;
+          lastSavedElementsRef.current = elementsStr;
+          lastSavedNameRef.current = nameToSave;
           setSaveStatus({ type: 'success', message: 'Auto-saved' });
           setTimeout(() => {
             setSaveStatus(prev => prev.message === 'Auto-saved' ? { type: null, message: '' } : prev);
           }, 2000);
         } else {
-          setSaveStatus({ type: 'error', message: res.error || 'Auto-save failed' });
-        }
-      } catch (err) {
-        console.error('Auto-save failed:', err);
-        setSaveStatus({ type: 'error', message: String(err) });
-      }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [strokes, drawingName]);
-
-  // Handle selected drawing changes - load strokes and trigger replay
-  useEffect(() => {
-    if (selectedDrawing) {
-      const loadDrawingStrokes = async () => {
-        try {
-          setSaveStatus({ type: 'saving', message: 'Loading drawing...' });
-          const res = await (window as any).wrriter.loadDrawing(selectedDrawing.name);
-          setSaveStatus({ type: null, message: '' });
-          
-          if (res && res.strokes) {
-            setDrawingName(selectedDrawing.name);
-            lastSavedStrokesRef.current = JSON.stringify(res.strokes);
-            // Trigger replay animation
-            setReplayingStrokes(res.strokes);
-          } else {
-            setDrawingName(selectedDrawing.name);
-            lastSavedStrokesRef.current = '[]';
-            setStrokes([]);
-            setReplayingStrokes(null);
-          }
-        } catch (err) {
-          console.error('Failed to load drawing:', err);
-          setSaveStatus({ type: 'error', message: 'Failed to load drawing data' });
-          setDrawingName(selectedDrawing.name);
-          lastSavedStrokesRef.current = '[]';
-          setStrokes([]);
-          setReplayingStrokes(null);
+          setSaveStatus({ type: 'error', message: res.error || 'Save failed' });
         }
       };
-      loadDrawingStrokes();
-    } else {
-      setDrawingName('');
-      lastSavedStrokesRef.current = '[]';
-      setStrokes([]);
-      setReplayingStrokes(null);
-    }
-  }, [selectedDrawing, setStrokes]);
-
-  // Handle drawing name input changes
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDrawingName(e.target.value);
-  };
-
-  // Create new blank drawing
-  const handleNewDrawing = () => {
-    setSelectedDrawing(null);
-    setDrawingName('Untitled Sketch');
-    lastSavedStrokesRef.current = '[]';
-    setStrokes([]);
-    setReplayingStrokes(null);
-    setSaveStatus({ type: null, message: '' });
-  };
-
-  // Save the drawing (writes PNG and JSON to Attachments/)
-  const handleSaveDrawing = async () => {
-    const nameToSave = drawingName.trim() || 'Untitled Sketch';
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    try {
-      setSaveStatus({ type: 'saving', message: 'Saving sketch...' });
-      
-      // Get base64 PNG data URL
-      const pngBase64 = canvas.toDataURL('image/png');
-      
-      const res = await (window as any).wrriter.saveDrawing(nameToSave, strokes, pngBase64);
-      
-      if (res.success) {
-        lastSavedStrokesRef.current = JSON.stringify(strokes);
-        setSaveStatus({ type: 'success', message: `Saved "${nameToSave}" successfully!` });
-        
-        // Find or set selected drawing to keep reference
-        setTimeout(() => {
-          setSaveStatus(prev => prev.message.includes('successfully') ? { type: null, message: '' } : prev);
-        }, 3000);
-      } else {
-        setSaveStatus({ type: 'error', message: res.error || 'Failed to save sketch' });
-      }
+      reader.readAsDataURL(blob);
     } catch (err) {
-      console.error('Failed to save drawing:', err);
+      console.error('Save failed:', err);
       setSaveStatus({ type: 'error', message: String(err) });
     }
   };
 
-  // Handle local image file import
-  const handleImageImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        addImageStroke(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-    // Reset file input value so same file can be selected again
-    e.target.value = '';
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDrawingName(e.target.value);
+    triggerAutoSave();
   };
 
-  // Trigger selection resizing via coordinates mapping
-  const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = ((e.clientX - rect.left) / rect.width) * width;
-    const canvasY = ((e.clientY - rect.top) / rect.height) * height;
-
-    const mappedX = (canvasX - pan.x) / zoom;
-    const mappedY = (canvasY - pan.y) / zoom;
-
-    startResizingSelection(mappedX, mappedY);
-
-    try {
-      canvas.setPointerCapture(e.pointerId);
-    } catch (err) {
-      console.warn('Pointer capture failed:', err);
-    }
+  const handleNewDrawing = () => {
+    setSelectedDrawing(null);
+    setDrawingName('Untitled Sketch');
+    currentSceneRef.current = { elements: [], appState: {}, files: {} };
+    lastSavedElementsRef.current = '';
+    lastSavedNameRef.current = 'Untitled Sketch';
+    setInitialData({ elements: [], appState: { theme: 'dark' }, files: {} });
+    setSaveStatus({ type: null, message: '' });
+    setShowOldStrokesWarning(false);
   };
 
-  // Color Palette Selection (Dynamic depending on Light/Dark theme mode)
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  const colors = [
-    { name: isLight ? 'Black' : 'White', value: isLight ? '#000000' : '#FFFFFF' },
-    { name: 'Grey', value: '#9ca3af' },
-    { name: 'Red', value: '#EF4444' },
-    { name: 'Blue', value: '#3B82F6' },
-    { name: 'Green', value: '#10B981' },
-    { name: 'Dark Gray', value: '#6B7280' }
-  ];
-
-  // Handle canvas click specifically for Text Input
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (tool !== 'text') return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = ((e.clientX - rect.left) / rect.width) * width;
-    const canvasY = ((e.clientY - rect.top) / rect.height) * height;
-
-    const mappedX = (canvasX - pan.x) / zoom;
-    const mappedY = (canvasY - pan.y) / zoom;
-
-    setTextInputPos({
-      x: mappedX,
-      y: mappedY
-    });
-    setTextValue('');
-  };
-
-  // Commit text input overlay changes to stroke list
-  const commitText = () => {
-    if (!textInputPos) return;
-    const trimmedValue = textValue.trim();
-    if (trimmedValue) {
-      addTextStroke(trimmedValue, textInputPos.x, textInputPos.y);
-    }
-    setTextInputPos(null);
-  };
-
-  // Filter drawings list by search
-  const filteredDrawings = index.drawings.filter(d => 
-    d.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => a.name.localeCompare(b.name));
-
-  // Switch from replayer to drawing editor
-  const handleReplayComplete = (completedStrokes: Stroke[]) => {
-    setStrokes(completedStrokes);
-    setReplayingStrokes(null);
+  const handleSaveDrawing = async () => {
+    const scene = currentSceneRef.current;
+    if (!scene || !scene.elements) return;
+    const nameToSave = drawingName.trim() || 'Untitled Sketch';
+    const elementsStr = serializeElements(scene.elements);
+    await saveDrawing(nameToSave, scene.elements, scene.appState, scene.files, elementsStr);
   };
 
   const handleRenameSubmit = async (oldName: string) => {
@@ -427,7 +351,6 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
       if (res.success) {
         if (selectedDrawing && selectedDrawing.name === drawingToDelete.name) {
           setSelectedDrawing(null);
-          clearCanvas();
         }
       } else {
         alert(res.error || 'Failed to delete sketch');
@@ -439,62 +362,41 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
     }
   };
 
-  const handleReplayDrawing = async (drawing: DrawingEntry) => {
-    try {
-      const res = await (window as any).wrriter.loadDrawing(drawing.name);
-      if (res.strokes && res.strokes.length > 0) {
-        setReplayingStrokes(res.strokes);
-      } else {
-        alert('No strokes to replay in this drawing!');
-      }
-    } catch (err) {
-      console.error('Failed to load drawing for replay:', err);
-    }
-  };
-
-  // Calculate selection bounding box mapped through Zoom/Pan translations
-  let selectionBox: { minX: number; minY: number; maxX: number; maxY: number } | null = null;
-  if (selectedIndices.length > 0) {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    selectedIndices.forEach(idx => {
-      const stroke = strokes[idx];
-      if (!stroke) return;
-      stroke.points.forEach(pt => {
-        if (pt.x < minX) minX = pt.x;
-        if (pt.y < minY) minY = pt.y;
-        if (pt.x > maxX) maxX = pt.x;
-        if (pt.y > maxY) maxY = pt.y;
-      });
-    });
-
-    if (minX !== Infinity) {
-      selectionBox = { minX, minY, maxX, maxY };
-    }
-  }
-
-  // Calculate text input overlays position relative to parent DOM bounding rects
-  let textInputLeft = 0;
-  let textInputTop = 0;
-  if (textInputPos && canvasRef.current) {
-    const rect = canvasRef.current.getBoundingClientRect();
-    textInputLeft = ((textInputPos.x * zoom + pan.x) / width) * rect.width;
-    textInputTop = ((textInputPos.y * zoom + pan.y) / height) * rect.height;
-  }
+  // Filter drawings list by search query
+  const filteredDrawings = index.drawings.filter(d => 
+    d.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className={styles.container}>
       {/* Drawings List Sidebar */}
       <div className={styles.sidebar}>
-        {/* Header */}
+        {/* Header Actions */}
         <div className={styles.sidebarHeader}>
           <span className={styles.sidebarTitle}>Drawings</span>
-          <button
-            onClick={handleNewDrawing}
-            className={styles.newSketchBtn}
-            title="New Sketch"
-          >
-            <Plus size={16} />
-          </button>
+          <div className={styles.sidebarActions}>
+            <button
+              onClick={handleLibraryImportClick}
+              className={styles.importLibraryBtn}
+              title="Import Excalidraw Library (.excalidrawlib)"
+            >
+              <Download size={14} />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".excalidrawlib"
+              onChange={handleLibraryFileChange}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={handleNewDrawing}
+              className={styles.newSketchBtn}
+              title="New Sketch"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -511,7 +413,7 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
           </div>
         </div>
 
-        {/* Drawings List Scroll Area */}
+        {/* Drawings Scrollable List */}
         <div className={styles.drawingsList}>
           {filteredDrawings.length === 0 ? (
             <div className={styles.emptyState}>
@@ -563,448 +465,83 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
         </div>
       </div>
 
-      {/* Main Workspace */}
+      {/* Main Drawing Pad Workspace */}
       <div className={styles.mainWorkspace}>
-        {replayingStrokes ? (
-          // Replayer view
-          <CanvasReplayer
-            strokes={replayingStrokes}
-            width={width}
-            height={height}
-            onComplete={() => handleReplayComplete(replayingStrokes)}
-          />
-        ) : (
-          // Interactive Canvas editor
-          <div className={styles.canvasEditor}>
-            {/* Header controls bar */}
-            <div className={styles.editorHeader}>
-              <div className={styles.titleInputWrapper}>
-                <input
-                  type="text"
-                  placeholder="Sketch Name"
-                  value={drawingName}
-                  onChange={handleNameChange}
-                  className={styles.titleInput}
-                />
-              </div>
-
-              {/* Status Indicator */}
-              <div className={styles.statusContainer}>
-                {saveStatus.type === 'saving' && (
-                  <span className={styles.savingText}>Saving...</span>
-                )}
-                {saveStatus.type === 'success' && (
-                  <div className={styles.successText}>
-                    <CheckCircle2 size={12} />
-                    <span>Saved</span>
-                  </div>
-                )}
-                {saveStatus.type === 'error' && (
-                  <div className={styles.errorText} title={saveStatus.message}>
-                    <AlertCircle size={12} />
-                    <span>Error</span>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleSaveDrawing}
-                  disabled={!drawingName.trim()}
-                  className={styles.saveButton}
+        <div className={styles.canvasEditor}>
+          {/* Header Controls Bar */}
+          <div className={styles.editorHeader}>
+            <div className={styles.titleInputWrapper}>
+              <input
+                type="text"
+                placeholder="Sketch Name"
+                value={drawingName}
+                onChange={handleNameChange}
+                className={styles.titleInput}
+              />
+              {showOldStrokesWarning && (
+                <div 
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--color-brand-amber)', fontSize: '0.75rem', fontWeight: 500 }}
+                  title="This is an old format drawing and cannot be loaded as editable shapes. Re-draw or preserve it as is."
                 >
-                  <Save size={13} />
-                  <span>Save Sketch</span>
-                </button>
-              </div>
+                  <AlertTriangle size={14} />
+                  <span>Legacy drawing (Read-Only preview remains)</span>
+                </div>
+              )}
             </div>
 
-            {/* Canvas Area Container */}
-            <div className={styles.canvasWrapper}>
-              <div className={`${styles.canvasBorder} ${styles[`guide_${guidePattern}`]}`}>
-                <canvas
-                  ref={canvasRef}
-                  width={width}
-                  height={height}
-                  onPointerDown={startDrawing}
-                  onPointerMove={draw}
-                  onPointerUp={endDrawing}
-                  onClick={handleCanvasClick}
-                  className={`${styles.canvas} ${styles[`tool_${tool}`] || ''}`}
-                  style={{ width: '100%', height: '100%' }}
-                />
-
-                {/* Selection Box Overlay (Dotted border, transform panel, mapped to zoom/pan matrix) */}
-                {selectionBox && (
-                  <div 
-                    className={styles.selectionOverlay}
-                    style={{
-                      left: `${((selectionBox.minX * zoom + pan.x) / width) * 100}%`,
-                      top: `${((selectionBox.minY * zoom + pan.y) / height) * 100}%`,
-                      width: `${(((selectionBox.maxX - selectionBox.minX) * zoom) / width) * 100}%`,
-                      height: `${(((selectionBox.maxY - selectionBox.minY) * zoom) / height) * 100}%`
-                    }}
-                  >
-                    {/* Bounding Box Resize Handle */}
-                    <div 
-                      className={styles.resizeHandle}
-                      onPointerDown={handleResizePointerDown}
-                      title="Drag to resize selection"
-                    />
-
-                    <div className={styles.selectionToolbar}>
-                      <button
-                        onClick={deleteSelectedStrokes}
-                        className={styles.selectionToolbarBtnDanger}
-                        title="Delete Selected Strokes"
-                      >
-                        <Trash2 size={12} />
-                        <span>Delete</span>
-                      </button>
-                      <div className={styles.selectionToolbarDivider} />
-                      <button
-                        onClick={clearSelection}
-                        className={styles.selectionToolbarBtn}
-                        title="Clear Selection"
-                      >
-                        <X size={12} />
-                        <span>Deselect</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Inline Text Input Overlay (Correctly translated via zoom/pan) */}
-                {textInputPos && (
-                  <div 
-                    className={styles.textInputOverlay}
-                    style={{
-                      left: `${textInputLeft}px`,
-                      top: `${textInputTop}px`
-                    }}
-                  >
-                    <input
-                      type="text"
-                      autoFocus
-                      value={textValue}
-                      onChange={(e) => setTextValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          commitText();
-                        } else if (e.key === 'Escape') {
-                          setTextInputPos(null);
-                        }
-                      }}
-                      onBlur={commitText}
-                      className={styles.textOverlayInput}
-                      style={{
-                        color: color,
-                        fontSize: `${Math.max(12, brushWidth * 3 + 12) * zoom}px`,
-                      }}
-                      placeholder="Type text..."
-                    />
-                  </div>
-                )}
-
-                {/* 5-second Undo Clear Notification */}
-                {showClearUndoBanner && (
-                  <div className={styles.undoBanner}>
-                    <span>Canvas cleared.</span>
-                    <button
-                      onClick={undoClear}
-                      className={styles.undoButton}
-                    >
-                      Undo
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Tools Toolbar (Premium layout using double row spacing) */}
-            <div className={styles.toolbar}>
-              {/* Row 1: Tools selection and configurations */}
-              <div className={styles.toolbarRow}>
-                <div className={styles.toolsGroupContainer}>
-                  {/* Group 1: Pen, Marker, Highlighter, Eraser */}
-                  <div className={styles.toolGroup}>
-                    <button
-                      onClick={() => setTool('pen')}
-                      className={`${styles.toolButton} ${tool === 'pen' ? styles.toolButtonActive : ''}`}
-                      title="Fine Pen"
-                    >
-                      <PenTool size={14} />
-                    </button>
-                    <button
-                      onClick={() => setTool('marker')}
-                      className={`${styles.toolButton} ${tool === 'marker' ? styles.toolButtonActive : ''}`}
-                      title="Medium Marker"
-                    >
-                      <Paintbrush size={14} />
-                    </button>
-                    <button
-                      onClick={() => setTool('highlighter')}
-                      className={`${styles.toolButton} ${tool === 'highlighter' ? styles.toolButtonActive : ''}`}
-                      title="Translucent Highlighter"
-                    >
-                      <Highlighter size={14} />
-                    </button>
-                    <button
-                      onClick={() => setTool('eraser')}
-                      className={`${styles.toolButton} ${tool === 'eraser' ? styles.toolButtonActive : ''}`}
-                      title="Eraser"
-                    >
-                      <Eraser size={14} />
-                    </button>
-                  </div>
-
-                  {/* Group 2: Hand tool, Vector eraser, Lasso selection, Import image */}
-                  <div className={styles.toolGroup}>
-                    <button
-                      onClick={() => setTool('pan')}
-                      className={`${styles.toolButton} ${tool === 'pan' ? styles.toolButtonActive : ''}`}
-                      title="Hand Tool (Pan canvas - hold Spacebar to toggle)"
-                    >
-                      <Hand size={14} />
-                    </button>
-                    <button
-                      onClick={() => setTool('vectorEraser')}
-                      className={`${styles.toolButton} ${tool === 'vectorEraser' ? styles.toolButtonActive : ''}`}
-                      title="Vector Eraser (Tap/drag to delete whole strokes)"
-                    >
-                      <Scissors size={14} />
-                    </button>
-                    <button
-                      onClick={() => setTool('lasso')}
-                      className={`${styles.toolButton} ${tool === 'lasso' ? styles.toolButtonActive : ''}`}
-                      title="Lasso Selection (Draw boundary to move strokes)"
-                    >
-                      <MousePointer size={14} />
-                    </button>
-                    <label className={styles.imageImportLabel} title="Import image from local computer">
-                      <Upload size={14} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageImport}
-                        className={styles.imageImportInput}
-                      />
-                    </label>
-                  </div>
-
-                  {/* Group 3: Line tool, Arrow tool, Rectangle tool, Circle tool, Text tool */}
-                  <div className={styles.toolGroup}>
-                    <button
-                      onClick={() => setTool('line')}
-                      className={`${styles.toolButton} ${tool === 'line' ? styles.toolButtonActive : ''}`}
-                      title="Line Tool"
-                    >
-                      <Minus size={14} style={{ transform: 'rotate(-45deg)' }} />
-                    </button>
-                    <button
-                      onClick={() => setTool('arrow')}
-                      className={`${styles.toolButton} ${tool === 'arrow' ? styles.toolButtonActive : ''}`}
-                      title="Arrow Tool"
-                    >
-                      <ArrowRight size={14} style={{ transform: 'rotate(-45deg)' }} />
-                    </button>
-                    <button
-                      onClick={() => setTool('rect')}
-                      className={`${styles.toolButton} ${tool === 'rect' ? styles.toolButtonActive : ''}`}
-                      title="Rectangle Tool"
-                    >
-                      <Square size={14} />
-                    </button>
-                    <button
-                      onClick={() => setTool('circle')}
-                      className={`${styles.toolButton} ${tool === 'circle' ? styles.toolButtonActive : ''}`}
-                      title="Circle Tool"
-                    >
-                      <Circle size={14} />
-                    </button>
-                    <button
-                      onClick={() => setTool('text')}
-                      className={`${styles.toolButton} ${tool === 'text' ? styles.toolButtonActive : ''}`}
-                      title="Text Tool"
-                    >
-                      <Type size={14} />
-                    </button>
-                  </div>
-
-                  {/* Group 4: Auto shape, Grid snap */}
-                  <div className={styles.toolGroup}>
-                    <button
-                      onClick={() => setAutoCorrect(prev => !prev)}
-                      className={`${styles.toolButton} ${autoCorrect ? styles.toolButtonActive : ''}`}
-                      title="Auto Shape Correction (Smooth wobbly hand-drawn lines, circles, and boxes)"
-                    >
-                      <Sparkles size={14} />
-                    </button>
-                    <button
-                      onClick={() => setSnapToGrid(prev => !prev)}
-                      className={`${styles.toolButton} ${snapToGrid ? styles.toolButtonActive : ''}`}
-                      title="Coordinate Snap-to-Grid (Snaps shapes and selections to grid dots)"
-                    >
-                      <Grid size={14} />
-                    </button>
-                  </div>
+            {/* Status indicators */}
+            <div className={styles.statusContainer}>
+              {saveStatus.type === 'saving' && (
+                <span className={styles.savingText}>Saving...</span>
+              )}
+              {saveStatus.type === 'success' && (
+                <div className={styles.successText}>
+                  <CheckCircle2 size={12} />
+                  <span>Saved</span>
                 </div>
-
-                <div className={styles.settingsGroupContainer}>
-                  {/* Optional Shape Fill Toggle */}
-                  {(tool === 'rect' || tool === 'circle') && (
-                    <div className={styles.fillToggleWrapper}>
-                      <label className={styles.fillLabel}>
-                        <input
-                          type="checkbox"
-                          checked={filled}
-                          onChange={(e) => setFilled(e.target.checked)}
-                          className={styles.fillCheckbox}
-                        />
-                        <span>Fill</span>
-                      </label>
-                    </div>
-                  )}
-
-                  {/* Guidelines Toggle */}
-                  <div className={styles.guidesWrapper}>
-                    <span className={styles.guidesLabel}>Guides</span>
-                    <select
-                      value={guidePattern}
-                      onChange={(e) => setGuidePattern(e.target.value as any)}
-                      className={styles.guidesSelect}
-                    >
-                      <option value="blank">None</option>
-                      <option value="grid">Grid</option>
-                      <option value="dots">Dots</option>
-                      <option value="lines">Lines</option>
-                      <option value="cornell">Cornell</option>
-                      <option value="music">Music</option>
-                      <option value="isometric">3D Dots</option>
-                    </select>
-                  </div>
+              )}
+              {saveStatus.type === 'error' && (
+                <div className={styles.errorText} title={saveStatus.message}>
+                  <AlertCircle size={12} />
+                  <span>Error</span>
                 </div>
-              </div>
+              )}
 
-
-              {/* Row 2: Brush properties (colors/size) and operations */}
-              <div className={styles.toolbarRow}>
-                {/* Color Selection (hidden if tool is eraser or vectorEraser) */}
-                <div className={`${styles.colorsWrapper} ${(tool === 'eraser' || tool === 'vectorEraser' || tool === 'lasso' || tool === 'pan') ? styles.colorsDisabled : ''}`}>
-                  <span className={styles.colorsLabel}>Colors</span>
-                  <div className={styles.colorsContainer}>
-                    {colors.map((c) => (
-                      <button
-                        key={c.value}
-                        onClick={() => setColor(c.value)}
-                        className={`${styles.colorBtn} ${color === c.value ? styles.colorBtnActive : ''}`}
-                        style={{ backgroundColor: c.value }}
-                        title={c.name}
-                      >
-                        {color === c.value && (
-                          <span className={styles.colorBtnInner} />
-                        )}
-                      </button>
-                    ))}
-                    
-                    {/* Custom Color Spectrum Picker Button */}
-                    <div className={styles.customColorPickerWrapper} title="Pick custom color">
-                      <input
-                        type="color"
-                        value={color}
-                        onChange={(e) => setColor(e.target.value)}
-                        className={styles.customColorInput}
-                      />
-                      <span className={styles.customColorBtnInner} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Size slider info */}
-                <div className={styles.sizeWrapper}>
-                  <span className={styles.sizeLabel}>
-                    {tool === 'text' ? 'Font Size' : 'Brush Size'}
-                  </span>
-                  <div className={styles.sizeContainer}>
-                    <input
-                      type="range"
-                      min="1"
-                      max="50"
-                      value={brushWidth}
-                      onChange={(e) => setBrushWidth(Number(e.target.value))}
-                      className={styles.sizeSlider}
-                    />
-                    <span className={styles.sizeText}>{brushWidth}px</span>
-                  </div>
-                </div>
-
-                {/* Zoom Control Pill (Toolbar Zoom/Pan triggers) */}
-                <div className={styles.zoomContainer}>
-                  <button
-                    onClick={() => setZoom(z => Math.max(0.2, z - 0.1))}
-                    className={styles.zoomBtn}
-                    title="Zoom Out"
-                  >
-                    <ZoomOut size={13} />
-                  </button>
-                  <span className={styles.zoomText}>{Math.round(zoom * 100)}%</span>
-                  <button
-                    onClick={() => setZoom(z => Math.min(5, z + 0.1))}
-                    className={styles.zoomBtn}
-                    title="Zoom In"
-                  >
-                    <ZoomIn size={13} />
-                  </button>
-                  <button
-                    onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-                    className={styles.zoomResetBtn}
-                    title="Reset Zoom & Pan"
-                  >
-                    <Maximize2 size={13} />
-                  </button>
-                </div>
-
-                {/* Action Operations (Undo / Redo / Clear / Replay) */}
-                <div className={styles.actionsContainer}>
-                  <button
-                    onClick={undo}
-                    disabled={!canUndo}
-                    className={styles.actionBtn}
-                    title="Undo last stroke"
-                  >
-                    <Undo2 size={15} />
-                  </button>
-                  <button
-                    onClick={redo}
-                    disabled={!canRedo}
-                    className={styles.actionBtn}
-                    title="Redo stroke"
-                  >
-                    <Redo2 size={15} />
-                  </button>
-                  <button
-                    onClick={clearCanvas}
-                    disabled={strokes.length === 0}
-                    className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                    title="Clear canvas (undone within 5s)"
-                  >
-                    <RotateCcw size={15} />
-                  </button>
-                  <div className={styles.divider} />
-                  <button
-                    onClick={() => setReplayingStrokes(strokes)}
-                    disabled={strokes.length === 0}
-                    className={styles.actionBtn}
-                    title="Replay drawing animation"
-                  >
-                    <Play size={15} />
-                  </button>
-                </div>
-              </div>
+              <button
+                onClick={handleSaveDrawing}
+                disabled={!drawingName.trim()}
+                className={styles.saveButton}
+              >
+                <Save size={13} />
+                <span>Save Sketch</span>
+              </button>
             </div>
           </div>
-        )}
+
+          {/* Excalidraw Area */}
+          {isLoaded && (
+            <div className={styles.excalidrawContainer}>
+              <Excalidraw
+                key={selectedDrawing?.name ?? 'new'}
+                excalidrawAPI={(api) => setExcalidrawAPI(api)}
+                initialData={initialData ?? { elements: [], appState: { theme: 'dark' }, files: {} }}
+                onChange={handleSceneChange}
+                onLibraryChange={handleLibraryChange}
+                theme="dark"
+                UIOptions={{
+                  canvasActions: {
+                    saveToActiveFile: false,
+                    export: false,
+                    loadScene: false,
+                  }
+                }}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Context Menu Popup */}
+      {/* Drawing List Context Menu */}
       {contextMenu && (
         <DrawingContextMenu
           x={contextMenu.x}
@@ -1014,7 +551,6 @@ export default function DrawingView({ index, _vaultPath }: DrawingViewProps) {
             setRenamingDrawing(contextMenu.drawing.name);
             setRenameText(contextMenu.drawing.name);
           }}
-          onReplay={() => handleReplayDrawing(contextMenu.drawing)}
           onDuplicate={() => handleDuplicateDrawing(contextMenu.drawing)}
           onDelete={() => setDrawingToDelete(contextMenu.drawing)}
         />

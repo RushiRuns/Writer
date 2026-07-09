@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Edit2, Play, Copy, Trash2 } from 'lucide-react';
+import { Edit2, Copy, Trash2 } from 'lucide-react';
 import styles from './DrawingContextMenu.module.css';
 
 interface DrawingContextMenuProps {
@@ -7,7 +7,6 @@ interface DrawingContextMenuProps {
   y: number;
   onClose: () => void;
   onRename: () => void;
-  onReplay: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
@@ -17,7 +16,6 @@ export default function DrawingContextMenu({
   y,
   onClose,
   onRename,
-  onReplay,
   onDuplicate,
   onDelete
 }: DrawingContextMenuProps) {
@@ -57,17 +55,6 @@ export default function DrawingContextMenu({
       >
         <Edit2 size={13} className={styles.icon} />
         <span>Rename Sketch</span>
-      </button>
-
-      <button
-        onClick={() => {
-          onReplay();
-          onClose();
-        }}
-        className={styles.btn}
-      >
-        <Play size={13} className={styles.icon} />
-        <span>Replay Drawing</span>
       </button>
 
       <button
